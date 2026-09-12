@@ -1,0 +1,22 @@
+{
+  "schema": "pfa.tape.v1",
+  "t0": "2026-09-12T13:50:00.000-04:00",
+  "duration_s": 1200,
+  "healthy_s": 480,
+  "hop_s": 1.0,
+  "window_s": 2.0,
+  "quality_good": 192,
+  "honesty": "No invented RMS or waveforms. L0 points at CWRU. L1 process is VLFT DES.",
+  "files": {
+    "l0": "l0/rpp1-de.jsonl",
+    "l1": "l1/historian.csv",
+    "l2": "l2/dirty.jsonl",
+    "l2_line": "l2/dirty.txt"
+  },
+  "parse": {
+    "l0": "One DAQ drop per hop. Writer slices source[t0:t1] and calls PMMCP. Never store n_samples of g in sqlite.",
+    "l1": "PI-narrow (ts,tag,value). INSERT historian(asset_id,tag,ts,value,unit,source). Do not diagnose.",
+    "l2": "One dirty line. Split whitespace. _ means fill from last L1 row for that asset."
+  },
+  "flag_at": "2026-09-12T13:58:00.000-04:00"
+}

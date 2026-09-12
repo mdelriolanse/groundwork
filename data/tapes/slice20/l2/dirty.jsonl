@@ -1,0 +1,15 @@
+{
+  "schema": "pfa.l2.v1",
+  "ts": "2026-09-12T13:58:00.000-04:00",
+  "line": "RPP1 URjoint1 BPFI _ _ 1797 cwru:105.mat:X105_DE_time:0.00..2.00 none",
+  "asset_id": "RPP1",
+  "part": "URjoint1",
+  "flag": "BPFI",
+  "rms_g": null,
+  "bpxx_hz": null,
+  "rpm": 1797,
+  "source": "cwru:105.mat:X105_DE_time",
+  "window": "0.00..2.00",
+  "wo": "none",
+  "note": "rms_g and bpxx_hz are _ until L1 writes PMMCP features for this hop"
+}

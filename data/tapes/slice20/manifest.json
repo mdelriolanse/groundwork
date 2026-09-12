@@ -1,0 +1,20 @@
+{
+  "schema": "pfa.tape.slice20.v1",
+  "parent": "pfa.tape.v1",
+  "t0": "2026-09-12T13:57:50.000-04:00",
+  "t1": "2026-09-12T13:58:09.000-04:00",
+  "duration_s": 20,
+  "hop0": 470,
+  "hops": 20,
+  "hop_s": 1.0,
+  "window_s": 2.0,
+  "flag_at": "2026-09-12T13:58:00.000-04:00",
+  "flag_hop": 10,
+  "honesty": "Window pointers only. No invented RMS. Flip is hop 10 / flag_at.",
+  "files": {
+    "l0": "l0/rpp1-de.jsonl",
+    "l1": "l1/historian.csv",
+    "l2": "l2/dirty.jsonl",
+    "l2_line": "l2/dirty.txt"
+  }
+}
