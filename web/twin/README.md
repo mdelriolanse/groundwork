@@ -14,11 +14,11 @@ Click a station in plan mode to open its Asset 360 (parent handles `twin:select`
 
 Parent → twin: `twin:focus {assetId}`, `twin:fit`, `twin:view {view, inset:{left,top,right,bottom}}`, `twin:light {assetId, part}` (inspection/part selection), `twin:issues {parts:[{assetId,part}]}` (sqlite open issues → red glow; ignored in plan mode).
 
-Parent → twin (part mode): `twin:light {assetId, part}` selects a part (blue), `twin:part:clear` clears selection only (does not clear issue glow), `twin:issues` sets/clears issue meshes.
+Parent → twin (part mode): `twin:asset {assetId}` swaps the loaded station without reloading the iframe, `twin:light {assetId, part}` selects a part (blue), `twin:part:clear` clears selection only (does not clear issue glow), `twin:issues` sets/clears issue meshes.
 
 Twin → parent (part mode): `twin:part {asset_id, part|null}` on click.
 
-Twin → parent: `twin:stations {cells, stations[{asset_id, model, cell, monitored, source}]}`, `twin:ready {view}`, `twin:layout {view, width, height, anchors[{asset_id, x, y, w, h}]}` (screen-space bbox per station, posted after every camera change), `twin:select {asset_id}`, `twin:hover {asset_id|null}`.
+Twin → parent: `twin:stations {cells, stations[{asset_id, model, cell, monitored, source}]}`, `twin:ready {view, asset_id}`, `twin:layout {view, width, height, anchors[{asset_id, x, y, w, h}]}` (screen-space bbox per station, posted after every camera change), `twin:select {asset_id}`, `twin:hover {asset_id|null}`.
 
 The parent draws labels, markers, tree, and legend from `twin:layout`; the twin draws only geometry, grid, and the selection outline.
 

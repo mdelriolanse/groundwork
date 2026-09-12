@@ -4,17 +4,27 @@
   "hero": "RPP1",
   "cite": "https://github.com/difactory/repository",
   "license": "CC BY-NC 4.0",
-  "honesty": "All stations monitored with L1 tags. RPP1 and MTR07-CAD may carry CWRU-diagnosed vibration (ISO context only; both << 15 kW). Everyone else is process/electrical — never invented vibration or ISO zones.",
+  "honesty": "All stations monitored with L1 tags. RPP1 carries CWRU-diagnosed vibration; MTR07-CAD and PP5 (AC motor) carry Mendeley (ztmf3m7h5x)-diagnosed vibration. All ISO context only (<< 15 kW, unconfirmed - needs verification). Everyone else is process/electrical - never invented vibration or ISO zones.",
   "assets": [
     {
       "asset_id": "RPP1",
-      "aliases": ["MTR-07"],
+      "aliases": [
+        "MTR-07"
+      ],
       "role": "hero",
       "part": "URjoint1",
       "source": "cwru:105.mat",
-      "tape": ["97.mat", "105.mat"],
+      "tape": [
+        "97.mat",
+        "105.mat"
+      ],
       "glb": "UR_Pick_and_Place_Station.glb",
-      "click_nodes": ["RPP1", "URjoint1", "URPPs_Robot", "URbase"],
+      "click_nodes": [
+        "RPP1",
+        "URjoint1",
+        "URPPs_Robot",
+        "URbase"
+      ],
       "name": "UR pick-and-place"
     },
     {
@@ -23,9 +33,15 @@
       "role": "process",
       "part": "T_Machine_Static",
       "source": "vlft:process",
-      "tape": ["process.json"],
+      "tape": [
+        "process.json"
+      ],
       "glb": "Tightener_Station.glb",
-      "click_nodes": ["T1", "T_Machine_Static", "T_Machine_Floating_Y"],
+      "click_nodes": [
+        "T1",
+        "T_Machine_Static",
+        "T_Machine_Floating_Y"
+      ],
       "name": "Tightener"
     },
     {
@@ -36,7 +52,10 @@
       "source": "synthetic:indexer",
       "tape": [],
       "glb": "Rotating_Table_Station.glb",
-      "click_nodes": ["RT1", "R_Table"],
+      "click_nodes": [
+        "RT1",
+        "R_Table"
+      ],
       "name": "Rotating table"
     },
     {
@@ -47,7 +66,12 @@
       "source": "synthetic:vac-gripper",
       "tape": [],
       "glb": "Wing_Conveyor_1_Station.glb",
-      "click_nodes": ["PPW1", "WC1_Static", "WC1_Floating_X", "WC1_Floating_Y"],
+      "click_nodes": [
+        "PPW1",
+        "WC1_Static",
+        "WC1_Floating_X",
+        "WC1_Floating_Y"
+      ],
       "name": "Wing conveyor 1"
     },
     {
@@ -58,7 +82,12 @@
       "source": "synthetic:vac-gripper",
       "tape": [],
       "glb": "Wing_Conveyor_2_Station.glb",
-      "click_nodes": ["PPH1", "WC2_Static", "WC2_Floating_X", "WC2_Floating_Y"],
+      "click_nodes": [
+        "PPH1",
+        "WC2_Static",
+        "WC2_Floating_X",
+        "WC2_Floating_Y"
+      ],
       "name": "Wing conveyor 2"
     },
     {
@@ -66,10 +95,16 @@
       "aliases": [],
       "role": "condition",
       "part": "1LE1003-1EB23-4JA4",
-      "source": "cwru:130.mat",
-      "tape": ["130.mat"],
+      "source": "mendeley:0Nm_BPFI_10__ch0.mat",
+      "tape": [
+        "0Nm_Normal__ch0.mat",
+        "0Nm_BPFI_10__ch0.mat"
+      ],
       "glb": "Siemens_1LE1003_Motor.glb",
-      "click_nodes": ["MTR07-CAD", "1LE1003-1EB23-4JA4"],
+      "click_nodes": [
+        "MTR07-CAD",
+        "1LE1003-1EB23-4JA4"
+      ],
       "name": "Siemens 1LE1003"
     },
     {
@@ -80,7 +115,10 @@
       "source": "synthetic:dorner-gearmotor",
       "tape": [],
       "glb": "Conveyor_Main.glb",
-      "click_nodes": ["B1", "belt"],
+      "click_nodes": [
+        "B1",
+        "belt"
+      ],
       "name": "Conveyor buffer 1"
     },
     {
@@ -91,7 +129,10 @@
       "source": "synthetic:dorner-gearmotor",
       "tape": [],
       "glb": "Conveyor_Main.glb",
-      "click_nodes": ["B2", "belt"],
+      "click_nodes": [
+        "B2",
+        "belt"
+      ],
       "name": "Conveyor buffer 2"
     },
     {
@@ -102,7 +143,10 @@
       "source": "synthetic:dorner-gearmotor",
       "tape": [],
       "glb": "Conveyor_Main.glb",
-      "click_nodes": ["B3", "belt"],
+      "click_nodes": [
+        "B3",
+        "belt"
+      ],
       "name": "Conveyor buffer 3"
     },
     {
@@ -113,7 +157,10 @@
       "source": "synthetic:dorner-gearmotor",
       "tape": [],
       "glb": "Conveyor_Main.glb",
-      "click_nodes": ["B4", "belt"],
+      "click_nodes": [
+        "B4",
+        "belt"
+      ],
       "name": "Conveyor buffer 4"
     },
     {
@@ -124,7 +171,12 @@
       "source": "synthetic:vlft-pi",
       "tape": [],
       "glb": "Pin_Insertion_Station.glb",
-      "click_nodes": ["PI1", "PI_Machine_Static", "PI_Machine_Floating_X", "Vibrating_Bowl_Pins"],
+      "click_nodes": [
+        "PI1",
+        "PI_Machine_Static",
+        "PI_Machine_Floating_X",
+        "Vibrating_Bowl_Pins"
+      ],
       "name": "Pin insert 1"
     },
     {
@@ -135,7 +187,12 @@
       "source": "synthetic:vlft-pi",
       "tape": [],
       "glb": "Pin_Insertion_Station.glb",
-      "click_nodes": ["PI2", "PI_Machine_Static", "PI_Machine_Floating_X", "Vibrating_Bowl_Pins"],
+      "click_nodes": [
+        "PI2",
+        "PI_Machine_Static",
+        "PI_Machine_Floating_X",
+        "Vibrating_Bowl_Pins"
+      ],
       "name": "Pin insert 2"
     },
     {
@@ -146,7 +203,12 @@
       "source": "synthetic:vlft-pi",
       "tape": [],
       "glb": "Pin_Insertion_Station.glb",
-      "click_nodes": ["PI3", "PI_Machine_Static", "PI_Machine_Floating_X", "Vibrating_Bowl_Pins"],
+      "click_nodes": [
+        "PI3",
+        "PI_Machine_Static",
+        "PI_Machine_Floating_X",
+        "Vibrating_Bowl_Pins"
+      ],
       "name": "Pin insert 3"
     },
     {
@@ -157,7 +219,12 @@
       "source": "synthetic:vlft-pi",
       "tape": [],
       "glb": "Pin_Insertion_Station.glb",
-      "click_nodes": ["PI4", "PI_Machine_Static", "PI_Machine_Floating_X", "Vibrating_Bowl_Pins"],
+      "click_nodes": [
+        "PI4",
+        "PI_Machine_Static",
+        "PI_Machine_Floating_X",
+        "Vibrating_Bowl_Pins"
+      ],
       "name": "Pin insert 4"
     },
     {
@@ -168,7 +235,12 @@
       "source": "synthetic:vac-gripper",
       "tape": [],
       "glb": "Pick_and_Place_Station.glb",
-      "click_nodes": ["PP1", "PP_Static", "PP_Floating_X", "PP_Floating_Y"],
+      "click_nodes": [
+        "PP1",
+        "PP_Static",
+        "PP_Floating_X",
+        "PP_Floating_Y"
+      ],
       "name": "Pick & place 1"
     },
     {
@@ -179,7 +251,12 @@
       "source": "synthetic:vac-gripper",
       "tape": [],
       "glb": "Pick_and_Place_Station.glb",
-      "click_nodes": ["PP2", "PP_Static", "PP_Floating_X", "PP_Floating_Y"],
+      "click_nodes": [
+        "PP2",
+        "PP_Static",
+        "PP_Floating_X",
+        "PP_Floating_Y"
+      ],
       "name": "Pick & place 2"
     },
     {
@@ -190,7 +267,12 @@
       "source": "synthetic:vac-gripper",
       "tape": [],
       "glb": "Pick_and_Place_Station.glb",
-      "click_nodes": ["PP3", "PP_Static", "PP_Floating_X", "PP_Floating_Y"],
+      "click_nodes": [
+        "PP3",
+        "PP_Static",
+        "PP_Floating_X",
+        "PP_Floating_Y"
+      ],
       "name": "Pick & place 3"
     },
     {
@@ -201,7 +283,12 @@
       "source": "synthetic:vac-gripper",
       "tape": [],
       "glb": "Pick_and_Place_Station.glb",
-      "click_nodes": ["PP4", "PP_Static", "PP_Floating_X", "PP_Floating_Y"],
+      "click_nodes": [
+        "PP4",
+        "PP_Static",
+        "PP_Floating_X",
+        "PP_Floating_Y"
+      ],
       "name": "Pick & place 4"
     },
     {
@@ -209,10 +296,19 @@
       "aliases": [],
       "role": "process",
       "part": "PP_Static",
-      "source": "synthetic:vac-gripper",
-      "tape": [],
+      "source": "mendeley:0Nm_BPFI_10__ch0.mat",
+      "tape": [
+        "0Nm_Normal__ch0.mat",
+        "0Nm_BPFI_10__ch0.mat"
+      ],
       "glb": "Pick_and_Place_Station_Box.glb",
-      "click_nodes": ["PP5", "PP_Static", "PP_Floating_X", "PP_Floating_Y"],
+      "click_nodes": [
+        "PP5",
+        "PP_Static",
+        "PP_Floating_X",
+        "PP_Floating_Y",
+        "AC motor"
+      ],
       "name": "Pick & place box"
     },
     {
@@ -223,7 +319,11 @@
       "source": "synthetic:baltec-en20",
       "tape": [],
       "glb": "Riveting_Station.glb",
-      "click_nodes": ["R1", "R_Machine_Static", "R_Machine_Floating_X1"],
+      "click_nodes": [
+        "R1",
+        "R_Machine_Static",
+        "R_Machine_Floating_X1"
+      ],
       "name": "Riveter 1"
     },
     {
@@ -234,7 +334,11 @@
       "source": "synthetic:baltec-en20",
       "tape": [],
       "glb": "Riveting_Station.glb",
-      "click_nodes": ["R2", "R_Machine_Static", "R_Machine_Floating_X1"],
+      "click_nodes": [
+        "R2",
+        "R_Machine_Static",
+        "R_Machine_Floating_X1"
+      ],
       "name": "Riveter 2"
     },
     {
@@ -245,7 +349,11 @@
       "source": "synthetic:baltec-en20",
       "tape": [],
       "glb": "Riveting_Station.glb",
-      "click_nodes": ["R3", "R_Machine_Static", "R_Machine_Floating_X1"],
+      "click_nodes": [
+        "R3",
+        "R_Machine_Static",
+        "R_Machine_Floating_X1"
+      ],
       "name": "Riveter 3"
     },
     {
@@ -256,7 +364,11 @@
       "source": "synthetic:baltec-en20",
       "tape": [],
       "glb": "Riveting_Station.glb",
-      "click_nodes": ["R4", "R_Machine_Static", "R_Machine_Floating_X1"],
+      "click_nodes": [
+        "R4",
+        "R_Machine_Static",
+        "R_Machine_Floating_X1"
+      ],
       "name": "Riveter 4"
     },
     {
@@ -267,7 +379,10 @@
       "source": "synthetic:aoi-lux",
       "tape": [],
       "glb": "Inspection_Camera_Station.glb",
-      "click_nodes": ["C1", "Cs_Camera"],
+      "click_nodes": [
+        "C1",
+        "Cs_Camera"
+      ],
       "name": "Inspection camera"
     },
     {
@@ -278,7 +393,12 @@
       "source": "synthetic:vac-gripper",
       "tape": [],
       "glb": "Collection_Box_Station.glb",
-      "click_nodes": ["CB1", "CB_Static", "CB_Floating_X", "CB_Floating_Y"],
+      "click_nodes": [
+        "CB1",
+        "CB_Static",
+        "CB_Floating_X",
+        "CB_Floating_Y"
+      ],
       "name": "Collection box"
     }
   ]

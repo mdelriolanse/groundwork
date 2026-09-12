@@ -82,6 +82,9 @@ const raycaster = new THREE.Raycaster();
 const pointer = new THREE.Vector2();
 const loader = new GLTFLoader();
 const cache = new Map();
+const claimed = new Set();
+let swapGen = 0;
+let pendingAsset = null;
 
 let pickRoots = [];
 let assetMap = { hero: "RPP1", assets: [] };
@@ -103,6 +106,11 @@ const sensorMat = new THREE.MeshLambertMaterial({ color: 0xb8c5d4, vertexColors:
 const partMat = new THREE.MeshLambertMaterial({ color: 0x5b7fc7, vertexColors: false });
 const issueCriticalMat = new THREE.MeshLambertMaterial({ color: 0xc62828, vertexColors: false });
 const issueWarningMat = new THREE.MeshLambertMaterial({ color: 0xf9a825, vertexColors: false });
+/** Plan-view only: stations currently "busy" per the live hop-loop process feed. */
+const busyMat = new THREE.MeshLambertMaterial({ color: 0x86efac, vertexColors: false });
+let busyAssets = new Set();
+/** Plan-view only: assetId -> severity for stations with an open issue (whole-station tint). */
+let issueAssets = new Map();
 let litPart = null;
 /** @type {{ node: THREE.Object3D, severity: string }[]} */
 let issueNodes = [];
@@ -207,7 +215,119 @@ async function loadGltf(file) {
       loader.loadAsync(`/twin/glb/${file}`).then((g) => g.scene)
     );
   }
-  return (await cache.get(file)).clone(true);
+  const source = await cache.get(file);
+  // First live use keeps the parsed graph; later copies (plan-mode duplicates) clone.
+  if (!claimed.has(file)) {
+    claimed.add(file);
+    return source;
+  }
+  return source.clone(true);
+}
+
+function placementFor(assetId) {
+  return sceneSpec.placements.find((p) => p.asset_id === assetId && p.kind !== "scenery") || null;
+}
+
+function placeModel(model, p) {
+  partBoundaryCache.delete(model);
+  model.name = p.asset_id;
+  model.userData.asset_id = p.asset_id;
+  model.userData.kind = p.kind;
+  model.userData.cell = p.cell || null;
+  model.userData.file = p.file;
+  if (partMode) model.position.set(0, p.position[1], 0);
+  else model.position.set(p.position[0], p.position[1], p.position[2]);
+  model.rotation.set(p.rotation[0], p.rotation[1], p.rotation[2], "XYZ");
+}
+
+async function mountPlacement(p) {
+  const model = await loadGltf(p.file);
+  placeModel(model, p);
+  model.traverse((o) => {
+    if (o.isMesh) {
+      o.castShadow = false;
+      o.receiveShadow = false;
+    }
+  });
+  line.add(model);
+  pickRoots.push(model);
+  return model;
+}
+
+function clearPartStation() {
+  for (const root of pickRoots) {
+    line.remove(root);
+    if (root.userData.file) claimed.delete(root.userData.file);
+  }
+  pickRoots = [];
+  litPart = null;
+  issueNodes = [];
+  partFocusFramed = false;
+}
+
+function framePartStation() {
+  const root = pickRoots[0];
+  if (!root) return;
+  const b = root.userData.box;
+  const c = b.getCenter(new THREE.Vector3());
+  const s = Math.max(b.getSize(new THREE.Vector3()).length(), 0.8);
+  controls.target.copy(c);
+  perspective.position.set(c.x + s * 0.75, c.y + s * 0.55, c.z + s * 0.75);
+  controls.minDistance = s * 0.3;
+  controls.maxDistance = s * 3;
+  controls.maxPolarAngle = Math.PI / 2 - 0.02;
+  perspective.near = 0.02;
+  perspective.far = 80;
+  perspective.updateProjectionMatrix();
+}
+
+function postReady() {
+  if (parent === window) return;
+  parent.postMessage({ type: "twin:ready", view, asset_id: pickRoots[0]?.userData.asset_id || null }, parentOrigin);
+}
+
+async function showAsset(assetId) {
+  if (!partMode) return false;
+  if (typeof assetId !== "string" || !assetId || assetId.length > 128) return false;
+  const p = placementFor(assetId);
+  if (!p) return false;
+  const gen = ++swapGen;
+  const current = pickRoots[0];
+  if (current?.userData.asset_id === assetId) {
+    postReady();
+    return true;
+  }
+  if (current?.userData.file === p.file) {
+    placeModel(current, p);
+    scene.updateMatrixWorld(true);
+    current.userData.box = new THREE.Box3().setFromObject(current);
+    litPart = null;
+    issueNodes = [];
+    partFocusFramed = false;
+    applyPartMaterials();
+    framePartStation();
+    resize();
+    fitPart();
+    postReady();
+    return true;
+  }
+  clearPartStation();
+  try {
+    await mountPlacement(p);
+  } catch (e) {
+    console.warn("skip", p.file, e);
+    if (gen === swapGen) postReady();
+    return false;
+  }
+  if (gen !== swapGen) return false;
+  scene.updateMatrixWorld(true);
+  for (const root of pickRoots) root.userData.box = new THREE.Box3().setFromObject(root);
+  applyPartMaterials();
+  framePartStation();
+  resize();
+  fitPart();
+  postReady();
+  return true;
 }
 
 function walkNamed(obj) {
@@ -471,10 +591,18 @@ function setOutline(root) {
 function applyPlanMaterials() {
   for (const root of pickRoots) {
     const dim = Boolean(focused) && root.userData.asset_id !== focused;
+    const issueSeverity = !dim && issueAssets.get(root.userData.asset_id);
+    const busy = !dim && !issueSeverity && busyAssets.has(root.userData.asset_id);
     root.traverse((o) => {
-      if (o.isMesh) o.material = dim ? dimMat : neutralMat;
+      if (o.isMesh) o.material = dim ? dimMat : issueSeverity ? issueMaterial(issueSeverity) : busy ? busyMat : neutralMat;
     });
   }
+}
+
+/** twin:flow {busy:[assetId,...]} - live process state from the fleet's hop loop, plan view only. */
+function setBusy(ids) {
+  busyAssets = new Set(Array.isArray(ids) ? ids : []);
+  if (planMode) applyPlanMaterials();
 }
 
 // Screen-space rects per station, in iframe pixels. Parent positions labels on these.
@@ -667,9 +795,23 @@ function highlightPart(node) {
   return litPart;
 }
 
-/** Parent posts sqlite issues: { parts: [{ assetId, part, severity? }] }. Plan mode ignores. */
+/** Parent posts sqlite issues: { parts: [{ assetId, part, severity? }] }.
+ * Plan mode: whole-station tint via issueAssets (below), highest severity per asset wins.
+ * Inspection/part mode: per-part paint on the named node, unchanged. */
 function setIssues(parts) {
-  if (planMode) return false;
+  const list = Array.isArray(parts) ? parts : [];
+  issueAssets = new Map();
+  for (const item of list) {
+    const assetId = item?.assetId ?? item?.asset_id;
+    if (typeof assetId !== "string" || !assetId || assetId.length > 128) continue;
+    const severity = item.severity || item.priority || "critical";
+    const isCritical = issueMaterial(severity) === issueCriticalMat;
+    if (!issueAssets.has(assetId) || isCritical) issueAssets.set(assetId, severity);
+  }
+  if (planMode) {
+    applyPlanMaterials();
+    return true;
+  }
   // Inspection: restore any previously issue-painted meshes before rebuilding the set.
   if (!partMode) {
     for (const entry of issueNodes) {
@@ -718,9 +860,15 @@ function partNodeFor(obj, root) {
 window.addEventListener("message", (event) => {
   if (event.source !== parent) return;
   if (event.origin !== parentOrigin) return;
-  if (!bridgeReady || !event.data || typeof event.data !== "object") return;
+  if (!event.data || typeof event.data !== "object") return;
   const { type, assetId, part } = event.data;
   const validAsset = typeof assetId === "string" && assetId.length > 0 && assetId.length <= 128;
+  if (type === "twin:asset" && validAsset) {
+    if (!bridgeReady || !partMode) { pendingAsset = assetId; return; }
+    showAsset(assetId);
+    return;
+  }
+  if (!bridgeReady) return;
   if (type === "twin:focus") {
     if (validAsset) focusAsset(assetId);
     return;
@@ -735,6 +883,10 @@ window.addEventListener("message", (event) => {
   }
   if (type === "twin:issues") {
     setIssues(event.data.parts);
+    return;
+  }
+  if (type === "twin:flow") {
+    setBusy(event.data.busy);
     return;
   }
   if (type === "twin:view") {
@@ -847,29 +999,12 @@ async function boot() {
   for (const p of sceneSpec.placements) {
     if (p.kind === "scenery") continue;
     if (soloAsset && p.asset_id !== soloAsset) continue;
-    let model;
     try {
-      model = await loadGltf(p.file);
+      const model = await mountPlacement(p);
+      if (p.kind === "station") box.expandByObject(model);
     } catch (e) {
       console.warn("skip", p.file, e);
-      continue;
     }
-    model.name = p.asset_id;
-    model.userData.asset_id = p.asset_id;
-    model.userData.kind = p.kind;
-    model.userData.cell = p.cell || null;
-    if (partMode) model.position.set(0, p.position[1], 0);
-    else model.position.set(p.position[0], p.position[1], p.position[2]);
-    model.rotation.set(p.rotation[0], p.rotation[1], p.rotation[2], "XYZ");
-    model.traverse((o) => {
-      if (o.isMesh) {
-        o.castShadow = false;
-        o.receiveShadow = false;
-      }
-    });
-    line.add(model);
-    pickRoots.push(model);
-    if (p.kind === "station") box.expandByObject(model);
   }
   scene.updateMatrixWorld(true);
   for (const root of pickRoots) root.userData.box = new THREE.Box3().setFromObject(root);
@@ -882,20 +1017,7 @@ async function boot() {
   } else if (partMode) {
     applyPartMaterials();
     groundGrid.position.y = -0.005;
-    const root = pickRoots[0];
-    if (root) {
-      const b = root.userData.box;
-      const c = b.getCenter(new THREE.Vector3());
-      const s = Math.max(b.getSize(new THREE.Vector3()).length(), 0.8);
-      controls.target.copy(c);
-      perspective.position.set(c.x + s * 0.75, c.y + s * 0.55, c.z + s * 0.75);
-      controls.minDistance = s * 0.3;
-      controls.maxDistance = s * 3;
-      controls.maxPolarAngle = Math.PI / 2 - 0.02;
-    }
-    perspective.near = 0.02;
-    perspective.far = 80;
-    perspective.updateProjectionMatrix();
+    framePartStation();
     resize();
     fitPart();
   } else {
@@ -909,7 +1031,7 @@ async function boot() {
     perspective.far = 80;
     perspective.updateProjectionMatrix();
   }
-  window.__twin = { scene, camera, box, pickRoots, focusAsset, lightPart, highlightPart, setIssues, setView, fit: () => focusAsset(null), view: () => view, setFrozen(value) { controls.enabled = !value; } };
+  window.__twin = { scene, camera, box, pickRoots, focusAsset, lightPart, highlightPart, setIssues, setBusy, setView, fit: () => focusAsset(null), view: () => view, setFrozen(value) { controls.enabled = !value; } };
   window.dispatchEvent(new CustomEvent("twinready"));
 
   if (!planMode) {
@@ -959,13 +1081,19 @@ async function boot() {
   bridgeReady = true;
   if (parent !== window) {
     postStations();
-    parent.postMessage({ type: "twin:ready", view }, parentOrigin);
+    if (pendingAsset && partMode && pendingAsset !== pickRoots[0]?.userData.asset_id) {
+      await showAsset(pendingAsset);
+      pendingAsset = null;
+    } else {
+      postReady();
+    }
   }
 
   let last = 0;
   const minFrameMs = grayMode ? 0 : 1000 / 30;
   function frame(t) {
     requestAnimationFrame(frame);
+    if (document.hidden || canvas.clientWidth < 2) return;
     if (t - last < minFrameMs) return;
     last = t;
     if (planMode) stepTween(t);
