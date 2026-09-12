@@ -37,4 +37,4 @@ Clone:
 git clone https://github.com/mdelriolanse/plant-floor-agent.git
 ```
 
-Public.
+Private — add teammates as collaborators on the GitHub repo page.
