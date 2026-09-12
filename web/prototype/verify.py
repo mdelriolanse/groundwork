@@ -40,6 +40,7 @@ def main():
     assert "feed.json" in bundle, "app does not load feed.json"
     assert "function assistable" in bundle, "missing L1-tag assist gate"
     assert "L1 process tags" in bundle, "process-tag assist answers missing"
+    assert "/api/questions" in bundle, "assist must call local /api/questions"
     assert "@media (max-width: 1280px)" in bundle, "missing overlay breakpoint"
     assert "prefers-reduced-motion" in bundle, "missing reduced-motion handling"
     assert "overflow-x: hidden" in bundle, "missing page overflow guard"

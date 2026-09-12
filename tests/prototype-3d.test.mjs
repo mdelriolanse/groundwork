@@ -8,6 +8,14 @@ const incidentStart = prototype.indexOf("function incidentDetailPage");
 const incidentEnd = prototype.indexOf("function floorTree", incidentStart);
 const incidentDetail = prototype.slice(incidentStart, incidentEnd);
 
+test("twin importmap is registered before any modulepreload", () => {
+  const html = fs.readFileSync("web/twin/index.html", "utf8");
+  const map = html.indexOf("type=\"importmap\"");
+  const preload = html.search(/rel=["']modulepreload["']/);
+  assert.ok(map >= 0, "twin page must declare an import map");
+  assert.ok(preload < 0 || map < preload, "import map must precede modulepreload or Firefox ignores it");
+});
+
 test("incident detail embeds an accessible Three.js inspection panel with load states", () => {
   assert.match(twin, /new\s+THREE\.WebGLRenderer\s*\(/, "existing twin must remain a real Three.js renderer");
   assert.ok(
@@ -197,9 +205,10 @@ test("cross-origin twin embed uses app port and a validated focus/light/ready me
 test("prototype board fetch uses twin origin and board CORS only trusts same-host port 4173", async () => {
   assert.match(
     prototype,
-    /fetch\s*\(\s*`\$\{\s*twinOrigin\s*\}\/api\/board`/,
+    /fetch\s*\(\s*`\$\{\s*apiBase\(\)\s*\}\/api\/board`/,
     "board data must be fetched from the live twin origin",
   );
+  assert.match(prototype, /\/api\/questions/, "Maintenance Assist must POST questions to the board, not invent answers");
 
   const server = fs.readFileSync("app/server.mjs", "utf8");
   const corsModuleUrl = new URL("../app/lib/board-cors.mjs", import.meta.url);
@@ -243,6 +252,17 @@ test("prototype board fetch uses twin origin and board CORS only trusts same-hos
     headersFor({ method: "POST", pathname: "/api/detect", host: "spark.local:8765", origin: "http://attacker.example:4173" })["access-control-allow-origin"],
     undefined,
   );
+  const questionsAllowed = headersFor({
+    method: "POST",
+    pathname: "/api/questions",
+    host: "spark.local:8765",
+    origin: allowedOrigin,
+  });
+  assert.equal(questionsAllowed["access-control-allow-origin"], allowedOrigin, "same-host prototype may POST questions");
+  assert.equal(
+    headersFor({ method: "POST", pathname: "/api/questions", host: "spark.local:8765", origin: "http://attacker.example:4173" })["access-control-allow-origin"],
+    undefined,
+  );
 });
 
 test("parent posts twin:issues from board and twin keeps issues across part:clear", () => {
@@ -264,6 +284,14 @@ test("parent posts twin:issues from board and twin keeps issues across part:clea
   const aqBlock = twin.slice(aqIdx, aqEnd > aqIdx ? aqEnd : aqIdx + 400);
   assert.match(aqBlock, /lightPart\s*\(/, "boot ?component= selects via lightPart");
   assert.doesNotMatch(aqBlock, /setIssues\s*\(/, "boot ?component= must not invent an issue");
+});
+
+test("part twin stays on one iframe and swaps stations through twin:asset", () => {
+  assert.match(prototype, /["']twin:asset["']/, "parent must swap stations without remounting the iframe");
+  assert.match(twin, /["']twin:asset["']/, "twin must handle an in-place station swap");
+  assert.match(twin, /function showAsset|async function showAsset/, "twin must load the requested station graph in place");
+  assert.match(prototype, /partSrcKey\s*=\s*["']part["']/, "part iframe src is assigned once");
+  assert.match(prototype, /prefetchTwinAssets|rel\s*=\s*["']prefetch["']/, "station GLB and Three.js must be prefetched");
 });
 
 test("3D inspection iframe targets the twin HTML document route with asset and component query", () => {

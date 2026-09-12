@@ -14,7 +14,9 @@ let replayTimer = null;
 let lastTrigger = null;
 let focusRestoreId = null;
 let previousPath = "";
-let assistTimer = null;
+let assistAbort = null;
+let lastAssist = null;
+let lastAssistError = "";
 let draftQuestion = "";
 const acknowledgedIds = new Set();
 let openMetricInfo = "";
@@ -88,7 +90,13 @@ function positionFloorLive() {
   const mount = app.querySelector("[data-floor-mount]");
   if (!mount) { floorLive.hidden = true; return; }
   const r = mount.getBoundingClientRect();
-  Object.assign(floorLive.style, { left: `${r.left}px`, top: `${r.top}px`, width: `${r.width}px`, height: `${r.height}px` });
+  const rail = app.querySelector("[data-overlay-rail]");
+  const rr = rail?.getBoundingClientRect();
+  let width = r.width;
+  if (rr && rr.left < r.right && rr.right > r.left && rr.top < r.bottom && rr.bottom > r.top) {
+    width = Math.max(0, rr.left - r.left);
+  }
+  Object.assign(floorLive.style, { left: `${r.left}px`, top: `${r.top}px`, width: `${width}px`, height: `${r.height}px` });
   floorLive.hidden = false;
 }
 
@@ -170,12 +178,16 @@ function renderFloorLabels(route = getRoute()) {
 let partLive = null;
 let partReady = false;
 let partAsset = null;
+let partLoaded = null;
+let partRequested = null;
 let partSrcKey = null;
 let partSelected = null;
 let partSent = null;
 let partIssuesKey = null;
 let partObserver = null;
+let partScrollTarget = null;
 let detectPosted = false; // unused in live path; kept for tape fallback quiet
+const prefetchedTwin = new Set();
 
 function boardIssues() {
   return Array.isArray(board?.issues) ? board.issues : [];
@@ -197,23 +209,87 @@ function partFrameWindow() {
   return partLive?.querySelector("[data-part-frame]")?.contentWindow || null;
 }
 
+function parkPartLive() {
+  partObserver?.disconnect();
+  if (partScrollTarget) partScrollTarget.removeEventListener("scroll", positionPartLive);
+  partScrollTarget = null;
+  if (!partLive) return;
+  partLive.hidden = true;
+  if (partLive.parentNode !== document.body) document.body.appendChild(partLive);
+}
+
 function positionPartLive() {
   if (!partLive) return;
   const mount = app.querySelector("[data-part-mount]");
   if (!mount) { partLive.hidden = true; return; }
   const r = mount.getBoundingClientRect();
+  if (r.width < 2 || r.height < 2) { partLive.hidden = true; return; }
+  const expanded = mount.closest(".inspection-expanded");
+  const clipRoot = expanded || mount.closest(".page");
+  const clip = clipRoot?.getBoundingClientRect();
+  const rail = !expanded ? app.querySelector("[data-overlay-rail]")?.getBoundingClientRect() : null;
+  let clipPath = "";
+  if ((clip || rail) && !expanded) {
+    const insetTop = Math.max(0, (clip?.top ?? r.top) - r.top);
+    const insetBottom = Math.max(0, r.bottom - (clip?.bottom ?? r.bottom));
+    const insetLeft = Math.max(0, (clip?.left ?? r.left) - r.left);
+    const insetRight = Math.max(0, r.right - (clip?.right ?? r.right), rail && rail.left < r.right && rail.right > r.left ? r.right - rail.left : 0);
+    if (insetTop >= r.height || insetBottom >= r.height) { partLive.hidden = true; return; }
+    if (insetTop || insetBottom || insetLeft || insetRight) clipPath = `inset(${insetTop}px ${insetRight}px ${insetBottom}px ${insetLeft}px)`;
+  }
   Object.assign(partLive.style, {
     left: `${r.left}px`,
     top: `${r.top}px`,
     width: `${r.width}px`,
     height: `${r.height}px`,
-    zIndex: mount.closest(".inspection-expanded") ? "41" : "",
+    clipPath,
+    zIndex: expanded ? "41" : "",
   });
   partLive.hidden = false;
 }
 
+function bindPartTracking() {
+  partObserver?.disconnect();
+  if (partScrollTarget) partScrollTarget.removeEventListener("scroll", positionPartLive);
+  const mount = app.querySelector("[data-part-mount]");
+  const page = mount?.closest(".page");
+  partScrollTarget = page || null;
+  page?.addEventListener("scroll", positionPartLive, { passive: true });
+  if (mount && "ResizeObserver" in window) {
+    partObserver = new ResizeObserver(positionPartLive);
+    partObserver.observe(mount);
+  }
+}
+
+function glbFor(assetId) {
+  return feed?.fleet?.find(row => row.asset_id === assetId)?.glb
+    || twinStations?.stations.find(s => s.asset_id === assetId)?.file
+    || null;
+}
+
+function prefetchTwinAssets(assetId) {
+  const urls = [
+    `${twinOrigin}/twin/vendor/three.module.js`,
+    `${twinOrigin}/twin/vendor/addons/loaders/GLTFLoader.js`,
+    `${twinOrigin}/twin/vendor/addons/controls/OrbitControls.js`,
+    `${twinOrigin}/twin/viewer.js`,
+    `${twinOrigin}/twin/scene.json`,
+    `${twinOrigin}/twin/asset-map.json`,
+  ];
+  const file = glbFor(assetId);
+  if (file) urls.push(`${twinOrigin}/twin/glb/${file}`);
+  for (const href of urls) {
+    if (prefetchedTwin.has(href)) continue;
+    prefetchedTwin.add(href);
+    const link = document.createElement("link");
+    link.rel = "prefetch";
+    link.href = href;
+    document.head.appendChild(link);
+  }
+}
+
 function partRequest(route) {
-  if (route.path.startsWith("/assets/") && route.params.get("render") === "3d") {
+  if (route.path === "/assets" || route.path.startsWith("/assets/")) {
     const id = selectedAsset(route).id;
     const fleet = feed?.fleet?.find(row => row.asset_id === id);
     const issuePart = issuesForAsset(id)[0]?.part;
@@ -240,10 +316,10 @@ function syncPart(route) {
   const wanted = req?.asset || null;
   const wantComponent = req?.component || "";
   if (!wanted) {
-    if (partLive) partLive.hidden = true;
-    partObserver?.disconnect();
+    parkPartLive();
     return;
   }
+  prefetchTwinAssets(wanted);
   if (!partLive) {
     partLive = document.createElement("div");
     partLive.className = "part-live";
@@ -251,10 +327,10 @@ function syncPart(route) {
     document.body.appendChild(partLive);
   }
   const frame = partLive.querySelector("[data-part-frame]");
-  const srcKey = `${wanted}|${wantComponent}`;
-  if (partSrcKey !== srcKey) {
-    partSrcKey = srcKey;
-    partAsset = wanted;
+  partAsset = wanted;
+  if (!partSrcKey) {
+    partSrcKey = "part";
+    partRequested = wanted;
     partReady = false;
     partSelected = null;
     partSent = null;
@@ -263,15 +339,19 @@ function syncPart(route) {
     const q = new URLSearchParams({ view: "part", asset: wanted });
     if (wantComponent) q.set("component", wantComponent);
     frame.src = `${twinOrigin}/twin/?${q}`;
+  } else if (partRequested !== wanted) {
+    partRequested = wanted;
+    partReady = false;
+    partSelected = null;
+    partSent = null;
+    partIssuesKey = null;
+    frame.setAttribute("aria-busy", "true");
+    partFrameWindow()?.postMessage({ type: "twin:asset", assetId: wanted }, twinOrigin);
   }
+  if (partLive.parentNode !== document.body) document.body.appendChild(partLive);
   positionPartLive();
-  partObserver?.disconnect();
-  const mount = app.querySelector("[data-part-mount]");
-  if (mount && "ResizeObserver" in window) {
-    partObserver = new ResizeObserver(positionPartLive);
-    partObserver.observe(mount);
-  }
-  if (!partReady) return;
+  bindPartTracking();
+  if (!partReady || partLoaded !== wanted) return;
   // Sqlite bus drives issue glow; tape flagged() is inbox chrome only.
   postPartIssues(wanted);
   const fleet = feed.fleet.find(row => row.asset_id === wanted);
@@ -289,9 +369,17 @@ function syncPart(route) {
 function handlePartMessage(event) {
   const type = event.data?.type;
   if (type === "twin:ready") {
-    partReady = true;
-    partLive?.querySelector("[data-part-frame]")?.setAttribute("aria-busy", "false");
-    render();
+    partLoaded = typeof event.data.asset_id === "string" ? event.data.asset_id : partAsset;
+    partReady = partLoaded === partAsset;
+    if (partReady) partLive?.querySelector("[data-part-frame]")?.setAttribute("aria-busy", "false");
+    if (partRequested && partLoaded !== partRequested) {
+      partFrameWindow()?.postMessage({ type: "twin:asset", assetId: partRequested }, twinOrigin);
+    }
+    for (const el of app.querySelectorAll("[data-part-status]")) {
+      el.dataset.state = partReady ? "ready" : "loading";
+      el.textContent = partReady ? "Ready" : "Loading…";
+    }
+    positionPartLive();
     return;
   }
   if (type === "twin:part") {
@@ -360,6 +448,45 @@ function clock(ts) {
   return match ? match[1] : ts;
 }
 
+function hopIndex() {
+  if (liveHops?.live && liveHops.latest?.hop != null) return liveHops.latest.hop;
+  return cursor;
+}
+
+function hopLabel() {
+  return `Hop ${hopIndex()}`;
+}
+
+function recentHopRows(limit = 6) {
+  if (liveHops?.live && liveHops.rms?.length) {
+    const latest = liveHops.latest;
+    const arr = liveHops.rms.slice(-limit);
+    return arr.map((row, i) => {
+      const isLast = i === arr.length - 1;
+      const src = String(row.source || "");
+      const rpp1 = isLast && latest?.rpp1
+        ? latest.rpp1
+        : {
+          file: src.includes("105") ? "105.mat"
+            : src.includes("130") ? "130.mat"
+            : src.includes("118") ? "118.mat"
+            : "97.mat",
+          source: row.source,
+          window: "—",
+          rms: row.value,
+          fault: isLast ? latest?.rpp1?.fault : null,
+        };
+      return { ts: row.ts, rpp1, i: hopIndex() - (arr.length - 1 - i) };
+    });
+  }
+  const healthyEnd = Math.min(9, (feed.hops?.length || 1) - 1);
+  const end = Math.min(cursor, healthyEnd);
+  return feed.hops.slice(0, end + 1).slice(-limit).map((item, idx, slice) => ({
+    ...item,
+    i: item.i ?? (end - (slice.length - 1 - idx)),
+  }));
+}
+
 function hop() {
   if (liveHops?.latest?.rpp1) {
     const latest = liveHops.latest;
@@ -419,13 +546,14 @@ function processStrip(now) {
   const assets = now.assets || {};
   const ids = Object.keys(assets).filter(id => id !== "RPP1").sort();
   if (!ids.length) return "";
+  const busyCount = ids.filter(id => assets[id].busy).length;
   const cells = ids.slice(0, 12).map(id => {
     const slot = assets[id];
     const busy = slot.busy;
     const tip = processTagEntries(slot).map(([k, v]) => `${k}=${v}`).join(" · ");
-    return `<span class="process-chip mono" title="${esc(tip)}">${esc(id)}${busy != null ? ` · ${busy ? "busy" : "idle"}` : ""}</span>`;
+    return `<span class="process-chip mono" data-busy="${busy ? "1" : "0"}" title="${esc(tip)}">${esc(id)}${busy != null ? ` · ${busy ? "busy" : "idle"}` : ""}</span>`;
   }).join("");
-  return `<div class="process-strip" aria-label="Fleet process tags">${cells}${ids.length > 12 ? `<span class="section-note">+${ids.length - 12} more</span>` : ""}</div>`;
+  return `<div class="section-note">${busyCount}/${ids.length} stations running now</div><div class="process-strip" aria-label="Fleet process tags">${cells}${ids.length > 12 ? `<span class="section-note">+${ids.length - 12} more</span>` : ""}</div>`;
 }
 
 function flagged() {
@@ -465,6 +593,10 @@ function mapLiveIncident(row) {
     signal: row.signal || "Elevated",
     fault: row.fault,
     source: row.source,
+    first: row.first,
+    window: row.window,
+    rpm: row.rpm,
+    rms: row.rms,
     wo_id: row.wo_id,
     work_order: row.work_order,
   };
@@ -495,6 +627,12 @@ function derivedIncident() {
     signal: now.rpp1.bpfi?.detected ? "Elevated" : "Normal",
     fault,
     source: now.rpp1.source,
+    first: now.ts,
+    window: now.rpp1.window,
+    rpm: now.rpp1.rpm,
+    rms: now.rpp1.rms,
+    wo_id: flag.wo && flag.wo !== "none" ? flag.wo : null,
+    work_order: null,
   };
 }
 
@@ -577,7 +715,7 @@ function selectedAsset(route) {
   if (station) {
     return { id, name: humanModel(station.model), component: "—", location: `${feed.cell.name} · ${cellName(station.cell)}`, condition: "Unmonitored", supported: false, fault: "—", source: "none", incident: null, unmonitored: true, model: station.model, cell: station.cell };
   }
-  return { id, name: id, component: "—", location: feed.cell.name, condition: "Unknown", supported: false, fault: "—", source: "—" };
+  return { id, name: id, component: "—", location: feed.cell.name, condition: "Unmonitored", supported: false, fault: "—", source: "none", incident: null, unmonitored: true, model: "Not mapped", cell: null };
 }
 
 function statusClass(value) {
@@ -604,14 +742,12 @@ function breadcrumb(route) {
 function tapeStamp() {
   const now = hop();
   const live = Boolean(liveHops?.live);
-  const label = live ? `Live hop ${liveHops.latest?.hop ?? cursor}` : `Fallback hop ${cursor + 1}`;
   const inj = liveHops?.hop_override ? ` · inject ${liveHops.hop_override.file}` : "";
-  return `<div class="refresh-line"><span class="live-dot"></span>${label}${inj} · ${clock(now.ts)} · ${esc(now.rpp1?.source || "—")}</div>`;
+  return `<div class="refresh-line"><span class="live-dot"></span>${live ? "Live" : "Fallback"} · ${hopLabel()}${inj} · ${clock(now.ts)} · ${esc(now.rpp1?.source || "—")}</div>`;
 }
 
 function shell(main, route, rail) {
   const scope = route.params.get("scope") === "site" ? "Entire site" : feed.cell.name;
-  const railMode = route.params.get("rail");
   const open = incidents().length;
   return `
     <div class="app-shell">
@@ -622,7 +758,7 @@ function shell(main, route, rail) {
           ${navLink("incidents", "Incidents", "inbox", "/incidents", String(open))}
           ${navLink("floor", "Floor", "floor", "/floor?rail=preview")}
           ${navLink("assets", "Assets", "asset", "/assets/RPP1")}
-          ${navLink("intelligence", "Intelligence", "intel", "/intelligence?run=TAPE-20")}
+          ${navLink("intelligence", "Intelligence", "intel", "/intelligence")}
         </div>
         <div class="nav-bottom"><div class="nav-system"><span class="system-dot"></span><strong>${liveHops?.live ? "Hop loop" : "Tape fallback"}</strong><small>1 Hz · no egress${liveHops?.hop_override ? " · injected" : ""}</small></div></div>
       </nav>
@@ -633,7 +769,6 @@ function shell(main, route, rail) {
           <button class="header-scope" data-action="toggle-scope" type="button" aria-label="Change plant scope">${icon("pin", "sm")}<span>${esc(scope)}</span>${icon("chevron", "sm")}</button>
           <label class="header-search">${icon("search", "sm")}<span class="sr-only">Search incidents and assets</span><input data-global-search value="${esc(route.params.get("search") || "")}" placeholder="Search incidents or assets" autocomplete="off"></label>
           ${containmentBadge()}
-          <button class="header-assist" data-action="open-assist" data-focus-id="assist-trigger" aria-pressed="${railMode === "assist"}" type="button">${icon("spark", "sm")}<span>Assist</span></button>
         </header>
         <div class="workspace-body ${rail ? "has-rail" : ""}">
           ${main}
@@ -660,8 +795,13 @@ function filterOption(kind, value, label, count, checked) {
   return `<label class="filter-option"><input type="checkbox" data-filter-kind="${kind}" value="${value}" ${checked ? "checked" : ""}><span>${label}</span><span class="count">${count}</span></label>`;
 }
 
-function citationButton(type, label, locator) {
-  return `<button class="cite-button" data-evidence="${type}" type="button">${icon("file", "sm")}<span>${label}</span><span class="mono">${esc(locator)}</span></button>`;
+function citationButton(type, label, locator, context = {}) {
+  const evidenceContext = [
+    context.source ? ` data-evidence-source="${esc(context.source)}"` : "",
+    context.window ? ` data-evidence-window="${esc(context.window)}"` : "",
+    context.incident ? ` data-evidence-incident="${esc(context.incident)}"` : "",
+  ].join("");
+  return `<button class="cite-button" data-evidence="${type}"${evidenceContext} type="button">${icon("file", "sm")}<span>${label}</span><span class="mono">${esc(locator)}</span></button>`;
 }
 
 function rmsChart(width, height, label) {
@@ -744,7 +884,7 @@ function inboxPage(route) {
         <fieldset class="filter-group"><legend>AI run state</legend>${filterOption("ai", "L1", "L1", list.filter(i => i.ai === "L1").length, ai.has("L1"))}${filterOption("ai", "Ready", "Ready", list.filter(i => i.ai === "Ready").length, ai.has("Ready"))}</fieldset>
         <div class="filter-group"><span class="filter-group-title">Area / line</span><label class="filter-option"><input type="checkbox" checked disabled><span>${esc(feed.cell.name)}</span><span class="count">${list.length}</span></label></div>
       </aside>
-      <div class="panel table-panel"><div class="table-toolbar"><span class="table-count">${rows.length} active incidents</span><span class="section-note">Select a row for preview</span><span class="table-sort">${liveHops?.live ? "Live" : "Fallback"} · hop ${cursor + 1}</span></div>${table}</div>
+      <div class="panel table-panel"><div class="table-toolbar"><span class="table-count">${rows.length} active incidents</span><span class="section-note">Select a row for preview</span><span class="table-sort">${liveHops?.live ? "Live" : "Fallback"} · ${hopLabel()}</span></div>${table}</div>
     </section>
   </div></main>`;
 }
@@ -772,7 +912,7 @@ function incidentDetailPage(route) {
   const inspectionNotice = mappedGeometry ? `<button class="btn sm issue-marker" data-action="focus-inspection-target">Issue target: ${esc(item.component)}</button>` : `<span class="section-note">Location unavailable — no mapped geometry.</span>`;
   return `<main class="page incident-detail-page"><div class="page-inner compact">
     ${moduleHeader(`${item.id} · ${esc(item.title)}`, `${item.asset} / ${item.component} · ${esc(item.area)}`, `<button class="btn" data-action="view-floor">${icon("floor", "sm")}View on floor</button><button class="btn ${item.status === "Acknowledged" ? "" : "primary"}" data-action="acknowledge" data-focus-id="acknowledge" aria-pressed="${item.status === "Acknowledged"}">${icon("check", "sm")}${item.status === "Acknowledged" ? "Acknowledged" : "Acknowledge incident"}</button>`)}
-    <div class="detail-meta"><span class="badge critical">Critical priority</span><span class="badge ${item.status === "Acknowledged" ? "" : "info"}">${item.status === "Acknowledged" ? "Acknowledged" : "New case"}</span><span>${icon("clock", "sm")}Flag ${clock(feed.flag.ts)} · last ${item.last} · ${item.detections} flagged hops</span><span>Signal: <strong class="${item.signal === "Elevated" ? "text-warning" : ""}">${item.signal}</strong></span><span>L1: <strong class="text-success">${esc(now.rpp1.engine)}</strong></span></div>
+    <div class="detail-meta"><span class="badge ${statusClass(item.priority)}">${esc(item.priority)} priority</span><span class="badge ${item.status === "Acknowledged" ? "" : "info"}">${item.status === "Acknowledged" ? "Acknowledged" : item.status}</span><span>${icon("clock", "sm")}last ${item.last} · ${item.detections} detections</span><span>Signal: <strong class="${item.signal === "Elevated" ? "text-warning" : ""}">${item.signal}</strong></span><span>L1: <strong class="text-success">${esc(now.rpp1?.engine || "—")}</strong></span></div>
     <div style="height:10px"></div>
     <section class="question-grid" aria-label="Incident overview">
       <article class="question-card"><span class="question-number">01</span><h2>What happened?</h2><p>${esc(now.rpp1.engine)} on ${esc(now.rpp1.source)} window ${esc(now.rpp1.window)}. Fault ${esc(dash(now.rpp1.fault))}. BPFI ${now.rpp1.bpfi.detected ? `${now.rpp1.bpfi.hz} Hz` : "not detected"}.</p><div class="inline-citations">${citationButton("signal", "Signal", `${now.rpp1.file} · ${now.rpp1.window}`)}</div></article>
@@ -784,14 +924,14 @@ function incidentDetailPage(route) {
       <div id="twin-inspection-frame" class="twin-frame twin-mount" data-part-mount aria-hidden="true" title="3D inspection of ${esc(item.asset)} ${esc(item.component)}"></div>
     </section>
     <section class="detail-grid">
-      <article class="panel"><div class="panel-header"><h2>L1 hops</h2><span class="badge info" style="margin-left:auto">${cursor + 1} / ${feed.hops.length}</span></div><div class="panel-body"><div class="timeline">
-        ${feed.hops.slice(0, cursor + 1).slice(-6).map(item => `<div class="timeline-row"><span class="timeline-icon">${icon("check", "sm")}</span><div class="timeline-copy"><strong class="mono">${item.rpp1.file}</strong><span>${esc(item.rpp1.source)} · ${esc(item.rpp1.window)} · RMS ${dash(item.rpp1.rms)} g${item.rpp1.fault ? ` · ${item.rpp1.fault}` : ""}</span></div><time>${clock(item.ts)}</time></div>`).join("")}
+      <article class="panel"><div class="panel-header"><h2>L1 hops</h2><span class="badge info" style="margin-left:auto">${hopLabel()}</span></div><div class="panel-body"><div class="timeline">
+        ${recentHopRows(6).map(row => `<div class="timeline-row"><span class="timeline-icon">${icon("check", "sm")}</span><div class="timeline-copy"><strong class="mono">${esc(row.rpp1.file || "—")}</strong><span>${esc(row.rpp1.source || "—")} · ${esc(row.rpp1.window || "—")} · RMS ${dash(row.rpp1.rms)} g${row.rpp1.fault ? ` · ${row.rpp1.fault}` : ""}</span></div><time>${clock(row.ts)}</time></div>`).join("")}
       </div></div></article>
       <article class="panel"><div class="panel-header"><h2>Condition</h2><button class="btn sm" data-evidence="signal">Open exact signal</button></div><div class="condition-numbers"><div class="condition-number"><span>RMS</span><strong class="num">${dash(now.rpp1.rms)}<small>g</small></strong></div><div class="condition-number"><span>Speed</span><strong class="num">${dash(now.rpp1.rpm)}<small>rpm</small></strong></div><div class="condition-number"><span>BPFI</span><strong class="num">${dash(now.rpp1.bpfi.hz)}<small>Hz</small></strong></div></div>${rmsChart(320, 80, "RPP1 RMS hops")}<div class="limit-note">${icon("alert", "sm")}ISO 20816 shown as context only; this 2 hp dataset asset is below the 15 kW applicability floor.</div></article>
     </section>
     <section class="detail-grid">
       <article class="panel"><div class="panel-header"><h2>Current work order</h2><span class="badge" style="margin-left:auto">wo: ${esc(feed.flag.wo)}</span></div><div class="work-order"><div class="work-order-callout">${icon("wrench")}<div><strong>Source-gap</strong><p>No L2 work order on this tape. CMMS rows below are history cites, not a new draft.</p></div></div><dl class="key-grid"><dt>Flag</dt><dd class="mono">${esc(feed.flag.flag)}</dd><dt>Part</dt><dd class="mono">${esc(feed.flag.part)}</dd><dt>Evidence</dt><dd>${citationButton("signal", "Signal", now.rpp1.window)} ${cmms.map(row => citationButton("history", "History", row.wo_id)).join(" ")}</dd></dl></div></article>
-      <article class="panel"><div class="panel-header"><h2>Case activity</h2><span class="section-note" style="margin-left:auto">Tape clock</span></div><div class="panel-body activity-list">${flagged() ? `<div class="activity-item"><time>${clock(feed.flag.ts)}</time><span class="event-mark"></span><div><strong>Flag</strong><p class="mono">${esc(feed.flag.source)} · ${esc(feed.flag.window)}</p></div></div>` : ""}<div class="activity-item"><time>${clock(now.ts)}</time><span class="event-mark"></span><div><strong>Current hop</strong><p>RMS ${dash(now.rpp1.rms)} g · ${esc(now.rpp1.file)}</p></div></div></div></article>
+      <article class="panel"><div class="panel-header"><h2>Case activity</h2><span class="section-note" style="margin-left:auto">Live clock</span></div><div class="panel-body activity-list">${item.source ? `<div class="activity-item"><time>${clock(item.first || item.last)}</time><span class="event-mark"></span><div><strong>Opened</strong><p class="mono">${esc(item.source)}${item.window ? ` · ${esc(item.window)}` : ""}</p></div></div>` : ""}<div class="activity-item"><time>${clock(now.ts)}</time><span class="event-mark"></span><div><strong>${hopLabel()}</strong><p>RMS ${dash(now.rpp1?.rms)} g · ${esc(now.rpp1?.file || "—")}</p></div></div></div></article>
     </section>
   </div></main>`;
 }
@@ -911,7 +1051,7 @@ function assetPage(route) {
       </div>
       <div>
         <article class="panel" style="margin-bottom:8px"><div class="panel-header"><h2>Evidence library</h2></div><div class="panel-body evidence-list">${isHero ? `<div class="evidence-row">${icon("intel")}<div><strong>CWRU window</strong><span class="mono">${esc(now.rpp1.source)}:${esc(now.rpp1.window)}</span></div><button data-evidence="signal">Open</button></div><div class="evidence-row">${icon("clock")}<div><strong>CMMS history</strong><span>${history.length} rows · alias MTR-07</span></div>${history.length ? `<button data-evidence="history">Open</button>` : `<span class="badge">Not available</span>`}</div>` : unmon ? `<p class="section-note">No sensor, no manual, no CMMS rows on this feed.</p>` : `<p class="section-note">Cited synthetic tags. No vibration cite. Not diagnosed.</p>`}<div class="evidence-row">${icon("file")}<div><strong>Manual</strong><span>Source-gap — no packed page on this feed</span></div><span class="badge">Not available</span></div></div></article>
-        <article class="panel"><div class="panel-header"><h2>Recent activity</h2></div><div class="panel-body activity-list"><div class="activity-item"><time>${clock(now.ts)}</time><span class="event-mark"></span><div><strong>Hop ${cursor + 1}</strong><p>${isHero ? `RMS ${dash(now.rpp1.rms)} g` : unmon ? "no sensor · geometry only" : processTagEntries(slot).map(([k, v]) => `${k}=${v}`).slice(0, 3).join(" · ")}</p></div></div>${flagged() && isHero ? `<div class="activity-item"><time>${clock(feed.flag.ts)}</time><span class="event-mark"></span><div><strong>Flag</strong><p>${esc(feed.flag.flag)} · ${esc(feed.flag.fault)}</p></div></div>` : ""}</div></article>
+        <article class="panel"><div class="panel-header"><h2>Recent activity</h2></div><div class="panel-body activity-list"><div class="activity-item"><time>${clock(now.ts)}</time><span class="event-mark"></span><div><strong>${hopLabel()}</strong><p>${isHero ? `RMS ${dash(now.rpp1.rms)} g` : unmon ? "no sensor · geometry only" : processTagEntries(slot).map(([k, v]) => `${k}=${v}`).slice(0, 3).join(" · ")}</p></div></div>${asset.incident ? `<div class="activity-item"><time>${clock(now.ts)}</time><span class="event-mark"></span><div><strong>Open incident</strong><p class="mono">${esc(asset.incident)} · ${esc(asset.fault)}</p></div></div>` : ""}</div></article>
       </div>
     </section>
     </div></div>
@@ -919,22 +1059,61 @@ function assetPage(route) {
 }
 
 function intelligencePage(route) {
-  const run = route.params.get("run") || "TAPE-20";
   const now = hop();
-  const flaggedHops = feed.hops.filter(item => item.i <= cursor && item.rpp1.fault).length;
+  const rows = recentHopRows(20);
+  const run = route.params.get("run") || `HOP-${hopIndex()}`;
+  const openCount = incidents().length;
+  const faulted = rows.filter((r) => r.rpp1?.fault).length;
   return `<main class="page intelligence-page"><div class="page-inner compact">
-    ${moduleHeader("Intelligence", "L1 hops from the 20 s slice. No seeded runs.", `${tapeStamp()}<button class="btn" data-evidence="containment">${icon("shield", "sm")}Inspect containment</button>`)}
-    <section class="metric-grid" aria-label="Tape metrics">${metricStat("Hop", `${cursor + 1}/${feed.hops.length}`, clock(now.ts), "info", "Replay index on the 20-hop CWRU slice. 1 Hz, local tape only — no cloud fetch.")}${metricStat("Flagged hops", String(flaggedHops), flagged() ? feed.flag.fault : "before flag_at", flaggedHops ? "critical" : "", "Count of hops after flag_at where L1 wrote a fault. Healthy 97.mat until hop 10; then 105.mat inner_race.")}${metricStat("RMS", dash(now.rpp1.rms), "g · current", "", "Window RMS from PMMCP on this hop. ISO 20816 zones do not apply — this asset is below the 15 kW floor.")}${metricStat("BPFI", dash(now.rpp1.bpfi.hz), now.rpp1.bpfi.detected ? "detected" : "not detected", "", `Ball-pass inner-race frequency from the L1 envelope writer (${now.rpp1.engine}). Detected only after the 97→105 flip.`)}</section>
-    <section class="system-strip" aria-label="System health"><div class="system-cell"><span>Tape</span><strong><i class="live-dot"></i>${esc(feed.manifest.t0)} · ${feed.manifest.duration_s}s</strong></div><div class="system-cell"><span>L1</span><strong class="text-success">${icon("check", "sm")}${esc(now.rpp1.engine)}</strong></div><div class="system-cell"><span>Fleet</span><strong>${feed.fleet.length} monitored · 1 diagnosed</strong></div><div class="system-cell"><span>Containment</span>${containmentCell()}</div></section>
+    ${moduleHeader("Intelligence", "Always-on L1 hop loop. Open incidents from sqlite.", `${tapeStamp()}<button class="btn" data-evidence="containment">${icon("shield", "sm")}Inspect containment</button>`)}
+    <section class="metric-grid" aria-label="Live metrics">${metricStat("Hop", String(hopIndex()), clock(now.ts), "info", "Monotonic hop index from the always-on 1 Hz loop. Not a finite tape replay.")}${metricStat("Open incidents", String(openCount), openCount ? "sqlite inbox" : "clear", openCount ? "critical" : "success", "Active cases in the incident registry — seeded plus live detects.")}${metricStat("RMS", dash(now.rpp1?.rms), "g · current", "", "Window RMS on this hop. ISO 20816 zones do not apply — asset below the 15 kW floor.")}${metricStat("BPFI", dash(now.rpp1?.bpfi?.hz), now.rpp1?.bpfi?.detected ? "detected" : "not detected", "", `Ball-pass inner-race frequency from L1 (${now.rpp1?.engine || "—"}).`)}</section>
+    <section class="system-strip" aria-label="System health"><div class="system-cell"><span>Loop</span><strong><i class="live-dot"></i>${liveHops?.live ? "live" : "fallback"} · 1 Hz</strong></div><div class="system-cell"><span>L1</span><strong class="text-success">${icon("check", "sm")}${esc(now.rpp1?.engine || "—")}</strong></div><div class="system-cell"><span>Fleet</span><strong>${feed.fleet.length} monitored</strong></div><div class="system-cell"><span>Containment</span>${containmentCell()}</div></section>
     <section class="intel-layout">
-      <article class="panel"><div class="panel-header"><h2>Hop inbox</h2><span class="section-note" style="margin-left:auto">${cursor + 1} seen</span></div><div class="run-list">${feed.hops.slice(0, cursor + 1).map(item => `<div class="run-row ${`HOP-${item.i}` === run || (run === "TAPE-20" && item.i === cursor) ? "selected" : ""}" data-select-run="HOP-${item.i}" tabindex="0"><div class="run-main"><strong class="mono">HOP-${item.i}</strong><span>${clock(item.ts)} · ${item.rpp1.file}</span><br><span>RMS ${dash(item.rpp1.rms)} g · ${item.rpp1.fault || "healthy"}</span></div><div class="run-side"><span class="status ${statusClass(item.rpp1.fault ? "critical" : "healthy")}">${item.rpp1.fault || "ok"}</span><time>${esc(item.rpp1.window)}</time></div></div>`).join("")}</div></article>
-      <article class="panel"><div class="trace-header"><div class="trace-title"><h2>Current hop</h2><span class="badge ${flagged() ? "critical" : "success"}">${flagged() ? "Flagged" : "Healthy"}</span></div><div class="trace-meta"><span class="mono">TAPE-20</span><span>RPP1 / URjoint1</span><span>${clock(now.ts)}</span><span>${esc(now.rpp1.engine)}</span></div></div><div class="trace-stages">
-        <details class="trace-stage" open><summary class="trace-summary"><span class="timeline-icon">${icon("check", "sm")}</span><span class="trace-stage-label">L0</span><strong>DAQ drop</strong><time>${clock(now.ts)}</time></summary><div class="trace-body"><dl><dt>Source</dt><dd class="mono">${esc(now.rpp1.source)}</dd><dt>Window</dt><dd class="mono">${esc(now.rpp1.window)}</dd><dt>fs</dt><dd class="num">${now.rpp1.fs_hz} Hz</dd></dl><div class="inline-citations">${citationButton("signal", "Signal", now.rpp1.window)}</div></div></details>
-        <details class="trace-stage" open><summary class="trace-summary"><span class="timeline-icon">${icon("check", "sm")}</span><span class="trace-stage-label">L1</span><strong>Condition features</strong></summary><div class="trace-body"><dl><dt>RMS</dt><dd>${dash(now.rpp1.rms)} g</dd><dt>BPFI</dt><dd>${now.rpp1.bpfi.detected ? `${now.rpp1.bpfi.hz} Hz` : "not detected"}</dd><dt>Fault</dt><dd>${dash(now.rpp1.fault)}</dd><dt>bus_w</dt><dd>${dash(now.rpp1.bus_w)} W</dd></dl></div></details>
+      <article class="panel"><div class="panel-header"><h2>Recent hops</h2><span class="section-note" style="margin-left:auto">${rows.length} shown${faulted ? ` · ${faulted} faulted` : ""}</span></div><div class="run-list">${rows.map(item => `<div class="run-row ${`HOP-${item.i}` === run ? "selected" : ""}" data-select-run="HOP-${item.i}" tabindex="0"><div class="run-main"><strong class="mono">HOP-${item.i}</strong><span>${clock(item.ts)} · ${esc(item.rpp1.file || "—")}</span><br><span>RMS ${dash(item.rpp1.rms)} g · ${item.rpp1.fault || "healthy"}</span></div><div class="run-side"><span class="status ${statusClass(item.rpp1.fault ? "critical" : "healthy")}">${item.rpp1.fault || "ok"}</span><time>${esc(item.rpp1.window || "—")}</time></div></div>`).join("")}</div></article>
+      <article class="panel"><div class="trace-header"><div class="trace-title"><h2>Current hop</h2><span class="badge ${now.rpp1?.fault ? "critical" : "success"}">${now.rpp1?.fault || "Healthy"}</span></div><div class="trace-meta"><span class="mono">${hopLabel()}</span><span>RPP1 / URjoint1</span><span>${clock(now.ts)}</span><span>${esc(now.rpp1?.engine || "—")}</span></div></div><div class="trace-stages">
+        <details class="trace-stage" open><summary class="trace-summary"><span class="timeline-icon">${icon("check", "sm")}</span><span class="trace-stage-label">L0</span><strong>DAQ drop</strong><time>${clock(now.ts)}</time></summary><div class="trace-body"><dl><dt>Source</dt><dd class="mono">${esc(now.rpp1?.source || "—")}</dd><dt>Window</dt><dd class="mono">${esc(now.rpp1?.window || "—")}</dd><dt>fs</dt><dd class="num">${dash(now.rpp1?.fs_hz)} Hz</dd></dl><div class="inline-citations">${citationButton("signal", "Signal", now.rpp1?.window || "—")}</div></div></details>
+        <details class="trace-stage" open><summary class="trace-summary"><span class="timeline-icon">${icon("check", "sm")}</span><span class="trace-stage-label">L1</span><strong>Condition features</strong></summary><div class="trace-body"><dl><dt>RMS</dt><dd>${dash(now.rpp1?.rms)} g</dd><dt>BPFI</dt><dd>${now.rpp1?.bpfi?.detected ? `${now.rpp1.bpfi.hz} Hz` : "not detected"}</dd><dt>Fault</dt><dd>${dash(now.rpp1?.fault)}</dd><dt>bus_w</dt><dd>${dash(now.rpp1?.bus_w)} W</dd></dl></div></details>
         <details class="trace-stage" open><summary class="trace-summary"><span class="timeline-icon">${icon("check", "sm")}</span><span class="trace-stage-label">Fleet</span><strong>Process / electrical tags</strong></summary><div class="trace-body"><p class="section-note">Cited synthetic tags · not diagnosed</p>${processStrip(now)}${processTagDl(now.t1 || assetHop("T1"))}</div></details>
       </div></article>
     </section>
   </div></main>`;
+}
+
+function previewRail(subtitle, body, actions) {
+  return `<aside class="utility-rail object-preview-rail" aria-label="Object Preview" data-overlay-rail>
+    <div class="rail-header">${icon("eye")}<div class="rail-title"><strong>Object Preview</strong><span>${esc(subtitle)}</span></div><div class="rail-header-actions"><button class="btn icon-only sm" data-action="close-rail" aria-label="Close object preview">${icon("close")}</button></div></div>
+    <div class="rail-body">${body}</div>
+    <div class="preview-actions">${actions}</div>
+  </aside>`;
+}
+
+function previewIdentity(kicker, title, badges, context) {
+  return `<section class="preview-identity"><div class="rail-kicker">${esc(kicker)}</div><h2 class="rail-heading">${esc(title)}</h2><div class="preview-badges">${badges}</div>${context ? `<p class="preview-context">${esc(context)}</p>` : ""}</section>`;
+}
+
+function previewSection(label, title, copy, extra = "") {
+  return `<section class="preview-section"><div class="rail-kicker">${esc(label)}</div><strong class="preview-section-title">${esc(title)}</strong>${copy ? `<p>${esc(copy)}</p>` : ""}${extra}</section>`;
+}
+
+function humanTag(key) {
+  const labels = { busy: "Machine active", cycle_s: "Cycle time", torque_nm: "Torque", spindle_rpm: "Spindle speed", bus_w: "Bus power", joint1_a: "Joint 1 current", current_a: "Current", winding_c: "Winding temperature", belt_m_s: "Belt speed", motor_a: "Motor current", vac_kpa: "Vacuum pressure", clamp_n: "Clamp force", press_n: "Press force", fill_pct: "Fill level", lux: "Illuminance" };
+  return labels[key] || humanModel(key).replace(/\b\w/g, c => c.toUpperCase());
+}
+
+function humanTagValue(key, value) {
+  if (key === "busy") return Number(value) ? "Yes" : "No";
+  const units = { cycle_s: "s", torque_nm: "Nm", spindle_rpm: "rpm", bus_w: "W", joint1_a: "A", current_a: "A", winding_c: "°C", belt_m_s: "m/s", motor_a: "A", vac_kpa: "kPa", clamp_n: "N", press_n: "N", fill_pct: "%", lux: "lx" };
+  return `${dash(value)}${units[key] ? ` ${units[key]}` : ""}`;
+}
+
+function capitalize(value) {
+  const text = String(value || "");
+  return text ? `${text[0].toUpperCase()}${text.slice(1)}` : text;
+}
+
+function previewProcessFacts(slot) {
+  const rows = processTagEntries(slot).slice(0, 5).map(([key, value]) => `<div class="preview-fact"><span>${esc(humanTag(key))}</span><strong>${esc(humanTagValue(key, value))}</strong></div>`).join("");
+  return rows || `<p class="section-note">No process readings on this hop.</p>`;
 }
 
 function objectPreviewRail(route) {
@@ -942,22 +1121,60 @@ function objectPreviewRail(route) {
   const asset = selectedAsset(route);
   const now = hop();
   const hasIncident = Boolean(incident) && incident.asset === asset.id;
-  if (!hasIncident && asset.unmonitored) {
-    return `<aside class="utility-rail" aria-label="Object Preview" data-overlay-rail><div class="rail-header">${icon("eye")}<div class="rail-title"><strong>Object Preview</strong><span>${asset.id} · Station</span></div><div class="rail-header-actions"><button class="btn icon-only sm" data-action="close-rail" aria-label="Close object preview">${icon("close")}</button></div></div><div class="rail-body">
-    <section class="rail-section"><div class="rail-kicker">Unmonitored station</div><div class="rail-heading">${asset.id} · ${esc(asset.name)}</div><span class="badge">No sensor bound</span><dl class="key-grid"><dt>VLFT model</dt><dd class="mono">${esc(asset.model)}</dd><dt>Cell</dt><dd>${esc(cellName(asset.cell))}</dd><dt>Signal source</dt><dd class="mono">none</dd><dt>Active case</dt><dd>None</dd></dl><p class="section-note">Geometry only. No vibration channel on this feed; never diagnosed.</p></section>
-    <div class="rail-actions"><button class="btn" data-action="open-assist">${icon("spark", "sm")}Ask Maintenance Assist</button></div>
-  </div></aside>`;
+
+  if (hasIncident) {
+    const workOrder = incident.work_order;
+    const source = incident.source || "";
+    const window = incident.window || "";
+    const signalReady = Boolean(source && window);
+    const citations = Array.isArray(workOrder?.citations) ? workOrder.citations : [];
+    const manualCount = citations.filter(cite => cite.type === "manual").length;
+    const historyCount = citations.filter(cite => cite.type === "history").length;
+    const location = `${incident.area || asset.location} · ${incident.asset} / ${incident.component}`;
+    const action = workOrder?.action || (incident.status === "New" ? "Review the cited signal, then acknowledge this incident." : "Review the incident before starting maintenance work.");
+    const evidenceSummary = `${signalReady ? "Signal cited" : "Signal missing"} · ${manualCount ? `${manualCount} manual cite${manualCount === 1 ? "" : "s"}` : "No manual cite"} · ${historyCount ? `${historyCount} history cite${historyCount === 1 ? "" : "s"}` : "No history cite"}`;
+    const signalButton = signalReady
+      ? citationButton("signal", "Open exact signal", `${source} · ${window}`, { source, window, incident: incident.id })
+      : `<span class="preview-gap">Exact signal unavailable</span>`;
+    const technical = `<details class="preview-details"><summary>Technical details</summary><dl class="key-grid"><dt>Source</dt><dd class="mono">${esc(source || "—")}</dd><dt>Window</dt><dd class="mono">${esc(window || "—")}</dd><dt>RMS</dt><dd>${incident.rms == null ? "—" : `${dash(incident.rms)} g`}</dd><dt>Speed</dt><dd>${incident.rpm == null ? "—" : `${dash(incident.rpm)} rpm`}</dd><dt>First seen</dt><dd>${esc(clock(incident.first) || "—")}</dd><dt>Last seen</dt><dd>${esc(incident.last || "—")}</dd><dt>Detections</dt><dd>${incident.detections}</dd></dl></details>`;
+    const stages = `<div class="preview-stages" aria-label="Analysis state"><div><span class="preview-stage-mark complete">${icon("check", "sm")}</span><span><strong>L1 screening complete</strong><small>${signalReady ? "Incident snapshot retained" : "Source locator missing"}</small></span></div><div><span class="preview-stage-mark ${workOrder ? "complete" : ""}">${workOrder ? icon("check", "sm") : ""}</span><span><strong>L2 work order ${workOrder ? "ready" : "pending"}</strong><small>${workOrder ? esc(workOrder.wo_id || incident.wo_id || "Cited draft") : "No maintenance draft yet"}</small></span></div></div>`;
+    const body = `${previewIdentity(incident.id, incident.title, `<span class="badge ${statusClass(incident.priority)}">${esc(incident.priority)} priority</span><span class="badge ${statusClass(incident.status)}">${esc(incident.status)}</span>`, location)}
+      ${previewSection("What happened", `${capitalize(humanModel(incident.fault))} detected`, `L1 vibration screening opened this case on ${incident.component}.`, signalButton)}
+      ${previewSection("What should I do", workOrder ? "Current work order" : "Next technician step", action, workOrder?.parts?.length ? `<p class="preview-parts"><span>Parts</span> ${esc(workOrder.parts.join(", "))}</p>` : "")}
+      ${previewSection("Why trust it", workOrder ? "Evidence-backed draft" : "L1 evidence only", evidenceSummary, stages)}
+      ${technical}`;
+    const actions = `<button class="btn primary" data-open-incident="${incident.id}">Open incident ${icon("arrow", "sm")}</button><div class="preview-actions-secondary"><button class="btn" data-action="view-floor">${icon("floor", "sm")}View on floor</button><button class="btn" data-action="open-assist">${icon("spark", "sm")}Ask Assist</button></div>`;
+    return previewRail(`${incident.id} · Incident`, body, actions);
   }
-  if (!hasIncident && asset.id !== "RPP1") {
+
+  if (asset.unmonitored) {
+    const body = `${previewIdentity("Unmonitored station", `${asset.id} · ${asset.name}`, `<span class="badge">No sensor connected</span>`, `${asset.location || cellName(asset.cell)}`)}
+      <section class="preview-callout unavailable">${icon("alert")}<div><strong>No condition data</strong><p>This station exists in the floor model, but no sensor is connected. No diagnosis or active case is available.</p></div></section>
+      <dl class="key-grid preview-meta"><dt>Station model</dt><dd class="mono">${esc(asset.model)}</dd><dt>Cell</dt><dd>${esc(cellName(asset.cell))}</dd><dt>Active case</dt><dd>None</dd></dl>`;
+    const actions = `<button class="btn primary" data-action="open-asset">Open Asset 360</button><button class="btn" disabled title="Connect a supported sensor before using Maintenance Assist">${icon("spark", "sm")}Assist unavailable</button>`;
+    return previewRail(`${asset.id} · Station`, body, actions);
+  }
+
+  if (asset.id !== "RPP1") {
     const slot = assetHop(asset.id);
-    return `<aside class="utility-rail" aria-label="Object Preview" data-overlay-rail><div class="rail-header">${icon("eye")}<div class="rail-title"><strong>Object Preview</strong><span>${asset.id} · Asset</span></div><div class="rail-header-actions"><button class="btn icon-only sm" data-action="close-rail" aria-label="Close object preview">${icon("close")}</button></div></div><div class="rail-body">
-    <section class="rail-section"><div class="rail-kicker">Selected asset</div><div class="rail-heading">${asset.id} · ${esc(asset.name)}</div><span class="badge">process</span>${processTagDl(slot)}<p class="section-note">Never diagnosed. Assist binds this hop's L1 process / electrical tags.</p></section>
-    <div class="rail-actions"><button class="btn primary" data-action="open-asset">Open Asset 360</button><button class="btn" data-action="open-assist">${icon("spark", "sm")}Ask Maintenance Assist</button></div>
-  </div></aside>`;
+    const body = `${previewIdentity("Process-monitored asset", `${asset.id} · ${asset.name}`, `<span class="badge info">Process monitoring only</span>`, `${asset.location} · ${asset.component}`)}
+      <section class="preview-callout">${icon("intel")}<div><strong>No vibration diagnosis</strong><p>Latest operational tags are available. They are not bearing-condition evidence.</p></div></section>
+      <section class="preview-section"><div class="rail-kicker">Latest readings · ${esc(hopLabel())}</div><div class="preview-facts">${previewProcessFacts(slot)}</div></section>
+      <details class="preview-details"><summary>Source details</summary><dl class="key-grid"><dt>Source</dt><dd class="mono">${esc(slot?.source || asset.source)}</dd><dt>Component</dt><dd>${esc(asset.component)}</dd><dt>Active case</dt><dd>None</dd></dl></details>`;
+    const actions = `<button class="btn primary" data-action="open-asset">Open Asset 360</button><button class="btn" data-action="open-assist">${icon("spark", "sm")}Ask about process tags</button>`;
+    return previewRail(`${asset.id} · Asset`, body, actions);
   }
-  return `<aside class="utility-rail" aria-label="Object Preview" data-overlay-rail><div class="rail-header">${icon("eye")}<div class="rail-title"><strong>Object Preview</strong><span>${hasIncident ? `${incident.id} · Incident` : `${asset.id} · Asset`}</span></div><div class="rail-header-actions"><button class="btn icon-only sm" data-action="close-rail" aria-label="Close object preview">${icon("close")}</button></div></div><div class="rail-body">
-    ${hasIncident ? `<section class="rail-section"><div class="rail-kicker">${incident.id}</div><div class="rail-heading">${esc(incident.title)}</div><div style="display:flex;gap:6px"><span class="badge critical">${incident.priority} priority</span><span class="badge info">${incident.status}</span></div><dl class="key-grid"><dt>Asset</dt><dd class="mono">${incident.asset} / ${incident.component}</dd><dt>Source</dt><dd class="mono">${esc(now.rpp1.source)}</dd><dt>Window</dt><dd class="mono">${esc(now.rpp1.window)}</dd><dt>RMS</dt><dd>${dash(now.rpp1.rms)} g</dd><dt>BPFI</dt><dd>${dash(now.rpp1.bpfi.hz)} Hz</dd></dl></section><section class="rail-section"><div class="rail-kicker">L1</div><p>${esc(now.rpp1.engine)} · fault ${esc(dash(now.rpp1.fault))}. WO ${esc(feed.flag.wo)}.</p><div class="inline-citations">${citationButton("signal", "Signal", now.rpp1.window)}</div></section><div class="rail-actions"><button class="btn primary" data-open-incident="${incident.id}">Open incident ${icon("arrow", "sm")}</button><div class="rail-actions inline"><button class="btn" data-action="view-floor">${icon("floor", "sm")}View on floor</button><button class="btn" data-action="open-assist">${icon("spark", "sm")}Ask Assist</button></div></div>` : `<section class="rail-section"><div class="rail-kicker">Selected asset</div><div class="rail-heading">${asset.id} · ${esc(asset.name)}</div><span class="badge ${statusClass(asset.condition)}">${esc(asset.condition)}</span><dl class="key-grid"><dt>Component</dt><dd>${esc(asset.component)}</dd><dt>Source</dt><dd class="mono">${esc(asset.source)}</dd><dt>Active case</dt><dd>${asset.incident || "None"}</dd></dl></section><div class="rail-actions"><button class="btn primary" data-action="open-asset">Open Asset 360</button>${asset.incident ? `<button class="btn" data-open-incident="${asset.incident}">Open incident</button>` : ""}<button class="btn" data-action="open-assist">${icon("spark", "sm")}Ask Maintenance Assist</button></div>`}
-  </div></aside>`;
+
+  const currentSource = now.rpp1?.source || asset.source;
+  const currentWindow = now.rpp1?.window || "";
+  const body = `${previewIdentity("Monitored asset", `${asset.id} · ${asset.name}`, `<span class="badge ${statusClass(asset.condition)}">${esc(capitalize(asset.condition))}</span>`, `${asset.location} · ${asset.component}`)}
+    ${asset.incident ? previewSection("Active case", asset.incident, `${capitalize(humanModel(asset.fault))} on ${asset.component}. Open the incident for diagnosis and next steps.`) : ""}
+    <section class="preview-section"><div class="rail-kicker">Current condition · ${esc(hopLabel())}</div><div class="preview-facts"><div class="preview-fact"><span>RMS</span><strong>${dash(now.rpp1?.rms)} g</strong></div><div class="preview-fact"><span>Speed</span><strong>${dash(now.rpp1?.rpm)} rpm</strong></div><div class="preview-fact"><span>BPFI</span><strong>${now.rpp1?.bpfi?.detected ? `${dash(now.rpp1.bpfi.hz)} Hz` : "Not detected"}</strong></div></div>${currentWindow ? `<div class="inline-citations">${citationButton("signal", "Open current signal", currentWindow, { source: currentSource, window: currentWindow })}</div>` : ""}</section>
+    <details class="preview-details"><summary>Source details</summary><dl class="key-grid"><dt>Source</dt><dd class="mono">${esc(currentSource)}</dd><dt>Window</dt><dd class="mono">${esc(currentWindow || "—")}</dd><dt>Active case</dt><dd>${esc(asset.incident || "None")}</dd></dl></details>`;
+  const actions = asset.incident
+    ? `<button class="btn primary" data-open-incident="${asset.incident}">Open incident ${icon("arrow", "sm")}</button><div class="preview-actions-secondary"><button class="btn" data-action="open-asset">Open Asset 360</button><button class="btn" data-action="open-assist">${icon("spark", "sm")}Ask Assist</button></div>`
+    : `<button class="btn primary" data-action="open-asset">Open Asset 360</button><button class="btn" data-action="open-assist">${icon("spark", "sm")}Ask Maintenance Assist</button>`;
+  return previewRail(`${asset.id} · Asset`, body, actions);
 }
 
 function assistContext(asset, incident) {
@@ -973,16 +1190,35 @@ function assistContext(asset, incident) {
   return `<details class="context-capsule"><summary aria-label="Selected machinery context">${icon("asset", "sm")}<span class="context-summary"><strong class="mono">${asset.id} / ${esc(asset.component)}</strong><span class="context-fault">${esc(hero ? dash(asset.fault) : "process only")}${incident && hero ? ` · ${incident.id}` : ""}</span></span>${icon("chevron", "sm")}</summary><div class="context-detail"><div class="context-grid"><span>Incident</span><strong class="mono">${hero ? (incident?.id || "None") : "—"}</strong><span>Asset</span><strong class="mono">${asset.id}</strong><span>Component</span><strong>${esc(asset.component)}</strong><span>Fault</span><strong>${esc(hero ? dash(asset.fault) : "not diagnosed")}</strong><span>${metricLabel}</span><strong>${metricValue}</strong><span>Source</span><strong class="mono">${esc(asset.source)}</strong></div><button class="context-change" data-action="view-floor" type="button">Change context</button></div></details>${flags}`;
 }
 
+function citationButtons(citations, asset) {
+  const now = hop();
+  const items = Array.isArray(citations) && citations.length ? citations : [];
+  if (!items.length && isHeroAsset(asset)) {
+    items.push({ type: "signal", source: now.rpp1.source, window: now.rpp1.window });
+    for (const row of feed.cmms) items.push({ type: "history", wo_id: row.wo_id });
+  }
+  return items.map(cite => {
+    if (cite.type === "history") return `<button class="citation-link" data-evidence="history">${icon("clock")}<span>CMMS · ${esc(cite.wo_id)}</span>${icon("external", "sm")}</button>`;
+    if (cite.type === "process") return `<button class="citation-link" data-evidence="process">${icon("intel")}<span>${esc(cite.source || asset.source)} · ${hopLabel()}</span>${icon("external", "sm")}</button>`;
+    if (cite.type === "manual") return `<button class="citation-link" data-evidence="manual">${icon("file")}<span>${esc(cite.doc || "manual")} p.${cite.page ?? "—"}</span>${icon("external", "sm")}</button>`;
+    return `<button class="citation-link" data-evidence="signal">${icon("intel")}<span>${esc(cite.source || now.rpp1.source)} · ${esc(cite.window || now.rpp1.window)}</span>${icon("external", "sm")}</button>`;
+  }).join("");
+}
+
 function answerContent(question, asset) {
   const now = hop();
+  if (lastAssist && lastAssist.question === question && lastAssist.asset_id === asset.id) {
+    const scope = lastAssist.out_of_scope ? " · out of scope" : "";
+    return `<div class="assist-message user"><div class="sender">You</div><p>${esc(question)}</p></div><div class="assist-message"><div class="sender">Maintenance Assist · ${esc(lastAssist.model || "Qwen3.6-35B-A3B")}${scope}</div><p>${esc(lastAssist.answer)}</p><div class="citation-list">${citationButtons(lastAssist.citations, asset)}</div></div>`;
+  }
   if (isHeroAsset(asset)) {
     const inc = derivedIncident();
-    return `<div class="assist-message user"><div class="sender">You</div><p>${esc(question)}</p></div><div class="assist-message"><div class="sender">Maintenance Assist · L1 only</div><p>No L2 draft on this tape (<span class="mono">wo: ${esc(feed.flag.wo)}</span>). Numbers below are the current hop.</p><dl class="key-grid"><dt>Fault</dt><dd>${esc(dash(now.rpp1.fault))}</dd><dt>RMS</dt><dd>${dash(now.rpp1.rms)} g</dd><dt>BPFI</dt><dd>${now.rpp1.bpfi.detected ? `${now.rpp1.bpfi.hz} Hz` : "not detected"}</dd><dt>Window</dt><dd class="mono">${esc(now.rpp1.source)}:${esc(now.rpp1.window)}</dd><dt>Incident</dt><dd class="mono">${inc?.id || "—"}</dd></dl><div class="citation-list"><button class="citation-link" data-evidence="signal">${icon("intel")}<span>${esc(now.rpp1.source)} · ${esc(now.rpp1.window)}</span>${icon("external", "sm")}</button>${feed.cmms.map(row => `<button class="citation-link" data-evidence="history">${icon("clock")}<span>CMMS · ${esc(row.wo_id)}</span>${icon("external", "sm")}</button>`).join("")}</div></div>`;
+    return `<div class="assist-message user"><div class="sender">You</div><p>${esc(question)}</p></div><div class="assist-message"><div class="sender">Maintenance Assist · L1 only</div><p>No L2 draft on this tape (<span class="mono">wo: ${esc(feed.flag.wo)}</span>). Numbers below are the current hop.</p><dl class="key-grid"><dt>Fault</dt><dd>${esc(dash(now.rpp1.fault))}</dd><dt>RMS</dt><dd>${dash(now.rpp1.rms)} g</dd><dt>BPFI</dt><dd>${now.rpp1.bpfi.detected ? `${now.rpp1.bpfi.hz} Hz` : "not detected"}</dd><dt>Window</dt><dd class="mono">${esc(now.rpp1.source)}:${esc(now.rpp1.window)}</dd><dt>Incident</dt><dd class="mono">${inc?.id || "—"}</dd></dl><div class="citation-list">${citationButtons(null, asset)}</div></div>`;
   }
   const slot = assetHop(asset.id);
   const entries = processTagEntries(slot);
   const rows = entries.map(([k, v]) => `<dt>${esc(k)}</dt><dd>${dash(v)}</dd>`).join("");
-  return `<div class="assist-message user"><div class="sender">You</div><p>${esc(question)}</p></div><div class="assist-message"><div class="sender">Maintenance Assist · L1 process tags</div><p>No vibration channel on <span class="mono">${esc(asset.id)}</span>. Not diagnosed. No work order. Numbers are this hop's cited process / electrical tags.</p><dl class="key-grid"><dt>Part</dt><dd class="mono">${esc(slot?.part || asset.component)}</dd><dt>Source</dt><dd class="mono">${esc(slot?.source || asset.source)}</dd>${rows}</dl><div class="citation-list"><button class="citation-link" data-evidence="process">${icon("intel")}<span>${esc(slot?.source || asset.source)} · hop ${cursor + 1}</span>${icon("external", "sm")}</button></div></div>`;
+  return `<div class="assist-message user"><div class="sender">You</div><p>${esc(question)}</p></div><div class="assist-message"><div class="sender">Maintenance Assist · L1 process tags</div><p>No vibration channel on <span class="mono">${esc(asset.id)}</span>. Not diagnosed. No work order. Numbers are this hop's cited process / electrical tags.</p><dl class="key-grid"><dt>Part</dt><dd class="mono">${esc(slot?.part || asset.component)}</dd><dt>Source</dt><dd class="mono">${esc(slot?.source || asset.source)}</dd>${rows}</dl><div class="citation-list"><button class="citation-link" data-evidence="process">${icon("intel")}<span>${esc(slot?.source || asset.source)} · ${hopLabel()}</span>${icon("external", "sm")}</button></div></div>`;
 }
 
 function assistSuggestions(asset) {
@@ -995,7 +1231,8 @@ function assistSuggestions(asset) {
 function assistPipeline(asset, state) {
   const now = hop();
   if (isHeroAsset(asset)) {
-    return `<div class="assist-run"><details class="assist-details" ${state === "running" ? "open" : ""}><summary>${icon("intel", "sm")}Processing stages<span class="status ${state === "failed" ? "critical" : state === "running" ? "info" : "success"}">${state === "running" ? "Running" : state === "failed" ? "Failed" : "Ready"}</span></summary><div class="pipeline-mini"><div class="pipeline-step"><span class="pipeline-dot">${icon("check", "sm")}</span><div><strong>L0 pointer</strong><span>${esc(now.rpp1.file)}</span></div></div><div class="pipeline-step"><span class="pipeline-dot">${icon("check", "sm")}</span><div><strong>L1 features</strong><span>${esc(now.rpp1.engine)}</span></div></div><div class="pipeline-step"><span class="pipeline-dot"></span><div><strong>L2 work order</strong><span>wo: ${esc(feed.flag.wo)}</span></div></div></div></details><button class="btn" data-action="open-full-run">Open full run ${icon("arrow", "sm")}</button></div>`;
+    const l2 = state === "answered" && lastAssist?.model ? lastAssist.model : "Qwen3.6-35B-A3B · :8000";
+    return `<div class="assist-run"><details class="assist-details" ${state === "running" ? "open" : ""}><summary>${icon("intel", "sm")}Processing stages<span class="status ${state === "failed" ? "critical" : state === "running" ? "info" : "success"}">${state === "running" ? "Running" : state === "failed" ? "Failed" : "Ready"}</span></summary><div class="pipeline-mini"><div class="pipeline-step"><span class="pipeline-dot">${icon("check", "sm")}</span><div><strong>L0 pointer</strong><span>${esc(now.rpp1.file)}</span></div></div><div class="pipeline-step"><span class="pipeline-dot">${icon("check", "sm")}</span><div><strong>L1 features</strong><span>${esc(now.rpp1.engine)}</span></div></div><div class="pipeline-step"><span class="pipeline-dot">${state === "answered" ? icon("check", "sm") : ""}</span><div><strong>L2 local model</strong><span>${esc(l2)}</span></div></div><div class="pipeline-step"><span class="pipeline-dot"></span><div><strong>L2 work order</strong><span>wo: ${esc(feed.flag.wo)}</span></div></div></div></details><button class="btn" data-action="open-full-run">Open full run ${icon("arrow", "sm")}</button></div>`;
   }
   const slot = assetHop(asset.id);
   const n = processTagEntries(slot).length;
@@ -1013,17 +1250,17 @@ function assistRail(route) {
   let body = assistContext(asset, incident);
   let footer = "";
   if (state === "ready") {
-    body += `<div class="assist-empty">${icon("spark")}<p>Ask about this hop. Answers bind to L1 ${isHeroAsset(asset) ? "scalars" : "process / electrical tags"} on <span class="mono">${esc(asset.source)}</span>; no L2 draft is invented.${isHeroAsset(asset) ? "" : " Not diagnosed."}</p></div>`;
+    body += `<div class="assist-empty">${icon("spark")}<p>Ask about this hop. Local Qwen answers from the L1 ${isHeroAsset(asset) ? "scalars" : "process / electrical tags"} on <span class="mono">${esc(asset.source)}</span>; no invented manual pages.${isHeroAsset(asset) ? "" : " Not diagnosed."}</p></div>`;
     footer += assistSuggestions(asset);
   }
-  if (state === "running") body += `<div class="assist-message user"><div class="sender">You</div><p>${esc(question)}</p></div><div class="assist-state" aria-busy="true"><strong>${icon("spark")}Reading feed hop</strong><p>No model call. Binding L1 ${isHeroAsset(asset) ? "scalars" : "process tags"}.</p><div class="progress-track"><span></span></div></div>`;
+  if (state === "running") body += `<div class="assist-message user"><div class="sender">You</div><p>${esc(question)}</p></div><div class="assist-state" aria-busy="true"><strong>${icon("spark")}Thinking</strong><p>Reading this hop.</p><div class="progress-track"><span></span></div></div>`;
   if (state === "answered") body += answerContent(question, asset);
   if (state === "unsupported") body += `<div class="assist-state warning"><strong>${icon("alert")}Assistant unavailable for ${asset.id}</strong><p>No L1 tags on this station. Geometry only — nothing to bind. Pick a monitored asset.</p><div class="rail-actions"><button class="btn" data-action="select-supported">Select supported RPP1 context</button></div></div>`;
   if (state === "failed") body += `<div class="assist-message user"><div class="sender">You</div><p>${esc(question)}</p></div><div class="assist-state error" role="alert"><strong>${icon("alert")}Run failed</strong><p>Question retained.</p><div class="rail-actions"><button class="btn danger" data-action="retry-assist">Retry question</button></div></div>`;
   if (state === "offline") body += `<div class="assist-state offline" role="alert"><strong>${icon("alert")}Local gateway offline</strong><p>Feed replay still runs. Answers disabled.</p><dl class="key-grid"><dt>Gateway</dt><dd class="text-critical">Offline</dd><dt>Draft</dt><dd>Retained locally</dd></dl></div>`;
   if (state !== "unsupported") body += assistPipeline(asset, state);
   const disabled = ["running", "unsupported", "offline"].includes(state);
-  if (state !== "unsupported") footer += `<form class="composer" data-assist-form><label for="assist-question">Ask about this hop</label><div class="composer-box"><textarea id="assist-question" ${disabled ? "disabled" : ""} placeholder="${isHeroAsset(asset) ? "Ask about L1 features or the flag" : "Ask about this hop's L1 tags"}">${state === "failed" ? esc(question) : ""}</textarea><button class="btn primary icon-only ${state === "running" ? "loading" : ""}" type="submit" ${disabled ? "disabled" : ""} aria-label="Send question">${state === "running" ? "" : icon("arrow")}</button></div><p class="composer-hint">Bound to ${asset.id} / ${asset.component} · Ctrl+Enter to send</p></form>`;
+  if (state !== "unsupported") footer += `<form class="composer" data-assist-form><label for="assist-question">Ask about this hop</label><div class="composer-box"><textarea id="assist-question" ${disabled ? "disabled" : ""} placeholder="${isHeroAsset(asset) ? "Ask about L1 features or the flag" : "Ask about this hop's L1 tags"}">${state === "failed" ? esc(question) : ""}</textarea><button class="btn primary icon-only ${state === "running" ? "loading" : ""}" type="submit" ${disabled ? "disabled" : ""} aria-label="Send question">${state === "running" ? "" : icon("arrow")}</button></div><p class="composer-hint">Enter to send · Shift+Enter for a new line</p></form>`;
   return `<aside class="utility-rail assist-rail" aria-label="Maintenance Assist" data-overlay-rail><div class="rail-header">${icon("spark")}<div class="rail-title"><strong>Maintenance Assist</strong><span>${asset.id} / ${asset.component} · L1 feed</span></div><div class="rail-header-actions"><span class="badge dark">LOCAL</span><button class="btn icon-only sm" data-action="close-rail" aria-label="Close Maintenance Assist">${icon("close")}</button></div></div><div class="rail-body">${body}</div>${footer ? `<div class="assist-footer">${footer}</div>` : ""}</aside>`;
 }
 
@@ -1074,13 +1311,14 @@ async function refreshLive() {
     fetchHops().catch(() => null),
     refreshBoard(),
   ]);
-  let changed = issuesChanged;
+  let incidentsChanged = false;
+  let hopsChanged = false;
   if (incRes?.ok) {
     const data = await incRes.json();
     const next = data.incidents || [];
     if (JSON.stringify(next) !== JSON.stringify(liveIncidents)) {
       liveIncidents = next;
-      changed = true;
+      incidentsChanged = true;
     }
   }
   if (hopRes?.ok) {
@@ -1091,9 +1329,34 @@ async function refreshLive() {
       cursor = data.latest.hop ?? cursor;
       healthyLoop = false;
     }
-    if (JSON.stringify(data.latest) !== before) changed = true;
+    if (JSON.stringify(data.latest) !== before) hopsChanged = true;
+    const busy = Object.entries(data.assets || {}).filter(([, slot]) => slot?.busy).map(([id]) => id);
+    postFloor({ type: "twin:flow", busy });
   }
-  return changed;
+  if (issuesChanged || hopsChanged) {
+    const parts = boardIssues().filter((row) => row.part).map((row) => ({ assetId: row.asset_id, part: row.part, severity: row.severity || "critical" }));
+    postFloor({ type: "twin:issues", parts });
+  }
+  return { incidents: incidentsChanged, hops: hopsChanged, issues: issuesChanged };
+}
+
+function softLiveTick() {
+  const active = document.activeElement;
+  return Boolean(app.querySelector("[data-part-mount], [data-floor-mount]"))
+    || active?.id === "assist-question"
+    || Boolean(active?.matches?.("[data-global-search]"));
+}
+
+function applyLiveTick() {
+  const stamp = app.querySelector(".refresh-line");
+  if (stamp) {
+    const next = document.createElement("div");
+    next.innerHTML = tapeStamp();
+    const node = next.firstElementChild;
+    if (node) stamp.replaceWith(node);
+  }
+  positionFloorLive();
+  positionPartLive();
 }
 
 async function injectFault(source = "ir", hops = 30) {
@@ -1162,14 +1425,23 @@ function evidenceRail(route) {
   const type = route.params.get("evidence") || "signal";
   const expanded = route.params.get("expanded") === "1";
   const now = hop();
+  const evidenceIncidentId = route.params.get("evidenceIncident");
+  const evidenceIncident = evidenceIncidentId ? incidents().find(item => item.id === evidenceIncidentId) : null;
+  const signal = {
+    source: route.params.get("evidenceSource") || now.rpp1?.source || "",
+    window: route.params.get("evidenceWindow") || now.rpp1?.window || "",
+    rms: evidenceIncident?.rms ?? now.rpp1?.rms,
+    rpm: evidenceIncident?.rpm ?? now.rpp1?.rpm,
+  };
+  const incidentSnapshot = Boolean(evidenceIncident);
   const cont = containment();
   const contProven = cont.state === "CONTAINED" && cont.denies.length > 0;
-  const titles = { manual: ["Manual evidence", "source-gap"], history: ["History evidence", "CMMS"], signal: ["Signal evidence", now.rpp1.file], process: ["Process tags", selectedAsset(route).id], containment: ["Containment evidence", contProven ? `openshell · ${cont.sandbox}` : cont.state === "UNSAFE" ? "UNSAFE" : "source-gap"] };
+  const titles = { manual: ["Manual evidence", "source-gap"], history: ["History evidence", "CMMS"], signal: ["Signal evidence", evidenceIncident?.id || now.rpp1.file], process: ["Process tags", selectedAsset(route).id], containment: ["Containment evidence", contProven ? `openshell · ${cont.sandbox}` : cont.state === "UNSAFE" ? "UNSAFE" : "source-gap"] };
   const gap = type === "manual" || (type === "containment" && !contProven && cont.state !== "UNSAFE");
   let content = "";
   if (type === "manual") content = `<section class="rail-section"><div class="rail-kicker">Manual</div><div class="rail-heading">Source-gap</div><p>No packed SKF page in this feed. Will not invent a quote.</p></section>`;
-  if (type === "history") content = feed.cmms.length ? `<section class="rail-section"><div class="rail-kicker">CMMS rows</div><div class="rail-heading">Alias MTR-07 → RPP1</div></section>${feed.cmms.map(row => `<div class="evidence-document">wo_id: <mark>${esc(row.wo_id)}</mark><br>asset_id: ${esc(row.asset_id)}<br>opened: ${esc(row.opened)}<br>closed: ${dash(row.closed)}<br>fault: <mark>${esc(row.fault)}</mark><br>action: ${esc(row.action)}<br>parts: <mark>${esc(row.parts)}</mark><br>source: ${esc(row.source)}</div>`).join("")}` : `<section class="rail-section"><p>No CMMS rows for this asset.</p></section>`;
-  if (type === "signal") content = `<section class="rail-section"><div class="rail-kicker">Exact signal window</div><div class="rail-heading mono">${esc(now.rpp1?.source || "—")}</div><dl class="key-grid"><dt>Window</dt><dd class="num">${esc(now.rpp1?.window || "—")}</dd><dt>Sampling</dt><dd class="num">${dash(now.rpp1?.fs_hz)} Hz</dd><dt>Speed</dt><dd class="num">${dash(now.rpp1?.rpm)} rpm</dd><dt>RMS</dt><dd class="num">${dash(now.rpp1?.rms)} g</dd><dt>BPFI</dt><dd>${now.rpp1?.bpfi?.detected ? `${now.rpp1.bpfi.hz} Hz` : "not detected"}</dd></dl></section>${rmsChart(340, 105, "RPP1 RMS series")}<div class="limit-note">${icon("alert", "sm")}No 12 kHz samples on the board. Locator retains ${esc(now.rpp1?.file || "—")} ${esc(now.rpp1?.window || "")}.</div>`;
+  if (type === "history") content = feed.cmms.length ? `<section class="rail-section"><div class="rail-kicker">CMMS rows</div><div class="rail-heading">Alias MTR-07 → RPP1</div></section>${feed.cmms.map(row => `<div class="evidence-document">wo_id: <mark>${esc(row.wo_id)}</mark><br>asset_id: ${esc(row.asset_id)}<br>opened: ${esc(row.opened)}<br>closed: ${dash(row.closed)}<br>fault: <mark>${esc(row.fault)}</mark><br>action: <mark>${esc(row.action)}</mark><br>parts: <mark>${esc(row.parts)}</mark><br>source: ${esc(row.source)}</div>`).join("")}` : `<section class="rail-section"><p>No CMMS rows for this asset.</p></section>`;
+  if (type === "signal") content = `<section class="rail-section"><div class="rail-kicker">Exact signal window</div><div class="rail-heading mono">${esc(signal.source || "—")}</div><dl class="key-grid"><dt>Window</dt><dd class="num">${esc(signal.window || "—")}</dd><dt>Sampling</dt><dd class="num">${incidentSnapshot ? "Not retained" : `${dash(now.rpp1?.fs_hz)} Hz`}</dd><dt>Speed</dt><dd class="num">${signal.rpm == null ? "—" : `${dash(signal.rpm)} rpm`}</dd><dt>RMS</dt><dd class="num">${signal.rms == null ? "—" : `${dash(signal.rms)} g`}</dd><dt>BPFI</dt><dd>${incidentSnapshot ? "Not retained in incident snapshot" : now.rpp1?.bpfi?.detected ? `${now.rpp1.bpfi.hz} Hz` : "not detected"}</dd></dl></section>${incidentSnapshot ? "" : rmsChart(340, 105, "RPP1 RMS series")}<div class="limit-note">${icon("alert", "sm")}${incidentSnapshot ? `Incident locator retained from ${esc(evidenceIncident.id)}; current-hop values are not substituted.` : `No 12 kHz samples on the board. Locator retains ${esc(now.rpp1?.file || "—")} ${esc(signal.window)}.`}</div>`;
   if (type === "process") {
     const asset = selectedAsset(route);
     const slot = assetHop(asset.id);
@@ -1179,11 +1451,33 @@ function evidenceRail(route) {
   return `<aside class="utility-rail" aria-label="Evidence Viewer" data-overlay-rail><div class="rail-header">${icon("file")}<div class="rail-title"><strong>${titles[type][0]}</strong><span>${titles[type][1]}</span></div><div class="rail-header-actions"><button class="btn sm" data-action="return-rail">${icon("back", "sm")}Back</button><button class="btn icon-only sm" data-action="close-rail" aria-label="Close Evidence Viewer">${icon("close")}</button></div></div><div class="rail-body"><div class="viewer-toolbar"><span class="badge ${gap ? "warning" : cont.state === "UNSAFE" && type === "containment" ? "critical" : "success"}">${gap ? "Source-gap" : type === "containment" ? "Gateway audit" : "Feed artifact"}</span></div>${content}${type === "manual" && expanded ? `<p class="section-note">Still no page.</p>` : ""}${type === "manual" ? `<button class="btn" style="width:100%;margin-top:12px" data-action="expand-evidence">${expanded ? "Collapse full artifact" : "Open full artifact"}</button>` : ""}</div></aside>`;
 }
 
+function captureTypedField() {
+  const ta = document.getElementById("assist-question");
+  if (ta) draftQuestion = ta.value;
+  const el = document.activeElement;
+  if (!el || !app.contains(el)) return null;
+  if (el.id !== "assist-question" && !el.matches("[data-global-search]")) return null;
+  return { assist: el.id === "assist-question", value: el.value, start: el.selectionStart, end: el.selectionEnd };
+}
+
+function restoreTypedField(saved) {
+  if (!saved) return false;
+  const el = saved.assist ? document.getElementById("assist-question") : app.querySelector("[data-global-search]");
+  if (!el || el.disabled) return false;
+  el.value = saved.value;
+  el.focus({ preventScroll: true });
+  try { el.setSelectionRange(saved.start ?? el.value.length, saved.end ?? el.value.length); } catch {}
+  return true;
+}
+
 function render() {
   if (!feed) {
     app.innerHTML = `<main class="page"><div class="page-inner compact"><p>Loading feed.json…</p></div></main>`;
     return;
   }
+  const savedField = captureTypedField();
+  const savedPageScroll = app.querySelector(".page")?.scrollTop ?? 0;
+  const savedRailScroll = app.querySelector(".rail-body")?.scrollTop ?? 0;
   const route = getRoute();
   let main;
   if (route.path === "/incidents") main = inboxPage(route);
@@ -1194,9 +1488,18 @@ function render() {
   const railMode = route.params.get("rail");
   const rail = railMode === "preview" ? objectPreviewRail(route) : railMode === "assist" ? assistRail(route) : railMode === "evidence" ? evidenceRail(route) : "";
   app.innerHTML = shell(main, route, rail);
+  const page = app.querySelector(".page");
+  if (page) page.scrollTop = savedPageScroll;
+  const railBody = app.querySelector(".rail-body");
+  if (railBody) railBody.scrollTop = savedRailScroll;
   syncFloor(route);
   syncPart(route);
   document.title = `${activeModule(route.path)[0].toUpperCase()}${activeModule(route.path).slice(1)} · Groundwork`;
+  if (restoreTypedField(savedField)) {
+    previousPath = route.path;
+    focusRestoreId = null;
+    return;
+  }
   if (route.path !== previousPath) {
     previousPath = route.path;
     requestAnimationFrame(() => document.querySelector("#page-heading")?.focus({ preventScroll: true }));
@@ -1210,17 +1513,45 @@ function render() {
 function openEvidence(type, trigger) {
   lastTrigger = trigger;
   const route = getRoute();
-  updateRoute({ rail: "evidence", evidence: type, returnRail: route.params.get("rail") || "preview", expanded: null });
+  updateRoute({
+    rail: "evidence",
+    evidence: type,
+    returnRail: route.params.get("rail") || "preview",
+    expanded: null,
+    evidenceSource: trigger?.dataset.evidenceSource || null,
+    evidenceWindow: trigger?.dataset.evidenceWindow || null,
+    evidenceIncident: trigger?.dataset.evidenceIncident || null,
+  });
 }
 
-function startAssist(question) {
+async function startAssist(question) {
   draftQuestion = question;
-  clearTimeout(assistTimer);
+  lastAssistError = "";
+  assistAbort?.abort();
+  const asset = selectedAsset(getRoute());
+  const ac = new AbortController();
+  assistAbort = ac;
   updateRoute({ rail: "assist", assistState: "running", question });
-  assistTimer = setTimeout(() => {
+  try {
+    const response = await fetch(`${apiBase()}/api/questions`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ question, asset_id: asset.id }),
+      signal: ac.signal,
+    });
+    const data = await response.json().catch(() => ({}));
+    if (ac.signal.aborted) return;
+    if (!response.ok) throw new Error(data.error || `assist ${response.status}`);
+    lastAssist = { ...data, question: data.question || question, asset_id: data.asset_id || asset.id };
     const current = getRoute();
     if (current.params.get("rail") === "assist" && current.params.get("assistState") === "running") updateRoute({ assistState: "answered" });
-  }, 400);
+  } catch (err) {
+    if (err.name === "AbortError") return;
+    lastAssistError = err.message || "assist failed";
+    const offline = /unavailable|Failed to fetch|timeout|inference|ECONN|offline/i.test(lastAssistError);
+    const current = getRoute();
+    if (current.params.get("rail") === "assist") updateRoute({ assistState: offline ? "offline" : "failed", question });
+  }
 }
 
 function onAppClick(event) {
@@ -1232,10 +1563,12 @@ function onAppClick(event) {
     render();
     return;
   }
+  const inField = event.target.closest("#assist-question, [data-assist-form], [data-global-search], textarea, input, select");
   if (openMetricInfo) {
     openMetricInfo = "";
-    render();
+    if (!inField) render();
   }
+  if (inField) return;
   const target = event.target.closest("button, [data-select-incident], [data-select-asset], [data-select-run]");
   if (!target || !feed) return;
   if (target.dataset.metric) {
@@ -1278,7 +1611,7 @@ function onAppClick(event) {
     updateRoute({ rail: "assist", assistState: asset.supported ? "ready" : "unsupported", evidence: null, returnRail: null });
   }
   if (action === "close-rail") {
-    focusRestoreId = lastTrigger?.dataset.focusId || "assist-trigger";
+    focusRestoreId = lastTrigger?.dataset.focusId || "rail-trigger";
     updateRoute({ rail: null, evidence: null, returnRail: null, expanded: null });
   }
   if (action === "return-rail") updateRoute({ rail: getRoute().params.get("returnRail") || "preview", evidence: null, returnRail: null, expanded: null });
@@ -1302,7 +1635,7 @@ function onAppClick(event) {
     const asset = selectedAsset(getRoute());
     location.hash = hashFor("/floor", { asset: asset.id, incident: asset.incident || selectedIncident(getRoute())?.id, rail: "preview" });
   }
-  if (action === "open-full-run") location.hash = hashFor("/intelligence", { run: "TAPE-20", incident: selectedIncident(getRoute())?.id });
+  if (action === "open-full-run") location.hash = hashFor("/intelligence", { run: `HOP-${hopIndex()}`, incident: selectedIncident(getRoute())?.id });
   if (action === "open-asset") {
     const fromFloor = getRoute().path === "/floor";
     location.hash = hashFor(`/assets/${selectedAsset(getRoute()).id}`, fromFloor ? { render: "3d" } : {});
@@ -1344,6 +1677,14 @@ function onAppClick(event) {
 }
 
 app.addEventListener("click", onAppClick);
+app.addEventListener("input", event => {
+  if (event.target.id === "assist-question") draftQuestion = event.target.value;
+});
+app.addEventListener("pointerover", event => {
+  const id = event.target.closest("[data-select-asset], [data-open-asset]")?.dataset.selectAsset
+    || event.target.closest("[data-open-asset]")?.dataset.openAsset;
+  if (id) prefetchTwinAssets(id);
+});
 
 app.addEventListener("change", event => {
   const input = event.target.closest("[data-filter-kind]");
@@ -1370,14 +1711,17 @@ app.addEventListener("keydown", event => {
   }
   if (event.key === "Escape" && getRoute().params.get("rail")) {
     event.preventDefault();
-    focusRestoreId = lastTrigger?.dataset.focusId || "assist-trigger";
+    focusRestoreId = lastTrigger?.dataset.focusId || "rail-trigger";
     updateRoute({ rail: null, evidence: null, returnRail: null });
   }
   if (event.key === "Enter" && event.target.matches("[data-global-search]")) {
     event.preventDefault();
     updateRoute({ search: event.target.value || null }, "/incidents");
   }
-  if ((event.ctrlKey || event.metaKey) && event.key === "Enter" && event.target.id === "assist-question") event.target.closest("form")?.requestSubmit();
+  if (event.key === "Enter" && event.target.id === "assist-question" && !event.shiftKey && !event.isComposing && event.keyCode !== 229) {
+    event.preventDefault();
+    event.target.closest("form")?.requestSubmit();
+  }
   if (event.key === "Tab" && matchMedia("(max-width: 1280px)").matches) {
     const rail = document.querySelector("[data-overlay-rail]");
     if (!rail) return;
@@ -1407,15 +1751,11 @@ function startReplay() {
     return;
   }
   replayTimer = setInterval(() => {
-    if (liveHops?.live) {
-      // cursor advanced by refreshLive from hop-loop
-      render();
-      return;
-    }
-    // Fallback: forever-loop healthy hops 0–9
+    if (liveHops?.live) return;
     const healthyEnd = Math.min(9, feed.hops.length - 1);
     cursor = (cursor + 1) % (healthyEnd + 1);
-    render();
+    if (softLiveTick()) applyLiveTick();
+    else render();
   }, 1000);
 }
 
@@ -1429,7 +1769,7 @@ async function loadStations() {
     const bound = new Map((map?.assets || []).map(a => [a.asset_id, a]));
     twinStations = {
       cells: scene.cells || [],
-      stations: scene.placements.filter(p => p.kind === "station").map(p => ({ asset_id: p.asset_id, model: p.model || p.file.replace(/\.glb$/, ""), cell: p.cell || null, position: p.position, monitored: bound.has(p.asset_id), role: bound.get(p.asset_id)?.role || null, source: bound.get(p.asset_id)?.source || null })),
+      stations: scene.placements.filter(p => p.kind === "station").map(p => ({ asset_id: p.asset_id, model: p.model || p.file.replace(/\.glb$/, ""), file: p.file, cell: p.cell || null, position: p.position, monitored: bound.has(p.asset_id), role: bound.get(p.asset_id)?.role || null, source: bound.get(p.asset_id)?.source || null })),
       license: scene.source, cite: scene.cite,
     };
     render();
@@ -1445,6 +1785,7 @@ async function boot() {
   ]);
   if (!response.ok) throw new Error(`feed.json ${response.status}`);
   feed = await response.json();
+  prefetchTwinAssets("RPP1");
   board = boardResponse?.ok ? await boardResponse.json() : null;
   await refreshLive();
   loadStations();
@@ -1455,8 +1796,15 @@ async function boot() {
   setInterval(async () => {
     if (attemptState === "running") return;
     const beforeContainment = JSON.stringify(board?.containment);
-    const changed = await refreshLive();
-    if (changed || JSON.stringify(board?.containment) !== beforeContainment) render();
+    const delta = await refreshLive();
+    const containmentChanged = JSON.stringify(board?.containment) !== beforeContainment;
+    if (delta.incidents || delta.issues || containmentChanged) {
+      if (softLiveTick()) applyLiveTick();
+      else render();
+    } else if (delta.hops) {
+      if (softLiveTick()) applyLiveTick();
+      else render();
+    }
   }, 1000);
 }
 
@@ -1470,5 +1818,6 @@ window.addEventListener("hashchange", render);
 window.addEventListener("message", handleTwinMessage);
 window.addEventListener("resize", () => { positionFloorLive(); positionPartLive(); });
 boot().catch(err => {
+  parkPartLive();
   app.innerHTML = `<main class="page"><div class="page-inner compact"><h1>Feed missing</h1><p>${esc(err.message)}</p><p class="section-note">Run scripts/build-prototype-feed.py on spark.</p></div></main>`;
 });

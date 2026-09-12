@@ -16,7 +16,13 @@ function row(grid, label, value) {
 function citeHref(cite) {
   if (cite.type === "manual") return `/api/artifacts/manual/${encodeURIComponent(cite.doc)}?page=${cite.page}#page=${cite.page}`;
   if (cite.type === "history") return `/api/artifacts/history/${encodeURIComponent(cite.wo_id)}`;
-  if (cite.type === "signal") return `/api/artifacts/signal/${encodeURIComponent(String(cite.source).replace(/^cwru:/, ""))}`;
+  if (cite.type === "signal") {
+    const s = String(cite.source || "");
+    const i = s.indexOf(":");
+    const prefix = i < 0 ? "" : s.slice(0, i);
+    const file = i < 0 ? s : s.slice(i + 1);
+    return `/api/artifacts/signal/${encodeURIComponent(prefix)}/${encodeURIComponent(file)}`;
+  }
   return "#";
 }
 function citeLabel(cite) {

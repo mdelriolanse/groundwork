@@ -27,7 +27,7 @@ Static-only fallback (containment shows "gateway offline / unproven"):
 python3 -m http.server 4173 --bind 0.0.0.0 --directory web/prototype
 ```
 
-Replay advances 1 Hz through 20 hops. Flag at hop 10 (`flag_at`). `prefers-reduced-motion` jumps to the last hop.
+Replay is replaced by the always-on hop loop (`scripts/hop-loop.py`). UI shows a monotonic hop index — never `N/20`. `prefers-reduced-motion` still freezes the fallback animation.
 
 ## Required direct URLs
 
@@ -36,7 +36,7 @@ Replay advances 1 Hz through 20 hops. Flag at hop 10 (`flag_at`). `prefers-reduc
 - Floor, whole line (nav default): `http://127.0.0.1:4173/#/floor?rail=preview` — add `&view=top` for the top-down toggle
 - Floor RPP1 (cell framed, as from `View on floor`): `http://127.0.0.1:4173/#/floor?asset=RPP1&rail=preview`
 - Asset 360: `http://127.0.0.1:4173/#/assets/RPP1` — `?render=3d` opens the single-station grayscale render (click a part for its facts); works for any station id, e.g. `#/assets/B3?render=3d`
-- Intelligence: `http://127.0.0.1:4173/#/intelligence?run=TAPE-20`
+- Intelligence: `http://127.0.0.1:4173/#/intelligence`
 - Signal evidence: `http://127.0.0.1:4173/#/incidents/INC-RPP1?incident=INC-RPP1&rail=evidence&evidence=signal`
 
 ## Maintenance Assist states

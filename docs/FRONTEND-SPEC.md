@@ -160,7 +160,6 @@ Deep links preserve selected site/area, filters, object, and utility-rail mode i
 - Site/area scope selector.
 - Global search.
 - Persistent `Local · Contained` status with text and icon.
-- Maintenance Assist toggle.
 
 #### Main content
 
