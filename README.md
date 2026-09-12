@@ -1,40 +1,60 @@
-# Plant-floor operations agent
+<p align="center">
+  <img src="web/prototype/groundwork-mark.svg" alt="Groundwork" width="120">
+</p>
 
-Always-on predictive maintenance **inside** an air-gapped plant. Local LLM + deterministic DSP + cited work orders + **kernel-enforced proof** that nothing left the building.
+# Groundwork
 
-Dell × NVIDIA AI Hackathon · Cornell · 12 Sep 2026 · Dell Pro Max GB10.
+Groundwork is an AI maintenance engineer that lives on the plant floor. It watches rotating equipment on its own and flags a developing fault before the line goes down.
 
-> Factories can't use AI — not won't, *can't*. The equipment that matters sits on air-gapped OT networks where regulators forbid outbound connections. We put an AI maintenance engineer inside the plant.
+When the hop-level sensor data changes, it diagnoses the fault, reads the equipment manuals and the CMMS history, and opens a work order with citations. A technician does not have to ask first.
 
-**Humans:** start at [docs/VISION.md](docs/VISION.md).  
-**Agents:** start at [AGENTS.md](AGENTS.md). Do not skip it.
+NemoClaw runs the whole agent on one Dell Pro Max GB10 with Qwen3.6-35B-A3B. Inference stays on the box. There are no cloud calls. OpenShell sandboxes the process and records a deny if anything tries to send telemetry out.
 
-Remote: https://github.com/mdelriolanse/plant-floor-agent
+The technician board is a live plant view: what needs attention, why it happened, and the next action.
 
-## What ships today
+Built for the Dell × NVIDIA AI Hackathon at Cornell, 12 Sep 2026.
 
-1. Fleet already being watched (not a chat box).
-2. Fault → cited work order (manual page + sensor window).
-3. False-positive rate on healthy baselines (state of the art has none).
-4. Closer: order the agent to exfiltrate telemetry → OpenShell **denies and logs**.
+## How it works
 
-Diagnosis DSP is [predictive-maintenance-mcp](https://github.com/lgdimaggio/predictive-maintenance-mcp) (MIT). We do not rebuild it.
+The always-on hop loop writes L1 historian tags (not raw 12 kHz waveforms) into SQLite. Diagnosis goes through [predictive-maintenance-mcp](https://github.com/lgdimaggio/predictive-maintenance-mcp). Groundwork does not rebuild that DSP. Every claim on screen points at a real artifact: a CWRU or Mendeley window, an SKF manual page, or a CMMS row.
 
-## Repo contents (this commit)
+If you tell it to email or POST plant data off-box, OpenShell's L7 policy denies the call and the gateway audit log is what the board shows. Containment is not a seeded string.
 
-Vision, locked decisions, architecture, stack, demo/pitch, build plan. **No application code** — write that during the event. Sample CMMS rows live in `data/`. Weights and CWRU mats live on the HACKPACK USB, not here.
-
-## After clone
+## Run on the GB10
 
 ```bash
-# On the GB10: copy HACKPACK to internal NVMe first (see docs/STACK-AND-HARDWARE.md)
-# Then follow docs/BUILD-PLAN.md workstreams.
+git clone https://github.com/mdelriolanse/groundwork.git
+cd groundwork
+node app/server.mjs
 ```
 
-Clone:
+Board: `http://127.0.0.1:8765/prototype/`
+
+Hop loop (separate process):
 
 ```bash
-git clone https://github.com/mdelriolanse/plant-floor-agent.git
+python3 scripts/hop-loop.py
 ```
 
-Private — add teammates as collaborators on the GitHub repo page.
+Inject a catalogued fault for the demo:
+
+```bash
+./demo/inject/inject-ir.sh
+```
+
+Local inference is `http://127.0.0.1:8000` serving Qwen3.6-35B-A3B. Copy weights to internal NVMe before serving. Do not serve off the HACKPACK USB.
+
+```bash
+npm test
+```
+
+## Layout
+
+- `app/` board API, assist, OpenShell evidence
+- `web/prototype/` technician workspace
+- `web/twin/` 3D plant
+- `scripts/hop-loop.py` 1 Hz watcher
+- `documentation/` PRD and box status
+- `AGENTS.md` invariants for agents
+
+Private repo. Add teammates as collaborators.
