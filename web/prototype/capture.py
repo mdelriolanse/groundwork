@@ -131,7 +131,7 @@ def main():
             raise RuntimeError(f"floor context propagation failed: {context}")
 
         navigate(session, "#/incidents?incident=INC-2048")
-        execute(session, "const b=document.querySelector('[data-focus-id=assist-trigger]');b.focus();b.click();return true")
+        execute(session, "const b=document.querySelector('[data-focus-id=rail-trigger]');b.focus();b.click();return true")
         time.sleep(.1)
         execute(session, "const rail=document.querySelector('[data-overlay-rail]');const f=[...rail.querySelectorAll('button:not([disabled]),textarea:not([disabled]),a[href]')];f.at(-1).focus();f.at(-1).dispatchEvent(new KeyboardEvent('keydown',{key:'Tab',bubbles:true,cancelable:true}));return true")
         trapped = execute(session, "const rail=document.querySelector('[data-overlay-rail]');const f=[...rail.querySelectorAll('button:not([disabled]),input:not([disabled]),textarea:not([disabled]),a[href],[tabindex]:not([tabindex=\"-1\"])')];return {ok:document.activeElement===f[0],active:document.activeElement?.outerHTML?.slice(0,180),first:f[0]?.outerHTML?.slice(0,180),last:f.at(-1)?.outerHTML?.slice(0,180),count:f.length}")
@@ -139,7 +139,7 @@ def main():
             raise RuntimeError(f"overlay focus trap failed: {trapped}")
         execute(session, "document.activeElement.dispatchEvent(new KeyboardEvent('keydown',{key:'Escape',bubbles:true,cancelable:true}));return true")
         time.sleep(.1)
-        restored = execute(session, "return !document.querySelector('[data-overlay-rail]') && document.activeElement?.dataset.focusId==='assist-trigger'")
+        restored = execute(session, "return !document.querySelector('[data-overlay-rail]') && document.activeElement?.dataset.focusId==='rail-trigger'")
         if not restored:
             raise RuntimeError("Escape close or focus restoration failed")
         print("verified floor context, overlay focus trap, Escape close, and focus restoration")
