@@ -175,7 +175,7 @@ The visual system is enterprise-light, flat, dense, restrained, and accessible. 
 
 6. **Maintenance Assist Adapter**
    - Validates selected context, submits bounded questions, streams run state, renders citations, and exposes unsupported/offline/out-of-scope states.
-   - Keeps the current RPP1/URjoint1 agent boundary explicit.
+   - Diagnosis and work orders stay RPP1/URjoint1. Assist on other monitored assets binds L1 process tags only.
    - Never trusts client-supplied context without server validation.
 
 7. **Twin Bridge**
@@ -310,6 +310,6 @@ The visual system is enterprise-light, flat, dense, restrained, and accessible. 
 
 - The local-first requirement is part of the interface: persistent containment status, local model identity, independent service health, and inspectable deny logs are product features.
 - “Not a chatbot” remains an invariant. The assistant supports the selected operational object; autonomous incidents and work orders remain primary.
-- The current live assistant is grounded only for RPP1/URjoint1. The frontend must make that boundary visible rather than hiding it behind fixture data.
+- Diagnosis stays RPP1/URjoint1. Assist on other monitored assets binds that hop's L1 process/electrical tags and must say it is not diagnosed. Unmonitored stations stay unavailable.
 - Palantir's reference patterns are particularly suitable because Workshop is object/ontology-first, Inbox is designed for triage/review/action, Object View supports panel and full representations, and AIP Assist is context-aware across the active application.
 - The detailed visual tokens, page anatomy, assistant states, interaction contracts, API targets, and prototype acceptance checklist are maintained in the companion frontend product specification.

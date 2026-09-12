@@ -309,12 +309,12 @@ Defaults to Object Preview summary. Maintenance Assist and Evidence Viewer are e
 ### 5.3 Floor
 
 - Full-bleed embedded Three.js scene (`web/twin/?view=plan|top`) inside standard application chrome. The iframe persists across re-renders; it is never reloaded on a replay hop.
-- **Bird's-eye, not first-person.** Fixed orthographic camera; isometric by default, top-down via a header toggle (`view=top` in the URL). No orbit, pan, or zoom controls. The line is turned to run left→right and fitted to the viewport minus the overlay inset.
-- **Every station** from `scene.json` is rendered at its real placement; the warehouse shell is omitted. Unmonitored stations are shown and labelled honestly (`no sensor`), never invented as healthy.
-- Geometry uses one neutral material. State is never colour-only: selection = footprint outline + label highlight; incident = red label with icon and text (`flag`); unmonitored = muted label.
+- **Bird's-eye, not first-person.** Orthographic camera; isometric by default, top-down via a header toggle (`view=top` in the URL). Angle is locked: wheel zoom and drag/two-finger pan only — no orbit. Click still selects a station (drag does not). `Fit line` and the iso/top toggle reset the camera. The line is turned to run left→right and fitted to the viewport minus the overlay inset.
+- **Every station** from `scene.json` is rendered at its real placement; the warehouse shell is omitted. Stations carry researched L1 process/electrical tags from `data/sensors/catalog.json` and are labelled `process` (or `ok`/`flag` for RPP1). Never invent a second diagnosed vibration fault.
+- Geometry uses one neutral material. State is never colour-only: selection = footprint outline + label highlight; incident = red label with icon and text (`flag`); process-only = monitored label; true geometry-only gaps (if any) = muted `no sensor`.
 - Labels, incident markers, cell tree, legend, and toggles are drawn by the parent app from `twin:layout` screen anchors, so they share one style system. Dense views drop colliding unmonitored labels; monitored, selected, flagged, and hovered labels are always placed.
 - Left overlay: line → cell → station tree from `scene.json` `cells`, with flag counts; cells collapse except those holding a monitored or selected station.
-- Tree rows select: URL (`asset=`), selected asset, Object Preview, assistant context. Clicking a machine or its label **opens its Asset 360** — the floor is the way into a machine's profile. Selecting an unmonitored station shows a geometry-only preview and drives Assist to `unsupported`.
+- Tree rows select: URL (`asset=`), selected asset, Object Preview, assistant context. Clicking a machine or its label **opens its Asset 360** — the floor is the way into a machine's profile. Selecting a monitored non-hero station shows process tags and scopes Assist to those L1 tags (never a vibration diagnosis). Geometry-only stations stay `unsupported`.
 - Focus frames the selected station's **cell** and dims the rest; nothing is hidden in plan view. No `asset=` in the route or `Fit line` frames the whole line.
 - Selected unhealthy asset offers `Open incident`.
 - Incident detail offers `View on floor`, focusing the same asset/component.
@@ -339,10 +339,10 @@ Header actions: `Open 3D render`, `View on floor`, `Ask Maintenance Assist`. No 
 
 #### 3D render (Asset 360)
 
-- `render=3d` opens a panel with the same twin in `?view=part`: **only this station**, at the origin, on the same grid, same grayscale material as the Floor. Orbit is allowed here; it is a detail inspection, not navigation.
-- Clicking a part highlights that sub-tree and shows part facts beside the render: for the sensor-bound part (`RPP1/URjoint1`) the source, window, RMS, speed, BPFI, current fault, `Open incident`, `Open exact signal`; for T1's bound part the process tags; for every other part "No sensor on this part" — never an invented fault.
+- `render=3d` opens a **portrait** panel in a sticky left column (render on top, part facts below; the rest of Asset 360 flows beside it) with the same twin in `?view=part`: **only this station**, at the origin, on the same grid, same grayscale material as the Floor. Orbit is allowed here; it is a detail inspection, not navigation. The camera refits to the frame's aspect so the station is never cropped.
+- Clicking a part highlights that sub-tree and shows part facts beside the render: for the sensor-bound part (`RPP1/URjoint1`) the source, window, RMS, speed, BPFI, current fault, `Open incident`, `Open exact signal`; for other monitored stations the cited process/electrical tags on the bound part; for every other part "No sensor on this part" — never an invented fault.
 - When the asset carries a flag, the bound part is pre-highlighted on open so the fault is visible immediately.
-- Works for unmonitored stations (geometry only) and survives replay re-renders (persistent iframe).
+- Works for all stations (geometry + tags where bound) and survives replay re-renders (persistent iframe).
 
 ### 5.5 Intelligence
 
@@ -382,7 +382,7 @@ It does not become the application's primary navigation or a general-purpose cha
 
 ### Current integration boundary
 
-The live assistant is grounded for `RPP1` / `URjoint1`. Other assets must show a clear unavailable/out-of-scope state until corresponding evidence and agent configuration exist. Never generate convincing mock answers for unsupported machinery.
+The live assistant binds the selected asset's current-hop L1 evidence. `RPP1` / `URjoint1` has CWRU scalars and may discuss the flag. Other monitored stations answer from cited process / electrical tags only — never a fault, ISO zone, or work order. Geometry-only stations stay unavailable. Never generate convincing mock answers when the hop has no tags.
 
 ### Header
 
