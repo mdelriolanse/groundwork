@@ -1,5 +1,5 @@
 const app = document.querySelector("#app");
-const twinOrigin = `${location.protocol}//${location.hostname}:8765`;
+const twinOrigin = location.port === "4181" ? location.origin : `${location.protocol}//${location.hostname}:8765`;
 const apiBase = () => (location.origin === twinOrigin ? "" : twinOrigin);
 const fetchBoard = () => fetch(`${apiBase()}/api/board`, { cache: "no-store" });
 const fetchIncidents = () => fetch(`${apiBase()}/api/incidents`, { cache: "no-store" });
@@ -823,6 +823,24 @@ function rmsChart(width, height, label) {
   return `<div class="trend-chart"><svg viewBox="0 0 ${width} ${height}" role="img" aria-label="${esc(label)}"><path class="chart-grid" d="M0 20H${width}M0 ${Math.round(height / 2)}H${width}M0 ${height - 10}H${width}"/><path class="chart-area" d="${area}"/><path class="chart-line" d="${line}"/><circle class="chart-dot" cx="${last[0]}" cy="${last[1]}" r="4"/></svg><p class="section-note">${values.length} hops · ${dash(now.rpp1?.source)} · RMS ${dash(now.rpp1?.rms)} g</p></div>`;
 }
 
+function l2PeakChart(workOrder) {
+  const features = Array.isArray(workOrder?.evidence?.features) ? workOrder.evidence.features : [];
+  const text = features.join(" ");
+  const primary = text.match(/detected at ([\d.]+) Hz.*?expected ([\d.]+) Hz.*?magnitude ([\d.]+)/i);
+  if (!primary) return `<div class="chart-gap">No structured peak magnitudes in this L2 report.</div>`;
+  const points = [{ label: "1× BPFI", hz: Number(primary[1]), magnitude: Number(primary[3]) }];
+  const harmonicText = features.find(value => /harmonics:/i.test(value)) || "";
+  const harmonics = [...harmonicText.matchAll(/(\d+)x@([\d.]+) Hz/g)];
+  const magnitudeList = harmonicText.match(/magnitudes ([\d.]+) \/ ([\d.]+) \/ ([\d.]+)/i);
+  harmonics.forEach((match, index) => {
+    const magnitude = magnitudeList ? Number(magnitudeList[index + 1]) : null;
+    if (Number.isFinite(magnitude)) points.push({ label: `${match[1]}× BPFI`, hz: Number(match[2]), magnitude });
+  });
+  const maxMagnitude = Math.max(...points.map(point => point.magnitude), 1);
+  const rows = points.map(point => `<div class="peak-row"><span>${point.label}</span><div class="peak-track"><i style="width:${Math.max(2, point.magnitude / maxMagnitude * 100).toFixed(1)}%"></i></div><strong>${dash(point.hz)} Hz</strong><small>${dash(point.magnitude)}</small></div>`).join("");
+  return `<figure class="peak-chart" aria-label="L2 reported BPFI peak magnitudes"><div class="peak-legend"><span>Reported spectral peaks</span><span>Expected BPFI ${dash(Number(primary[2]))} Hz</span></div>${rows}<figcaption>PMMCP-reported peaks from the cited incident window—not a reconstructed raw FFT.</figcaption></figure>`;
+}
+
 function filterIncidents(route) {
   const metric = route.params.get("metric") || "all";
   const search = (route.params.get("search") || "").toLowerCase();
@@ -895,7 +913,23 @@ function incidentDetailPage(route) {
   if (!item) {
     return `<main class="page incident-detail-page"><div class="page-inner compact">${moduleHeader("No incident", "No case selected.", tapeStamp())}<div class="empty-state">${icon("clock", "lg")}<div><h2>Pick an inbox row</h2><p>Seeded cases are in sqlite. Live IR appears after inject.</p></div></div></div></main>`;
   }
+  const workOrder = item.work_order || null;
   const cmms = feed.cmms.filter(row => row.fault === item.fault);
+  const citations = Array.isArray(workOrder?.citations) ? workOrder.citations : [];
+  const historyCites = citations.filter(cite => cite.type === "history");
+  const signalSource = item.source || workOrder?.evidence?.source || "";
+  const signalWindow = item.window || workOrder?.evidence?.window || "";
+  const snapshotRms = item.rms ?? null;
+  const snapshotRpm = item.rpm ?? workOrder?.evidence?.rpm ?? null;
+  const actionText = workOrder?.action || "Review the incident evidence before assigning maintenance work.";
+  const actionState = workOrder ? `Draft ${workOrder.wo_id || item.wo_id || "work order"} · human approval required` : "No work-order draft · evidence review required";
+  const signalCite = signalSource && signalWindow
+    ? citationButton("signal", "Exact signal", `${signalSource} · ${signalWindow}`, { source: signalSource, window: signalWindow, incident: item.id })
+    : `<span class="badge warning">Signal locator missing</span>`;
+  const historyButtons = historyCites.length
+    ? historyCites.map(cite => citationButton("history", "CMMS precedent", cite.wo_id)).join("")
+    : cmms.map(row => citationButton("history", "CMMS precedent", row.wo_id)).join("");
+  const featureSummary = workOrder?.evidence?.features?.[0] || `${humanModel(item.fault)} detected from the retained incident snapshot.`;
   const issueHit = boardIssues().find((row) => row.asset_id === item.asset && row.part === item.component);
   const inspectionAsset = issueHit?.asset_id || board?.selection?.asset_id;
   const inspectionComponent = issueHit?.part || board?.work_order?.evidence?.part;
@@ -910,29 +944,21 @@ function incidentDetailPage(route) {
   const inspectionExpanded = route.params.get("inspection") === "expanded";
   const partShown = partReady && partAsset === item.asset;
   const inspectionNotice = mappedGeometry ? `<button class="btn sm issue-marker" data-action="focus-inspection-target">Issue target: ${esc(item.component)}</button>` : `<span class="section-note">Location unavailable — no mapped geometry.</span>`;
-  return `<main class="page incident-detail-page"><div class="page-inner compact">
+  const overview = `<section class="panel incident-overview" aria-label="Incident decision summary"><div class="decision-strip"><div class="decision-icon">${icon(workOrder ? "wrench" : "alert")}</div><div class="decision-copy"><span class="question-number">NEXT DECISION</span><h2>${workOrder ? "Review the L2 recommendation" : "Review evidence before assigning work"}</h2><p>${esc(actionText)}</p><span class="action-state">${esc(actionState)}</span></div><div class="decision-actions"><button class="btn primary" data-action="open-l2-report" ${workOrder ? "" : "disabled"}>Open full L2 report ${icon("arrow", "sm")}</button>${signalCite}</div></div></section>`;
+  const inspection = `<section class="panel twin-panel incident-3d${inspectionExpanded ? " inspection-expanded" : ""}" aria-labelledby="twin-inspection-heading">
+      <div class="panel-header"><div><span class="question-number">PHYSICAL LOCATION</span><h2 id="twin-inspection-heading">3D inspection</h2></div><p class="twin-status" role="status" aria-live="polite" data-part-status data-state="${partShown ? "ready" : "loading"}">${partShown ? "Ready" : "Loading…"}</p></div>
+      <div id="twin-inspection-frame" class="twin-frame twin-mount" data-part-mount aria-hidden="true" title="3D inspection of ${esc(item.asset)} ${esc(item.component)}"></div>
+      <div class="incident-3d-footer"><div><span>Asset</span><strong class="mono">${esc(item.asset)}</strong></div><div><span>Target</span><strong class="mono">${esc(item.component)}</strong></div><div class="incident-3d-controls">${inspectionNotice}<button class="btn sm" data-action="toggle-inspection" data-focus-id="inspection-toggle" aria-expanded="${inspectionExpanded}" aria-controls="twin-inspection-frame">${inspectionExpanded ? "Exit full screen" : "Expand"}</button></div></div>
+    </section>`;
+  const liveEvidence = `<section class="incident-analysis">
+      <article class="panel incident-l1"><div class="panel-header"><div><span class="level-label l1">L1 · DETERMINISTIC</span><h2>Screening and live trend</h2></div><span class="badge success">Complete</span></div><div class="condition-numbers"><div class="condition-number"><span>Incident RMS</span><strong class="num">${snapshotRms == null ? "—" : dash(snapshotRms)}<small>${snapshotRms == null ? "" : "g"}</small></strong></div><div class="condition-number"><span>Speed</span><strong class="num">${snapshotRpm == null ? "—" : dash(snapshotRpm)}<small>${snapshotRpm == null ? "" : "rpm"}</small></strong></div><div class="condition-number"><span>Detections</span><strong class="num">${item.detections}</strong></div></div>${item.asset === "RPP1" ? rmsChart(520, 108, "Current RPP1 RMS trend") : `<div class="chart-gap">No live vibration series is bound to this selected asset.</div>`}<div class="snapshot-locator"><span>Incident source</span><strong class="mono">${esc(signalSource || "—")}</strong><span>Window</span><strong class="mono">${esc(signalWindow || "—")}</strong></div></article>
+      <article class="panel incident-l2"><div class="panel-header"><div><span class="level-label l2">L2 · LOCAL MODEL + PMMCP</span><h2>${workOrder ? esc(humanModel(workOrder.fault || item.fault)) : "Report unavailable"}</h2></div><button class="btn sm primary" data-action="open-l2-report" ${workOrder ? "" : "disabled"}>Open full report ${icon("arrow", "sm")}</button></div><div class="l2-summary"><p>${esc(featureSummary)}</p><dl class="incident-mini-facts"><dt>Draft</dt><dd class="mono">${esc(workOrder?.wo_id || item.wo_id || "—")}</dd><dt>Action</dt><dd>${esc(workOrder?.action || "No action drafted")}</dd><dt>Candidate part</dt><dd class="mono">${esc((workOrder?.parts || []).join(", ") || "—")}</dd></dl></div>${l2PeakChart(workOrder)}<div class="l2-citations">${signalCite}${historyButtons || `<span class="section-note">No CMMS precedent attached</span>`}</div></article>
+    </section>`;
+  const work = `<section class="detail-grid incident-work"><article class="panel"><div class="panel-header"><div><span class="question-number">EVIDENCE BOUNDARY</span><h2>What can be trusted</h2></div></div><div class="panel-body"><p class="section-note">${citations.length} L2 citation${citations.length === 1 ? "" : "s"}. CMMS history is precedent, not an approved procedure. ISO severity is context only for this dataset path.</p><div class="inline-citations">${signalCite}${historyButtons}</div></div></article><article class="panel incident-activity"><div class="panel-header"><div><span class="question-number">AUDIT TRAIL</span><h2>Case activity</h2></div><span class="section-note">Live clock</span></div><div class="panel-body activity-list"><div class="activity-item"><time>${clock(item.first || item.last)}</time><span class="event-mark"></span><div><strong>Incident opened</strong><p class="mono">${esc(signalSource || "source unavailable")} · ${esc(signalWindow || "window unavailable")}</p></div></div><div class="activity-item"><time>${clock(now.ts)}</time><span class="event-mark"></span><div><strong>Live feed advancing</strong><p>${hopLabel()} · incident snapshot remains fixed</p></div></div></div></article></section>`;
+  return `<main class="page incident-detail-page incident-layout-action"><div class="page-inner compact">
     ${moduleHeader(`${item.id} · ${esc(item.title)}`, `${item.asset} / ${item.component} · ${esc(item.area)}`, `<button class="btn" data-action="view-floor">${icon("floor", "sm")}View on floor</button><button class="btn ${item.status === "Acknowledged" ? "" : "primary"}" data-action="acknowledge" data-focus-id="acknowledge" aria-pressed="${item.status === "Acknowledged"}">${icon("check", "sm")}${item.status === "Acknowledged" ? "Acknowledged" : "Acknowledge incident"}</button>`)}
     <div class="detail-meta"><span class="badge ${statusClass(item.priority)}">${esc(item.priority)} priority</span><span class="badge ${item.status === "Acknowledged" ? "" : "info"}">${item.status === "Acknowledged" ? "Acknowledged" : item.status}</span><span>${icon("clock", "sm")}last ${item.last} · ${item.detections} detections</span><span>Signal: <strong class="${item.signal === "Elevated" ? "text-warning" : ""}">${item.signal}</strong></span><span>L1: <strong class="text-success">${esc(now.rpp1?.engine || "—")}</strong></span></div>
-    <div style="height:10px"></div>
-    <section class="question-grid" aria-label="Incident overview">
-      <article class="question-card"><span class="question-number">01</span><h2>What happened?</h2><p>${esc(now.rpp1.engine)} on ${esc(now.rpp1.source)} window ${esc(now.rpp1.window)}. Fault ${esc(dash(now.rpp1.fault))}. BPFI ${now.rpp1.bpfi.detected ? `${now.rpp1.bpfi.hz} Hz` : "not detected"}.</p><div class="inline-citations">${citationButton("signal", "Signal", `${now.rpp1.file} · ${now.rpp1.window}`)}</div></article>
-      <article class="question-card action"><span class="question-number">02</span><h2>Work order</h2><p>Tape <span class="mono">wo: ${esc(feed.flag.wo)}</span>. ${feed.flag.wo === "none" ? "Source-gap — no L2 draft on this slice." : ""}</p><div class="inline-citations">${cmms.map(row => citationButton("history", "CMMS", row.wo_id)).join("") || `<span class="section-note">No matching CMMS row</span>`}</div></article>
-      <article class="question-card trust"><span class="question-number">03</span><h2>Why trust it?</h2><p>L0 pointer + L1 scalars. No 12 kHz on the board. ISO 15 kW floor — context only.</p><div class="inline-citations"><span class="badge ${now.rpp1.rms == null ? "warning" : "success"}">${now.rpp1.rms == null ? "RMS source-gap" : "RMS from window"}</span></div></article>
-    </section>
-    <section class="panel twin-panel${inspectionExpanded ? " inspection-expanded" : ""}" aria-labelledby="twin-inspection-heading">
-      <div class="panel-header"><h2 id="twin-inspection-heading">3D inspection</h2>${inspectionNotice}<button class="btn sm" data-action="toggle-inspection" data-focus-id="inspection-toggle" aria-expanded="${inspectionExpanded}" aria-controls="twin-inspection-frame">${inspectionExpanded ? "Collapse 3D inspection" : "Expand 3D inspection"}</button><p class="twin-status" role="status" aria-live="polite" data-part-status data-state="${partShown ? "ready" : "loading"}">${partShown ? "Ready" : "Loading…"}</p></div>
-      <div id="twin-inspection-frame" class="twin-frame twin-mount" data-part-mount aria-hidden="true" title="3D inspection of ${esc(item.asset)} ${esc(item.component)}"></div>
-    </section>
-    <section class="detail-grid">
-      <article class="panel"><div class="panel-header"><h2>L1 hops</h2><span class="badge info" style="margin-left:auto">${hopLabel()}</span></div><div class="panel-body"><div class="timeline">
-        ${recentHopRows(6).map(row => `<div class="timeline-row"><span class="timeline-icon">${icon("check", "sm")}</span><div class="timeline-copy"><strong class="mono">${esc(row.rpp1.file || "—")}</strong><span>${esc(row.rpp1.source || "—")} · ${esc(row.rpp1.window || "—")} · RMS ${dash(row.rpp1.rms)} g${row.rpp1.fault ? ` · ${row.rpp1.fault}` : ""}</span></div><time>${clock(row.ts)}</time></div>`).join("")}
-      </div></div></article>
-      <article class="panel"><div class="panel-header"><h2>Condition</h2><button class="btn sm" data-evidence="signal">Open exact signal</button></div><div class="condition-numbers"><div class="condition-number"><span>RMS</span><strong class="num">${dash(now.rpp1.rms)}<small>g</small></strong></div><div class="condition-number"><span>Speed</span><strong class="num">${dash(now.rpp1.rpm)}<small>rpm</small></strong></div><div class="condition-number"><span>BPFI</span><strong class="num">${dash(now.rpp1.bpfi.hz)}<small>Hz</small></strong></div></div>${rmsChart(320, 80, "RPP1 RMS hops")}<div class="limit-note">${icon("alert", "sm")}ISO 20816 shown as context only; this 2 hp dataset asset is below the 15 kW applicability floor.</div></article>
-    </section>
-    <section class="detail-grid">
-      <article class="panel"><div class="panel-header"><h2>Current work order</h2><span class="badge" style="margin-left:auto">wo: ${esc(feed.flag.wo)}</span></div><div class="work-order"><div class="work-order-callout">${icon("wrench")}<div><strong>Source-gap</strong><p>No L2 work order on this tape. CMMS rows below are history cites, not a new draft.</p></div></div><dl class="key-grid"><dt>Flag</dt><dd class="mono">${esc(feed.flag.flag)}</dd><dt>Part</dt><dd class="mono">${esc(feed.flag.part)}</dd><dt>Evidence</dt><dd>${citationButton("signal", "Signal", now.rpp1.window)} ${cmms.map(row => citationButton("history", "History", row.wo_id)).join(" ")}</dd></dl></div></article>
-      <article class="panel"><div class="panel-header"><h2>Case activity</h2><span class="section-note" style="margin-left:auto">Live clock</span></div><div class="panel-body activity-list">${item.source ? `<div class="activity-item"><time>${clock(item.first || item.last)}</time><span class="event-mark"></span><div><strong>Opened</strong><p class="mono">${esc(item.source)}${item.window ? ` · ${esc(item.window)}` : ""}</p></div></div>` : ""}<div class="activity-item"><time>${clock(now.ts)}</time><span class="event-mark"></span><div><strong>${hopLabel()}</strong><p>RMS ${dash(now.rpp1?.rms)} g · ${esc(now.rpp1?.file || "—")}</p></div></div></div></article>
-    </section>
+    <div class="incident-workspace"><aside class="incident-visual-column">${inspection}</aside><div class="incident-main-column">${overview}${liveEvidence}${work}</div></div>
   </div></main>`;
 }
 
@@ -1421,6 +1447,23 @@ async function attemptExfil() {
   render();
 }
 
+function l2ReportRail(route) {
+  const incident = selectedIncident(route);
+  const report = incident?.work_order || null;
+  const asset = selectedAsset(route);
+  if (!incident || !report) {
+    return `<aside class="utility-rail" aria-label="L2 Report" data-overlay-rail><div class="rail-header">${icon("intel")}<div class="rail-title"><strong>L2 report</strong><span>Not available</span></div><div class="rail-header-actions"><button class="btn icon-only sm" data-action="close-rail" aria-label="Close L2 report">${icon("close")}</button></div></div><div class="rail-body"><section class="rail-section"><div class="rail-heading">No report attached</div><p>This incident has L1 screening only. No L2 fields will be inferred.</p></section></div></aside>`;
+  }
+  const features = Array.isArray(report.evidence?.features) ? report.evidence.features : [];
+  return `<aside class="utility-rail l2-report-rail" aria-label="L2 Report" data-overlay-rail><div class="rail-header">${icon("intel")}<div class="rail-title"><strong>L2 report</strong><span>${esc(report.wo_id || incident.id)}</span></div><div class="rail-header-actions"><span class="badge dark">LOCAL</span><button class="btn icon-only sm" data-action="close-rail" aria-label="Close L2 report">${icon("close")}</button></div></div><div class="rail-body">
+    <section class="report-status"><span class="badge warning">Draft · human review required</span><h2>${esc(humanModel(report.fault || incident.fault))}</h2><p>This report informs inspection and planning. It does not authorize maintenance or a safety decision.</p></section>
+    <section class="rail-section"><div class="rail-kicker">Recommended action</div><div class="report-action">${esc(report.action || "No action drafted")}</div><dl class="key-grid"><dt>Priority</dt><dd>${esc(report.priority || incident.priority)}</dd><dt>Candidate parts</dt><dd class="mono">${esc((report.parts || []).join(", ") || "None specified")}</dd><dt>Severity</dt><dd>${esc(report.severity || "Not classified")}</dd></dl></section>
+    <section class="rail-section"><div class="rail-kicker">Deterministic evidence</div><div class="report-features">${features.length ? features.map((feature, index) => `<article><span>${index + 1}</span><p>${esc(feature)}</p></article>`).join("") : `<p class="section-note">No feature summary attached.</p>`}</div>${l2PeakChart(report)}</section>
+    <section class="rail-section"><div class="rail-kicker">Artifact citations</div><div class="citation-list">${citationButtons(report.citations, asset)}</div><p class="section-note">CMMS history is precedent. Manual evidence must match the installed equipment and revision.</p></section>
+    <section class="rail-section"><div class="rail-kicker">Incident binding</div><dl class="key-grid"><dt>Incident</dt><dd class="mono">${esc(incident.id)}</dd><dt>Asset</dt><dd class="mono">${esc(report.asset_id || incident.asset)}</dd><dt>Part</dt><dd class="mono">${esc(report.evidence?.part || incident.component)}</dd><dt>Source</dt><dd class="mono">${esc(report.evidence?.source || incident.source || "—")}</dd><dt>Window</dt><dd class="mono">${esc(report.evidence?.window || incident.window || "—")}</dd><dt>RPM</dt><dd>${report.evidence?.rpm == null ? "—" : `${dash(report.evidence.rpm)} rpm`}</dd></dl></section>
+  </div></aside>`;
+}
+
 function evidenceRail(route) {
   const type = route.params.get("evidence") || "signal";
   const expanded = route.params.get("expanded") === "1";
@@ -1486,7 +1529,7 @@ function render() {
   else if (route.path.startsWith("/assets")) main = assetPage(route);
   else main = intelligencePage(route);
   const railMode = route.params.get("rail");
-  const rail = railMode === "preview" ? objectPreviewRail(route) : railMode === "assist" ? assistRail(route) : railMode === "evidence" ? evidenceRail(route) : "";
+  const rail = railMode === "preview" ? objectPreviewRail(route) : railMode === "assist" ? assistRail(route) : railMode === "evidence" ? evidenceRail(route) : railMode === "report" ? l2ReportRail(route) : "";
   app.innerHTML = shell(main, route, rail);
   const page = app.querySelector(".page");
   if (page) page.scrollTop = savedPageScroll;
@@ -1605,6 +1648,10 @@ function onAppClick(event) {
   if (action === "toggle-scope") updateRoute({ scope: getRoute().params.get("scope") === "site" ? null : "site" });
   if (action === "clear-filters") updateRoute({ metric: null, priority: null, status: null, ai: null, search: null });
   if (action === "resolved-view") updateRoute({ metric: null, priority: null, status: "Resolved", rail: null });
+  if (action === "open-l2-report") {
+    lastTrigger = target;
+    updateRoute({ rail: "report", evidence: null, returnRail: null });
+  }
   if (action === "open-assist") {
     lastTrigger = target;
     const asset = selectedAsset(getRoute());
