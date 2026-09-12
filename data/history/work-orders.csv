@@ -1,0 +1,5 @@
+wo_id,asset_id,opened,closed,fault,action,parts
+WO-1041,MTR-07,2025-11-02,2025-11-04,outer_race,replaced_bearing,6205-2RS
+WO-1188,MTR-07,2026-03-14,2026-03-15,imbalance,added_balance_weight,washer-set
+WO-1302,PMP-03,2026-06-21,2026-06-23,misalignment,laser_aligned,coupling-insert
+WO-1410,MTR-07,2026-08-30,,inner_race,pending,6205-2RS
