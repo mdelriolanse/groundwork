@@ -3,8 +3,9 @@ import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
 import { OrbitControls } from "three/addons/controls/OrbitControls.js";
 
 // Two modes share one scene graph:
-//   inspection (default): perspective + orbit, hero framing, focus hides other stations.
-//   plan (?view=plan|top): fixed orthographic bird's-eye, every station, neutral materials,
+//   inspection (default): perspective + orbit, hero framing. If ?asset= is set, only that
+//                         station GLB is loaded (same skip as part mode).
+//   plan (?view=plan|top): orthographic bird's-eye + orbit/pan/zoom, every station, neutral materials,
 //                          focus dims the rest. Labels/markers are drawn by the parent from
 //                          the `twin:layout` anchors this file posts.
 const query = new URLSearchParams(location.search);
@@ -14,7 +15,11 @@ const partMode = query.get("view") === "part";
 let view = PLAN_VIEWS.has(query.get("view")) ? query.get("view") : partMode ? "part" : "inspection";
 const planMode = PLAN_VIEWS.has(view);
 const grayMode = planMode || partMode;
-const partAsset = partMode ? (query.get("asset") || "RPP1") : null;
+const queryAsset = query.get("asset");
+const queryComponent = query.get("component");
+const partAsset = partMode ? (queryAsset || "RPP1") : null;
+// Plan always loads the line. Any other view with a named asset loads that file only.
+const soloAsset = planMode ? null : (partMode ? partAsset : queryAsset);
 
 const canvas = document.getElementById("c");
 const parentOrigin = `${location.protocol}//${location.hostname}:4173`;
@@ -50,9 +55,28 @@ perspective.position.set(8, 6, 8);
 const ortho = new THREE.OrthographicCamera(-10, 10, 10, -10, 0.1, 400);
 let camera = planMode ? ortho : perspective;
 
-const controls = new OrbitControls(perspective, canvas);
+const controls = new OrbitControls(planMode ? ortho : perspective, canvas);
 controls.enableDamping = true;
-controls.enabled = !planMode;
+controls.dampingFactor = 0.12;
+controls.screenSpacePanning = true;
+if (planMode) {
+  controls.enableRotate = false;
+  controls.enablePan = true;
+  controls.enableZoom = true;
+  controls.zoomToCursor = true;
+  controls.minZoom = 0.2;
+  controls.maxZoom = 16;
+  controls.screenSpacePanning = true;
+  controls.panSpeed = 1.1;
+  controls.zoomSpeed = 1.2;
+  const mouse = THREE.MOUSE || { DOLLY: 1, PAN: 2 };
+  const touch = THREE.TOUCH || { PAN: 1, DOLLY_PAN: 2 };
+  controls.mouseButtons.LEFT = mouse.PAN;
+  controls.mouseButtons.MIDDLE = mouse.DOLLY;
+  controls.mouseButtons.RIGHT = mouse.PAN;
+  controls.touches.ONE = touch.PAN;
+  controls.touches.TWO = touch.DOLLY_PAN;
+}
 
 const raycaster = new THREE.Raycaster();
 const pointer = new THREE.Vector2();
@@ -70,25 +94,110 @@ let bridgeReady = false;
 let inset = { left: 0, top: 0, right: 0, bottom: 0 };
 let layoutDirty = true;
 
-// Plan-mode materials: neutral by spec; state is carried by outline + parent markers.
-const neutralMat = new THREE.MeshStandardMaterial({ color: 0xc9d1db, roughness: 0.9, metalness: 0.05 });
-const dimMat = new THREE.MeshStandardMaterial({ color: 0xdde3ea, roughness: 1, metalness: 0, transparent: true, opacity: 0.32, depthWrite: false });
+// One Lambert family for plan + part: healthy gray, sensor slate, issue red, selection blue.
+const neutralMat = new THREE.MeshLambertMaterial({ color: 0xe8ecef, vertexColors: false });
+const dimMat = new THREE.MeshLambertMaterial({ color: 0xd0d6dc, transparent: true, opacity: 0.32, depthWrite: false, vertexColors: false });
 const outlineMat = new THREE.LineBasicMaterial({ color: 0x1d4ed8 });
-const partMat = new THREE.MeshStandardMaterial({ color: 0x9db4dc, emissive: 0x1d4ed8, emissiveIntensity: 0.35, roughness: 0.7, metalness: 0.05 });
+/** Sensor-/process-bound part — still neutral, distinct from bare metal. */
+const sensorMat = new THREE.MeshLambertMaterial({ color: 0xb8c5d4, vertexColors: false });
+const partMat = new THREE.MeshLambertMaterial({ color: 0x5b7fc7, vertexColors: false });
+const issueCriticalMat = new THREE.MeshLambertMaterial({ color: 0xc62828, vertexColors: false });
+const issueWarningMat = new THREE.MeshLambertMaterial({ color: 0xf9a825, vertexColors: false });
 let litPart = null;
+/** @type {{ node: THREE.Object3D, severity: string }[]} */
+let issueNodes = [];
 let outline = null;
 const reduceMotion = matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+function issueMaterial(severity) {
+  const s = String(severity || "critical").toLowerCase();
+  if (s === "warning" || s === "medium" || s === "low") return issueWarningMat;
+  return issueCriticalMat; // critical | high | default
+}
+
+function paintMesh(mesh, mat) {
+  if (!mesh?.isMesh) return;
+  mesh.material = mat;
+  // Drop per-vertex colour / wireframe leftovers from the GLB so severity reads as flat paint.
+  if (mesh.geometry?.attributes?.color) mesh.geometry.deleteAttribute("color");
+}
+
+let lastClientW = 0;
+let lastClientH = 0;
 
 function resize() {
   const w = canvas.clientWidth;
   const h = canvas.clientHeight;
-  if (canvas.width !== w || canvas.height !== h) {
-    renderer.setSize(w, h, false);
-    perspective.aspect = w / Math.max(h, 1);
-    perspective.updateProjectionMatrix();
-    if (planMode) fitTo(focused, false);
-    layoutDirty = true;
+  const pr = renderer.getPixelRatio();
+  const bw = Math.max(1, Math.floor(w * pr));
+  const bh = Math.max(1, Math.floor(h * pr));
+  const clientChanged = w !== lastClientW || h !== lastClientH;
+  const bufferChanged = canvas.width !== bw || canvas.height !== bh;
+  if (!clientChanged && !bufferChanged) return;
+  if (bufferChanged) renderer.setSize(w, h, false);
+  perspective.aspect = w / Math.max(h, 1);
+  perspective.updateProjectionMatrix();
+  // Only refit when the CSS box changed. Comparing canvas.width to clientWidth
+  // is always true under devicePixelRatio and was resetting the camera every frame.
+  if (planMode && clientChanged && lastClientW !== 0) {
+    if (planUserMoved) syncOrthoAspect();
+    else fitTo(focused, false);
   }
+  if (partMode && clientChanged && lastClientW !== 0) fitPart();
+  lastClientW = w;
+  lastClientH = h;
+  layoutDirty = true;
+}
+
+// part mode: issue / selection node, else whole station (initial framing only).
+function partFocusTarget() {
+  if (!partMode) return null;
+  if (litPart) return litPart;
+  for (const entry of issueNodes) {
+    if (entry?.node) return entry.node;
+  }
+  return null;
+}
+
+let partFocusFramed = false;
+
+/** One-shot tighter frame when an issue or ?component= target exists at open. */
+function maybeFramePartFocus() {
+  if (!partMode || partFocusFramed || !partFocusTarget()) return;
+  fitPart();
+  partFocusFramed = true;
+}
+
+// part mode: keep the orbit direction, set the distance so the target bounding sphere fits
+// the narrower of the vertical/horizontal FOV — the Asset 360 panel is portrait.
+function fitPart() {
+  const root = pickRoots[0];
+  if (!root) return;
+  const focus = partFocusTarget();
+  let b;
+  if (focus) {
+    b = partBox(focus, root);
+    if (!b || b.isEmpty()) {
+      b = new THREE.Box3().setFromObject(focus);
+      if (b.isEmpty()) b = null;
+    }
+  }
+  if (!b) {
+    if (!root.userData.box) return;
+    b = root.userData.box;
+  }
+  const c = b.getCenter(new THREE.Vector3());
+  const r = Math.max(b.getSize(new THREE.Vector3()).length() / 2, focus ? 0.08 : 0.4);
+  const vFov = THREE.MathUtils.degToRad(perspective.fov);
+  const hFov = 2 * Math.atan(Math.tan(vFov / 2) * perspective.aspect);
+  const pad = focus ? 1.05 : 1.08;
+  const dist = (r / Math.sin(Math.min(vFov, hFov) / 2)) * pad;
+  const dir = perspective.position.clone().sub(controls.target).normalize();
+  if (!dir.lengthSq()) dir.set(0.6, 0.45, 0.65).normalize();
+  controls.target.copy(c);
+  perspective.position.copy(c).addScaledVector(dir, dist);
+  controls.maxDistance = Math.max(controls.maxDistance, dist * 1.5);
+  controls.update();
 }
 
 async function loadGltf(file) {
@@ -125,6 +234,58 @@ function lookup(assetId) {
   return (assetMap.assets || []).find((a) => a.asset_id === assetId) || null;
 }
 
+const partBoundaryCache = new WeakMap();
+
+/** Part roots from asset-map click_nodes + UR kinematic chain (joint2..6 omitted there). */
+function partBoundaries(root) {
+  let set = partBoundaryCache.get(root);
+  if (set) return set;
+  const rec = lookup(root.userData.asset_id);
+  const assetId = root.userData.asset_id;
+  set = new Set();
+  for (const n of rec?.click_nodes || []) {
+    if (n && n !== assetId) set.add(n);
+  }
+  root.traverse((o) => {
+    const nm = o.name;
+    if (/^URjoint\d+$/.test(nm)) set.add(nm);
+    else if (nm === "UREndEffector" || /^URgripper\d*$/.test(nm)) set.add(nm);
+  });
+  partBoundaryCache.set(root, set);
+  return set;
+}
+
+/** Meshes for one named part — do not descend into sibling part roots (URjoint2 under URjoint1). */
+function forEachPartMesh(partNode, root, fn) {
+  if (!partNode || !root) return;
+  const bounds = partBoundaries(root);
+  const self = partNode.name;
+  function walk(o) {
+    if (o.isMesh) fn(o);
+    for (const child of o.children) {
+      if (child.name && bounds.has(child.name) && child.name !== self) continue;
+      walk(child);
+    }
+  }
+  walk(partNode);
+}
+
+function partBox(partNode, root) {
+  const box = new THREE.Box3();
+  let any = false;
+  forEachPartMesh(partNode, root, (mesh) => {
+    box.expandByObject(mesh);
+    any = true;
+  });
+  return any ? box : null;
+}
+
+function meshInPart(mesh, partNode, root) {
+  let found = false;
+  forEachPartMesh(partNode, root, (m) => { if (m === mesh) found = true; });
+  return found;
+}
+
 function frameOn(obj) {
   if (!obj) return;
   const b = new THREE.Box3().setFromObject(obj);
@@ -155,15 +316,48 @@ function aimCamera(target) {
 
 const camState = { target: new THREE.Vector3(), halfW: 10, halfH: 10 };
 let tween = null;
+let planUserMoved = false;
+let pointerDown = null;
 
 function applyCamState(s) {
   aimCamera(s.target);
+  ortho.zoom = 1;
   ortho.left = -s.halfW;
   ortho.right = s.halfW;
   ortho.top = s.halfH;
   ortho.bottom = -s.halfH;
   ortho.updateProjectionMatrix();
+  controls.target.copy(s.target);
+  controls.update();
   layoutDirty = true;
+}
+
+// Keep world height when the iframe resizes; width follows the new aspect so a user zoom/pan is not reset.
+function syncOrthoAspect() {
+  const W = Math.max(canvas.clientWidth, 1);
+  const H = Math.max(canvas.clientHeight, 1);
+  const visH = (ortho.top - ortho.bottom) / (ortho.zoom || 1);
+  const visW = visH * (W / H);
+  ortho.left = -visW / 2;
+  ortho.right = visW / 2;
+  ortho.top = visH / 2;
+  ortho.bottom = -visH / 2;
+  ortho.updateProjectionMatrix();
+  layoutDirty = true;
+}
+
+function capturePlanCam() {
+  const z = ortho.zoom || 1;
+  camState.target.copy(controls.target);
+  camState.halfW = (ortho.right - ortho.left) / 2 / z;
+  camState.halfH = (ortho.top - ortho.bottom) / 2 / z;
+}
+
+function interruptPlanTween() {
+  if (!tween) return;
+  capturePlanCam();
+  tween = null;
+  controls.enabled = true;
 }
 
 // Fit a world box into the viewport minus the parent's overlay inset. Padding is in world
@@ -223,6 +417,7 @@ function focusBox(assetId) {
 
 function fitTo(assetId, animate = true) {
   if (!planMode) return;
+  planUserMoved = false;
   const box = focusBox(assetId);
   if (box.isEmpty()) return;
   const next = fitState(box, assetId ? 0.8 : 0.9);
@@ -239,13 +434,17 @@ function fitTo(assetId, animate = true) {
 
 function stepTween(now) {
   if (!tween) return;
+  controls.enabled = false;
   const k = Math.min((now - tween.t0) / tween.ms, 1);
   const e = 1 - Math.pow(1 - k, 3);
   camState.target.lerpVectors(tween.from.target, tween.to.target, e);
   camState.halfW = tween.from.halfW + (tween.to.halfW - tween.from.halfW) * e;
   camState.halfH = tween.from.halfH + (tween.to.halfH - tween.from.halfH) * e;
   applyCamState(camState);
-  if (k >= 1) tween = null;
+  if (k >= 1) {
+    tween = null;
+    controls.enabled = true;
+  }
 }
 
 function setOutline(root) {
@@ -404,12 +603,103 @@ function lightPart(assetId, part) {
   return Boolean(mesh);
 }
 
-// part mode: grayscale everywhere except the picked sub-tree, which gets the blue part material.
+/** Boot-time ?component= — blue select only; issues come from twin:issues. */
+function applyQueryComponent(assetId) {
+  const part = typeof queryComponent === "string" ? queryComponent : "";
+  if (!assetId || !part || part.length > 128) return null;
+  const root = scene.getObjectByName(assetId);
+  if (!root || !root.getObjectByName(part)) return null;
+  lightPart(assetId, part);
+  return part;
+}
+
+/** Asset-map bound part for this station (vibration or process), if the node exists. */
+function sensorPartNode(root) {
+  if (!root) return null;
+  const rec = lookup(root.userData.asset_id);
+  const name = rec?.part;
+  if (typeof name !== "string" || !name) return null;
+  return root.getObjectByName(name) || null;
+}
+
+/** Re-apply sensor / issue / selection materials. Floor/plan stays neutral (ignored).
+ *  Priority: issue > selection > sensor > neutral. */
+function applyPartMaterials() {
+  if (planMode) return;
+  if (partMode) {
+    const root = pickRoots[0];
+    if (root) root.traverse((o) => { if (o.isMesh) paintMesh(o, neutralMat); });
+    const sensor = sensorPartNode(root);
+    if (sensor) forEachPartMesh(sensor, root, (o) => paintMesh(o, sensorMat));
+    for (const entry of issueNodes) {
+      if (!entry?.node) continue;
+      const mat = issueMaterial(entry.severity);
+      forEachPartMesh(entry.node, root, (o) => paintMesh(o, mat));
+    }
+    if (litPart) {
+      forEachPartMesh(litPart, root, (o) => {
+        let underIssue = false;
+        for (const entry of issueNodes) {
+          if (!entry?.node) continue;
+          if (meshInPart(o, entry.node, root)) { underIssue = true; break; }
+        }
+        if (!underIssue) paintMesh(o, partMat);
+      });
+    }
+    return;
+  }
+  // Inspection: paint issue meshes only; leave other station materials alone.
+  for (const entry of issueNodes) {
+    if (!entry?.node) continue;
+    const mat = issueMaterial(entry.severity);
+    const root = stationRoot(entry.node);
+    forEachPartMesh(entry.node, root, (o) => {
+      if (!o.userData._preIssueMat) o.userData._preIssueMat = o.material;
+      paintMesh(o, mat);
+    });
+  }
+}
+
+// part mode: solid blue selection; does not clear issue colour.
 function highlightPart(node) {
-  if (litPart) litPart.traverse((o) => { if (o.isMesh) o.material = neutralMat; });
   litPart = node || null;
-  if (litPart) litPart.traverse((o) => { if (o.isMesh) o.material = partMat; });
+  applyPartMaterials();
   return litPart;
+}
+
+/** Parent posts sqlite issues: { parts: [{ assetId, part, severity? }] }. Plan mode ignores. */
+function setIssues(parts) {
+  if (planMode) return false;
+  // Inspection: restore any previously issue-painted meshes before rebuilding the set.
+  if (!partMode) {
+    for (const entry of issueNodes) {
+      if (!entry?.node) continue;
+      const root = stationRoot(entry.node);
+      forEachPartMesh(entry.node, root, (o) => {
+        if (o.userData._preIssueMat) {
+          o.material = o.userData._preIssueMat;
+          delete o.userData._preIssueMat;
+        }
+      });
+    }
+  }
+  issueNodes = [];
+  if (!Array.isArray(parts)) {
+    applyPartMaterials();
+    return true;
+  }
+  for (const item of parts) {
+    const assetId = item?.assetId ?? item?.asset_id;
+    const part = item?.part;
+    if (typeof assetId !== "string" || !assetId || typeof part !== "string" || !part) continue;
+    if (assetId.length > 128 || part.length > 128) continue;
+    const root = scene.getObjectByName(assetId);
+    if (!root) continue;
+    const node = root.getObjectByName(part);
+    if (node) issueNodes.push({ node, severity: item.severity || item.priority || "critical" });
+  }
+  applyPartMaterials();
+  return true;
 }
 
 // Named ancestor of a mesh that is a meaningful part (skips auto names like mesh_12 / color_3).
@@ -443,6 +733,10 @@ window.addEventListener("message", (event) => {
     if (partMode) highlightPart(null);
     return;
   }
+  if (type === "twin:issues") {
+    setIssues(event.data.parts);
+    return;
+  }
   if (type === "twin:view") {
     const next = event.data.view;
     const box = event.data.inset;
@@ -453,7 +747,17 @@ window.addEventListener("message", (event) => {
       };
     }
     if (typeof next === "string" && PLAN_VIEWS.has(next) && next !== view) setView(next);
-    else fitTo(focused, false);
+    else if (!planUserMoved) fitTo(focused, false);
+    return;
+  }
+  if (type === "twin:wheel" && planMode) {
+    interruptPlanTween();
+    planUserMoved = true;
+    const factor = Math.pow(0.95, (Number(event.data.deltaY) || 0) / 53);
+    ortho.zoom = THREE.MathUtils.clamp(ortho.zoom * factor, controls.minZoom, controls.maxZoom);
+    ortho.updateProjectionMatrix();
+    layoutDirty = true;
+    capturePlanCam();
     return;
   }
   const validPart = typeof part === "string" && part.length > 0 && part.length <= 128;
@@ -470,6 +774,7 @@ function hitAt(clientX, clientY) {
 }
 
 function pick(ev) {
+  if (pointerDown && Math.hypot(ev.clientX - pointerDown.x, ev.clientY - pointerDown.y) > 5) return;
   const hits = hitAt(ev.clientX, ev.clientY);
   if (!hits.length) {
     if (partMode) {
@@ -541,7 +846,7 @@ async function boot() {
 
   for (const p of sceneSpec.placements) {
     if (p.kind === "scenery") continue;
-    if (partMode && p.asset_id !== partAsset) continue;
+    if (soloAsset && p.asset_id !== soloAsset) continue;
     let model;
     try {
       model = await loadGltf(p.file);
@@ -575,7 +880,7 @@ async function boot() {
     resize();
     fitTo(null, false);
   } else if (partMode) {
-    applyPlanMaterials();
+    applyPartMaterials();
     groundGrid.position.y = -0.005;
     const root = pickRoots[0];
     if (root) {
@@ -591,6 +896,8 @@ async function boot() {
     perspective.near = 0.02;
     perspective.far = 80;
     perspective.updateProjectionMatrix();
+    resize();
+    fitPart();
   } else {
     const heroObj = scene.getObjectByName(assetMap.hero);
     const focus = new THREE.Vector3();
@@ -602,23 +909,40 @@ async function boot() {
     perspective.far = 80;
     perspective.updateProjectionMatrix();
   }
-  window.__twin = { scene, camera, box, pickRoots, focusAsset, lightPart, highlightPart, setView, fit: () => focusAsset(null), view: () => view, setFrozen(value) { controls.enabled = !value && !planMode; } };
+  window.__twin = { scene, camera, box, pickRoots, focusAsset, lightPart, highlightPart, setIssues, setView, fit: () => focusAsset(null), view: () => view, setFrozen(value) { controls.enabled = !value; } };
   window.dispatchEvent(new CustomEvent("twinready"));
 
-  const hero = scene.getObjectByName(assetMap.hero);
-  if (hero && !planMode) {
-    setHud(assetMap.hero, lookup(assetMap.hero)?.part, lookup(assetMap.hero)?.source);
+  if (!planMode) {
+    const id = soloAsset || pickRoots[0]?.userData.asset_id;
+    if (id) {
+      const rec = lookup(id);
+      const part = applyQueryComponent(id);
+      setHud(id, part || rec?.part || id, rec?.source || "scenery");
+      if (partMode && !part) applyPartMaterials();
+    }
   }
-  const q = partMode ? null : new URLSearchParams(location.search).get("asset");
-  if (q) {
-    const rec = lookup(q);
-    focusAsset(q);
-    if (!planMode) setHud(q, rec?.part || q, rec?.source || "scenery");
-    if (planMode) fitTo(q, false);
+  if (queryAsset && !partMode) {
+    focusAsset(queryAsset);
+    if (planMode) fitTo(queryAsset, false);
   }
 
+  canvas.style.touchAction = "none";
+  canvas.addEventListener("pointerdown", (ev) => {
+    pointerDown = { x: ev.clientX, y: ev.clientY };
+    if (planMode) interruptPlanTween();
+  });
   canvas.addEventListener("click", pick);
   if (grayMode) canvas.addEventListener("pointermove", hover);
+  if (planMode) {
+    controls.addEventListener("start", () => {
+      interruptPlanTween();
+      planUserMoved = true;
+    });
+    controls.addEventListener("change", () => {
+      layoutDirty = true;
+      capturePlanCam();
+    });
+  }
   window.addEventListener("resize", resize);
   resize();
   window.__twin.pickAt = (nx, ny) => {
@@ -645,7 +969,7 @@ async function boot() {
     if (t - last < minFrameMs) return;
     last = t;
     if (planMode) stepTween(t);
-    else controls.update();
+    controls.update();
     resize();
     renderer.render(scene, camera);
     if (layoutDirty) {

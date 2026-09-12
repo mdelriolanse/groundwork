@@ -137,6 +137,23 @@
       "cell": "CELL-FEED"
     },
     {
+      "asset_id": "MTR07-CAD",
+      "file": "Siemens_1LE1003_Motor.glb",
+      "position": [
+        1.3,
+        0.0,
+        3.5
+      ],
+      "rotation": [
+        -1.5707963267948966,
+        0.0,
+        0.0
+      ],
+      "kind": "station",
+      "model": "Siemens1LE1003Motor",
+      "cell": "CELL-FEED"
+    },
+    {
       "asset_id": "B1",
       "file": "Conveyor_Main.glb",
       "position": [

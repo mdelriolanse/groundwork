@@ -4,6 +4,7 @@
   "hero": "RPP1",
   "cite": "https://github.com/difactory/repository",
   "license": "CC BY-NC 4.0",
+  "honesty": "All stations monitored with L1 tags. RPP1 and MTR07-CAD may carry CWRU-diagnosed vibration (ISO context only; both << 15 kW). Everyone else is process/electrical — never invented vibration or ISO zones.",
   "assets": [
     {
       "asset_id": "RPP1",
@@ -13,17 +14,272 @@
       "source": "cwru:105.mat",
       "tape": ["97.mat", "105.mat"],
       "glb": "UR_Pick_and_Place_Station.glb",
-      "click_nodes": ["URjoint1", "URPPs_Robot", "URbase"]
+      "click_nodes": ["RPP1", "URjoint1", "URPPs_Robot", "URbase"],
+      "name": "UR pick-and-place"
     },
     {
       "asset_id": "T1",
       "aliases": [],
-      "role": "sibling",
+      "role": "process",
       "part": "T_Machine_Static",
       "source": "vlft:process",
       "tape": ["process.json"],
       "glb": "Tightener_Station.glb",
-      "click_nodes": ["T_Machine_Static", "T_Machine_Floating_Y"]
+      "click_nodes": ["T1", "T_Machine_Static", "T_Machine_Floating_Y"],
+      "name": "Tightener"
+    },
+    {
+      "asset_id": "RT1",
+      "aliases": [],
+      "role": "process",
+      "part": "R_Table",
+      "source": "synthetic:indexer",
+      "tape": [],
+      "glb": "Rotating_Table_Station.glb",
+      "click_nodes": ["RT1", "R_Table"],
+      "name": "Rotating table"
+    },
+    {
+      "asset_id": "PPW1",
+      "aliases": [],
+      "role": "process",
+      "part": "WC1_Static",
+      "source": "synthetic:vac-gripper",
+      "tape": [],
+      "glb": "Wing_Conveyor_1_Station.glb",
+      "click_nodes": ["PPW1", "WC1_Static", "WC1_Floating_X", "WC1_Floating_Y"],
+      "name": "Wing conveyor 1"
+    },
+    {
+      "asset_id": "PPH1",
+      "aliases": [],
+      "role": "process",
+      "part": "WC2_Static",
+      "source": "synthetic:vac-gripper",
+      "tape": [],
+      "glb": "Wing_Conveyor_2_Station.glb",
+      "click_nodes": ["PPH1", "WC2_Static", "WC2_Floating_X", "WC2_Floating_Y"],
+      "name": "Wing conveyor 2"
+    },
+    {
+      "asset_id": "MTR07-CAD",
+      "aliases": [],
+      "role": "condition",
+      "part": "1LE1003-1EB23-4JA4",
+      "source": "cwru:130.mat",
+      "tape": ["130.mat"],
+      "glb": "Siemens_1LE1003_Motor.glb",
+      "click_nodes": ["MTR07-CAD", "1LE1003-1EB23-4JA4"],
+      "name": "Siemens 1LE1003"
+    },
+    {
+      "asset_id": "B1",
+      "aliases": [],
+      "role": "process",
+      "part": "belt",
+      "source": "synthetic:dorner-gearmotor",
+      "tape": [],
+      "glb": "Conveyor_Main.glb",
+      "click_nodes": ["B1", "belt"],
+      "name": "Conveyor buffer 1"
+    },
+    {
+      "asset_id": "B2",
+      "aliases": [],
+      "role": "process",
+      "part": "belt",
+      "source": "synthetic:dorner-gearmotor",
+      "tape": [],
+      "glb": "Conveyor_Main.glb",
+      "click_nodes": ["B2", "belt"],
+      "name": "Conveyor buffer 2"
+    },
+    {
+      "asset_id": "B3",
+      "aliases": [],
+      "role": "process",
+      "part": "belt",
+      "source": "synthetic:dorner-gearmotor",
+      "tape": [],
+      "glb": "Conveyor_Main.glb",
+      "click_nodes": ["B3", "belt"],
+      "name": "Conveyor buffer 3"
+    },
+    {
+      "asset_id": "B4",
+      "aliases": [],
+      "role": "process",
+      "part": "belt",
+      "source": "synthetic:dorner-gearmotor",
+      "tape": [],
+      "glb": "Conveyor_Main.glb",
+      "click_nodes": ["B4", "belt"],
+      "name": "Conveyor buffer 4"
+    },
+    {
+      "asset_id": "PI1",
+      "aliases": [],
+      "role": "process",
+      "part": "PI_Machine_Static",
+      "source": "synthetic:vlft-pi",
+      "tape": [],
+      "glb": "Pin_Insertion_Station.glb",
+      "click_nodes": ["PI1", "PI_Machine_Static", "PI_Machine_Floating_X", "Vibrating_Bowl_Pins"],
+      "name": "Pin insert 1"
+    },
+    {
+      "asset_id": "PI2",
+      "aliases": [],
+      "role": "process",
+      "part": "PI_Machine_Static",
+      "source": "synthetic:vlft-pi",
+      "tape": [],
+      "glb": "Pin_Insertion_Station.glb",
+      "click_nodes": ["PI2", "PI_Machine_Static", "PI_Machine_Floating_X", "Vibrating_Bowl_Pins"],
+      "name": "Pin insert 2"
+    },
+    {
+      "asset_id": "PI3",
+      "aliases": [],
+      "role": "process",
+      "part": "PI_Machine_Static",
+      "source": "synthetic:vlft-pi",
+      "tape": [],
+      "glb": "Pin_Insertion_Station.glb",
+      "click_nodes": ["PI3", "PI_Machine_Static", "PI_Machine_Floating_X", "Vibrating_Bowl_Pins"],
+      "name": "Pin insert 3"
+    },
+    {
+      "asset_id": "PI4",
+      "aliases": [],
+      "role": "process",
+      "part": "PI_Machine_Static",
+      "source": "synthetic:vlft-pi",
+      "tape": [],
+      "glb": "Pin_Insertion_Station.glb",
+      "click_nodes": ["PI4", "PI_Machine_Static", "PI_Machine_Floating_X", "Vibrating_Bowl_Pins"],
+      "name": "Pin insert 4"
+    },
+    {
+      "asset_id": "PP1",
+      "aliases": [],
+      "role": "process",
+      "part": "PP_Static",
+      "source": "synthetic:vac-gripper",
+      "tape": [],
+      "glb": "Pick_and_Place_Station.glb",
+      "click_nodes": ["PP1", "PP_Static", "PP_Floating_X", "PP_Floating_Y"],
+      "name": "Pick & place 1"
+    },
+    {
+      "asset_id": "PP2",
+      "aliases": [],
+      "role": "process",
+      "part": "PP_Static",
+      "source": "synthetic:vac-gripper",
+      "tape": [],
+      "glb": "Pick_and_Place_Station.glb",
+      "click_nodes": ["PP2", "PP_Static", "PP_Floating_X", "PP_Floating_Y"],
+      "name": "Pick & place 2"
+    },
+    {
+      "asset_id": "PP3",
+      "aliases": [],
+      "role": "process",
+      "part": "PP_Static",
+      "source": "synthetic:vac-gripper",
+      "tape": [],
+      "glb": "Pick_and_Place_Station.glb",
+      "click_nodes": ["PP3", "PP_Static", "PP_Floating_X", "PP_Floating_Y"],
+      "name": "Pick & place 3"
+    },
+    {
+      "asset_id": "PP4",
+      "aliases": [],
+      "role": "process",
+      "part": "PP_Static",
+      "source": "synthetic:vac-gripper",
+      "tape": [],
+      "glb": "Pick_and_Place_Station.glb",
+      "click_nodes": ["PP4", "PP_Static", "PP_Floating_X", "PP_Floating_Y"],
+      "name": "Pick & place 4"
+    },
+    {
+      "asset_id": "PP5",
+      "aliases": [],
+      "role": "process",
+      "part": "PP_Static",
+      "source": "synthetic:vac-gripper",
+      "tape": [],
+      "glb": "Pick_and_Place_Station_Box.glb",
+      "click_nodes": ["PP5", "PP_Static", "PP_Floating_X", "PP_Floating_Y"],
+      "name": "Pick & place box"
+    },
+    {
+      "asset_id": "R1",
+      "aliases": [],
+      "role": "process",
+      "part": "R_Machine_Static",
+      "source": "synthetic:baltec-en20",
+      "tape": [],
+      "glb": "Riveting_Station.glb",
+      "click_nodes": ["R1", "R_Machine_Static", "R_Machine_Floating_X1"],
+      "name": "Riveter 1"
+    },
+    {
+      "asset_id": "R2",
+      "aliases": [],
+      "role": "process",
+      "part": "R_Machine_Static",
+      "source": "synthetic:baltec-en20",
+      "tape": [],
+      "glb": "Riveting_Station.glb",
+      "click_nodes": ["R2", "R_Machine_Static", "R_Machine_Floating_X1"],
+      "name": "Riveter 2"
+    },
+    {
+      "asset_id": "R3",
+      "aliases": [],
+      "role": "process",
+      "part": "R_Machine_Static",
+      "source": "synthetic:baltec-en20",
+      "tape": [],
+      "glb": "Riveting_Station.glb",
+      "click_nodes": ["R3", "R_Machine_Static", "R_Machine_Floating_X1"],
+      "name": "Riveter 3"
+    },
+    {
+      "asset_id": "R4",
+      "aliases": [],
+      "role": "process",
+      "part": "R_Machine_Static",
+      "source": "synthetic:baltec-en20",
+      "tape": [],
+      "glb": "Riveting_Station.glb",
+      "click_nodes": ["R4", "R_Machine_Static", "R_Machine_Floating_X1"],
+      "name": "Riveter 4"
+    },
+    {
+      "asset_id": "C1",
+      "aliases": [],
+      "role": "process",
+      "part": "Cs_Camera",
+      "source": "synthetic:aoi-lux",
+      "tape": [],
+      "glb": "Inspection_Camera_Station.glb",
+      "click_nodes": ["C1", "Cs_Camera"],
+      "name": "Inspection camera"
+    },
+    {
+      "asset_id": "CB1",
+      "aliases": [],
+      "role": "process",
+      "part": "CB_Static",
+      "source": "synthetic:vac-gripper",
+      "tape": [],
+      "glb": "Collection_Box_Station.glb",
+      "click_nodes": ["CB1", "CB_Static", "CB_Floating_X", "CB_Floating_Y"],
+      "name": "Collection box"
     }
   ]
 }
