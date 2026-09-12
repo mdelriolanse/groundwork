@@ -1,11 +1,14 @@
 const app = document.querySelector("#app");
 const twinOrigin = `${location.protocol}//${location.hostname}:8765`;
-const fetchBoard = () => location.origin === twinOrigin
-  ? fetch("/api/board", { cache: "no-store" })
-  : fetch(`${twinOrigin}/api/board`, { cache: "no-store" });
+const apiBase = () => (location.origin === twinOrigin ? "" : twinOrigin);
+const fetchBoard = () => fetch(`${apiBase()}/api/board`, { cache: "no-store" });
+const fetchIncidents = () => fetch(`${apiBase()}/api/incidents`, { cache: "no-store" });
+const fetchHops = () => fetch(`${apiBase()}/api/hops/latest?limit=20`, { cache: "no-store" });
 
 let feed = null;
 let board = null;
+let liveIncidents = [];
+let liveHops = null;
 let cursor = 0;
 let replayTimer = null;
 let lastTrigger = null;
@@ -15,18 +18,7 @@ let assistTimer = null;
 let draftQuestion = "";
 const acknowledgedIds = new Set();
 let openMetricInfo = "";
-
-function sendTwinCommand(type, assetId, part) {
-  const twinFrame = app.querySelector("[data-twin-frame]");
-  if (!twinFrame?.contentWindow || typeof assetId !== "string" || !assetId) return;
-  const message = part === undefined ? { type, assetId } : { type, assetId, part };
-  twinFrame.contentWindow.postMessage(message, twinOrigin);
-}
-
-const __twin = {
-  focusAsset(assetId) { sendTwinCommand("twin:focus", assetId); },
-  lightPart(assetId, part) { sendTwinCommand("twin:light", assetId, part); },
-};
+let healthyLoop = true; // tape fallback loops hops 0–9 when hop-loop offline
 
 // ---------- Floor: persistent plan-view twin ----------
 // render() rebuilds #app innerHTML on every replay hop, so the Floor iframe lives outside #app
@@ -70,6 +62,11 @@ function ensureFloorLive() {
   floorLive.innerHTML = `<iframe class="floor-frame" title="VFLab hinge assembly line, bird's-eye view" data-floor-frame aria-busy="true" src="${twinOrigin}/twin/?view=${encodeURIComponent(view)}${asset ? `&asset=${encodeURIComponent(asset)}` : ""}"></iframe><div class="floor-labels" data-floor-labels></div>`;
   document.body.appendChild(floorLive);
   floorLive.addEventListener("click", onAppClick);
+  floorLive.addEventListener("wheel", (event) => {
+    if (event.target.closest("[data-floor-label]")) return;
+    event.preventDefault();
+    postFloor({ type: "twin:wheel", deltaY: event.deltaY });
+  }, { passive: false });
   floorLive.addEventListener("keydown", event => {
     const row = event.target.closest("[data-select-asset], [data-open-asset]");
     if (row && (event.key === "Enter" || event.key === " ")) { event.preventDefault(); row.click(); }
@@ -164,7 +161,7 @@ function renderFloorLabels(route = getRoute()) {
     const monitored = Boolean(st?.monitored);
     const critical = a.asset_id === "RPP1" && flag;
     const cls = ["floor-label", monitored ? "monitored" : "unmonitored", a.asset_id === selected ? "selected" : "", critical ? "critical" : "", a.asset_id === hovered ? "hover" : ""].filter(Boolean).join(" ");
-    const state = critical ? "flag" : a.asset_id === "RPP1" ? "ok" : a.asset_id === "T1" ? "process" : "no sensor";
+    const state = critical ? "flag" : a.asset_id === "RPP1" ? "ok" : monitored ? "process" : "no sensor";
     return `<button type="button" class="${cls}" data-open-asset="${a.asset_id}" data-floor-label="${a.asset_id}" style="${style(a)}" aria-label="Open ${a.asset_id} asset page, ${state}" aria-current="${a.asset_id === selected}">${critical ? `${icon("alert", "sm")}` : ""}<span class="mono">${a.asset_id}</span>${monitored || critical ? `<small>${state}</small>` : ""}</button>`;
   }).join("");
 }
@@ -173,9 +170,28 @@ function renderFloorLabels(route = getRoute()) {
 let partLive = null;
 let partReady = false;
 let partAsset = null;
+let partSrcKey = null;
 let partSelected = null;
 let partSent = null;
+let partIssuesKey = null;
 let partObserver = null;
+let detectPosted = false; // unused in live path; kept for tape fallback quiet
+
+function boardIssues() {
+  return Array.isArray(board?.issues) ? board.issues : [];
+}
+
+function issuesForAsset(assetId) {
+  return boardIssues().filter((row) => row.asset_id === assetId && row.part);
+}
+
+function issuesMessageParts(assetId) {
+  return issuesForAsset(assetId).map((row) => ({
+    assetId: row.asset_id,
+    part: row.part,
+    severity: row.severity || "critical",
+  }));
+}
 
 function partFrameWindow() {
   return partLive?.querySelector("[data-part-frame]")?.contentWindow || null;
@@ -186,12 +202,43 @@ function positionPartLive() {
   const mount = app.querySelector("[data-part-mount]");
   if (!mount) { partLive.hidden = true; return; }
   const r = mount.getBoundingClientRect();
-  Object.assign(partLive.style, { left: `${r.left}px`, top: `${r.top}px`, width: `${r.width}px`, height: `${r.height}px` });
+  Object.assign(partLive.style, {
+    left: `${r.left}px`,
+    top: `${r.top}px`,
+    width: `${r.width}px`,
+    height: `${r.height}px`,
+    zIndex: mount.closest(".inspection-expanded") ? "41" : "",
+  });
   partLive.hidden = false;
 }
 
+function partRequest(route) {
+  if (route.path.startsWith("/assets/") && route.params.get("render") === "3d") {
+    const id = selectedAsset(route).id;
+    const fleet = feed?.fleet?.find(row => row.asset_id === id);
+    const issuePart = issuesForAsset(id)[0]?.part;
+    return { asset: id, component: issuePart || fleet?.part || "" };
+  }
+  if (route.path.startsWith("/incidents/")) {
+    const item = selectedIncident(route);
+    if (!item) return null;
+    return { asset: item.asset, component: item.component || "" };
+  }
+  return null;
+}
+
+function postPartIssues(wanted) {
+  const parts = issuesMessageParts(wanted);
+  const key = JSON.stringify(parts);
+  if (partIssuesKey === key) return;
+  partIssuesKey = key;
+  partFrameWindow()?.postMessage({ type: "twin:issues", parts }, twinOrigin);
+}
+
 function syncPart(route) {
-  const wanted = route.path.startsWith("/assets/") && route.params.get("render") === "3d" ? selectedAsset(route).id : null;
+  const req = partRequest(route);
+  const wanted = req?.asset || null;
+  const wantComponent = req?.component || "";
   if (!wanted) {
     if (partLive) partLive.hidden = true;
     partObserver?.disconnect();
@@ -204,13 +251,18 @@ function syncPart(route) {
     document.body.appendChild(partLive);
   }
   const frame = partLive.querySelector("[data-part-frame]");
-  if (partAsset !== wanted) {
+  const srcKey = `${wanted}|${wantComponent}`;
+  if (partSrcKey !== srcKey) {
+    partSrcKey = srcKey;
     partAsset = wanted;
     partReady = false;
     partSelected = null;
     partSent = null;
+    partIssuesKey = null;
     frame.setAttribute("aria-busy", "true");
-    frame.src = `${twinOrigin}/twin/?view=part&asset=${encodeURIComponent(wanted)}`;
+    const q = new URLSearchParams({ view: "part", asset: wanted });
+    if (wantComponent) q.set("component", wantComponent);
+    frame.src = `${twinOrigin}/twin/?${q}`;
   }
   positionPartLive();
   partObserver?.disconnect();
@@ -219,10 +271,14 @@ function syncPart(route) {
     partObserver = new ResizeObserver(positionPartLive);
     partObserver.observe(mount);
   }
-  // Pre-light the sensor-bound part when it carries a flag, so the fault is visible on open.
+  if (!partReady) return;
+  // Sqlite bus drives issue glow; tape flagged() is inbox chrome only.
+  postPartIssues(wanted);
   const fleet = feed.fleet.find(row => row.asset_id === wanted);
-  const wantLit = partSelected ? partSelected.part : (fleet && wanted === "RPP1" && flagged() ? fleet.part : null);
-  if (partReady && partSent !== wantLit) {
+  const wantLit = partSelected
+    ? partSelected.part
+    : (wantComponent || issuesForAsset(wanted)[0]?.part || fleet?.part || null);
+  if (partSent !== wantLit) {
     partSent = wantLit;
     if (wantLit) partFrameWindow()?.postMessage({ type: "twin:light", assetId: wanted, part: wantLit }, twinOrigin);
     else partFrameWindow()?.postMessage({ type: "twin:part:clear" }, twinOrigin);
@@ -269,7 +325,7 @@ function handleFloorMessage(event) {
   }
   if (type === "twin:select" && typeof event.data.asset_id === "string") {
     // Clicking a machine on the floor opens its Asset 360 (tree rows only select/preview).
-    location.hash = hashFor(`/assets/${event.data.asset_id}`);
+    location.hash = hashFor(`/assets/${event.data.asset_id}`, { render: "3d" });
     return;
   }
   if (type === "twin:hover") {
@@ -284,19 +340,6 @@ function handleTwinMessage(event) {
   if (event.origin !== twinOrigin) return;
   if (floorLive && event.source === floorFrameWindow()) { handleFloorMessage(event); return; }
   if (partLive && event.source === partFrameWindow()) { handlePartMessage(event); return; }
-  const twinFrame = app.querySelector("[data-twin-frame]");
-  if (!twinFrame || event.source !== twinFrame.contentWindow) return;
-  if (event.data?.type !== "twin:ready") return;
-  const twinStatus = app.querySelector("[data-twin-status]");
-  if (twinStatus) {
-    twinStatus.textContent = "3D inspection ready.";
-    twinStatus.dataset.state = "ready";
-    twinFrame.setAttribute("aria-busy", "false");
-  }
-  __twin.focusAsset(twinFrame.dataset.inspectionAsset);
-  if (twinFrame.dataset.issueMarker === "true") {
-    __twin.lightPart(twinFrame.dataset.inspectionAsset, twinFrame.dataset.inspectionComponent);
-  }
 }
 
 function icon(name, extra = "") {
@@ -318,11 +361,76 @@ function clock(ts) {
 }
 
 function hop() {
-  return feed.hops[Math.min(cursor, feed.hops.length - 1)];
+  if (liveHops?.latest?.rpp1) {
+    const latest = liveHops.latest;
+    return {
+      ts: latest.ts,
+      rpp1: latest.rpp1,
+      assets: { ...(liveHops.assets || {}), ...(latest.assets || {}), RPP1: { part: "URjoint1", source: latest.rpp1.source, ...(latest.assets?.RPP1 || {}) } },
+      t1: (liveHops.assets || {}).T1 || latest.assets?.T1,
+    };
+  }
+  // Fallback: loop healthy hops 0–9 from feed.json so the board never freezes.
+  const healthyEnd = Math.min(9, (feed.hops?.length || 1) - 1);
+  const idx = healthyLoop ? (cursor % (healthyEnd + 1)) : Math.min(cursor, feed.hops.length - 1);
+  return feed.hops[idx];
+}
+
+function rmsSeries() {
+  if (liveHops?.rms?.length) return liveHops.rms.map((r) => r.value).filter((v) => v != null);
+  const end = liveHops?.live ? cursor : Math.min(cursor, 9);
+  return feed.hops.slice(0, Math.min(feed.hops.length, end + 1)).map((h) => h.rpp1.rms).filter((v) => v != null);
+}
+
+function assetHop(id) {
+  const now = hop();
+  if (now.assets && now.assets[id]) return now.assets[id];
+  if (id === "T1" && now.t1) return now.t1;
+  if (id === "RPP1" && now.rpp1) return { part: "URjoint1", source: now.rpp1.source, bus_w: now.rpp1.bus_w, joint1_a: now.rpp1.joint1_a, tags: {} };
+  return null;
+}
+
+function processTagEntries(slot) {
+  if (!slot) return [];
+  const tags = slot.tags && Object.keys(slot.tags).length ? slot.tags : Object.fromEntries(
+    Object.entries(slot).filter(([k]) => !["part", "source", "tags"].includes(k))
+  );
+  return Object.entries(tags);
+}
+
+function processTagDl(slot) {
+  const entries = processTagEntries(slot);
+  if (!entries.length) return `<p class="section-note">No process tags on this hop.</p>`;
+  const rows = entries.map(([k, v]) => `<dt>${esc(k)}</dt><dd>${dash(v)}</dd>`).join("");
+  return `<dl class="key-grid"><dt>Source</dt><dd class="mono">${esc(slot.source || "—")}</dd>${rows}</dl>`;
+}
+
+function isHeroAsset(asset) {
+  return asset?.id === "RPP1";
+}
+
+function assistable(asset) {
+  if (!asset || asset.unmonitored) return false;
+  if (isHeroAsset(asset)) return true;
+  return processTagEntries(assetHop(asset.id)).length > 0;
+}
+
+function processStrip(now) {
+  const assets = now.assets || {};
+  const ids = Object.keys(assets).filter(id => id !== "RPP1").sort();
+  if (!ids.length) return "";
+  const cells = ids.slice(0, 12).map(id => {
+    const slot = assets[id];
+    const busy = slot.busy;
+    const tip = processTagEntries(slot).map(([k, v]) => `${k}=${v}`).join(" · ");
+    return `<span class="process-chip mono" title="${esc(tip)}">${esc(id)}${busy != null ? ` · ${busy ? "busy" : "idle"}` : ""}</span>`;
+  }).join("");
+  return `<div class="process-strip" aria-label="Fleet process tags">${cells}${ids.length > 12 ? `<span class="section-note">+${ids.length - 12} more</span>` : ""}</div>`;
 }
 
 function flagged() {
-  return cursor >= feed.manifest.flag_hop;
+  return liveIncidents.some((i) => i.asset === "RPP1" && (i.fault === "inner_race" || i.fault === "outer_race" || i.fault === "ball"))
+    || Boolean(hop().rpp1?.fault);
 }
 
 function fleetAsset(id) {
@@ -330,12 +438,42 @@ function fleetAsset(id) {
 }
 
 function detections() {
-  if (!flagged()) return 0;
-  return feed.hops.slice(feed.manifest.flag_hop, cursor + 1).filter(item => item.rpp1.fault).length;
+  const live = liveIncidents.find((i) => i.asset === "RPP1");
+  if (live) return live.detections || 0;
+  if (!hop().rpp1?.fault) return 0;
+  return 1;
+}
+
+function mapLiveIncident(row) {
+  const ageMin = row.ageMin ?? Math.floor((row.age_ms || 0) / 60000);
+  const age = ageMin >= 60 ? `${Math.floor(ageMin / 60)}h` : ageMin > 0 ? `${ageMin}m` : `${Math.max(0, Math.floor((row.age_ms || 0) / 1000))}s`;
+  return {
+    id: row.id,
+    priority: row.priority,
+    title: row.title,
+    asset: row.asset,
+    component: row.component,
+    area: row.area || feed.cell.name,
+    line: row.line || "—",
+    cell: row.cell || feed.cell.name,
+    status: acknowledgedIds.has(row.id) && row.status === "New" ? "Acknowledged" : row.status,
+    ai: row.ai || "L1",
+    last: clock(row.last),
+    age,
+    ageMin,
+    detections: row.detections || 1,
+    signal: row.signal || "Elevated",
+    fault: row.fault,
+    source: row.source,
+    wo_id: row.wo_id,
+    work_order: row.work_order,
+  };
 }
 
 function derivedIncident() {
-  if (!flagged()) return null;
+  // Live path: incidents come from sqlite. Keep derived only as tape fallback for RPP1.
+  if (liveIncidents.length) return null;
+  if (!hop().rpp1?.fault || !feed?.flag) return null;
   const now = hop();
   const flag = feed.flag;
   const fault = now.rpp1.fault || flag.fault;
@@ -351,36 +489,42 @@ function derivedIncident() {
     status: acknowledgedIds.has(flag.incident_id) ? "Acknowledged" : "New",
     ai: "L1",
     last: clock(now.ts),
-    age: `${cursor - feed.manifest.flag_hop}s`,
-    ageMin: cursor - feed.manifest.flag_hop,
+    age: `${Math.max(0, cursor - (feed.manifest?.flag_hop || 10))}s`,
+    ageMin: 0,
     detections: detections(),
-    signal: now.rpp1.bpfi.detected ? "Elevated" : "Normal",
+    signal: now.rpp1.bpfi?.detected ? "Elevated" : "Normal",
     fault,
     source: now.rpp1.source,
   };
 }
 
 function incidents() {
+  if (liveIncidents.length) return liveIncidents.map(mapLiveIncident);
   const item = derivedIncident();
   return item ? [item] : [];
 }
 
 function assetsMap() {
   const now = hop();
-  const inc = derivedIncident();
+  const list = incidents();
+  const byAsset = Object.fromEntries(list.map((i) => [i.asset, i]));
   const out = {};
   for (const row of feed.fleet) {
+    const hit = byAsset[row.asset_id];
     const isHero = row.asset_id === "RPP1";
+    const slot = assetHop(row.asset_id);
     out[row.asset_id] = {
       id: row.asset_id,
       name: row.name,
       component: row.part,
       location: feed.cell.name,
-      condition: isHero && flagged() ? "Needs attention" : "Healthy",
-      incident: isHero && inc ? inc.id : null,
-      supported: row.supported,
-      fault: isHero ? (now.rpp1.fault || (flagged() ? feed.flag.fault : "none")) : "—",
-      source: isHero ? now.rpp1.source : now.t1.source,
+      condition: hit ? "Needs attention" : "Healthy",
+      incident: hit?.id || null,
+      supported: row.asset_id === "RPP1" || processTagEntries(slot).length > 0,
+      fault: hit?.fault || (isHero ? (now.rpp1?.fault || "none") : "—"),
+      source: isHero ? (now.rpp1?.source || row.source) : (slot?.source || row.source),
+      unmonitored: false,
+      role: row.role,
     };
   }
   return out;
@@ -459,7 +603,10 @@ function breadcrumb(route) {
 
 function tapeStamp() {
   const now = hop();
-  return `<div class="refresh-line"><span class="live-dot"></span>Hop ${cursor + 1}/${feed.hops.length} · ${clock(now.ts)} · ${esc(now.rpp1.source)}</div>`;
+  const live = Boolean(liveHops?.live);
+  const label = live ? `Live hop ${liveHops.latest?.hop ?? cursor}` : `Fallback hop ${cursor + 1}`;
+  const inj = liveHops?.hop_override ? ` · inject ${liveHops.hop_override.file}` : "";
+  return `<div class="refresh-line"><span class="live-dot"></span>${label}${inj} · ${clock(now.ts)} · ${esc(now.rpp1?.source || "—")}</div>`;
 }
 
 function shell(main, route, rail) {
@@ -469,7 +616,7 @@ function shell(main, route, rail) {
   return `
     <div class="app-shell">
       <nav class="left-nav" aria-label="Primary navigation">
-        <div class="brand"><div class="brand-mark">FP</div><div class="brand-copy"><strong>Forge Operations</strong><span>${esc(feed.cell.name)}</span></div></div>
+        <div class="brand"><div class="brand-mark"><img src="groundwork-mark.svg" alt=""></div><div class="brand-copy"><strong>Groundwork</strong><span>${esc(feed.cell.name)}</span></div></div>
         <div class="nav-section-label">Workspace</div>
         <div class="nav-list">
           ${navLink("incidents", "Incidents", "inbox", "/incidents", String(open))}
@@ -477,7 +624,7 @@ function shell(main, route, rail) {
           ${navLink("assets", "Assets", "asset", "/assets/RPP1")}
           ${navLink("intelligence", "Intelligence", "intel", "/intelligence?run=TAPE-20")}
         </div>
-        <div class="nav-bottom"><div class="nav-system"><span class="system-dot"></span><strong>Tape replay</strong><small>20 hops · 1 Hz · no egress</small></div></div>
+        <div class="nav-bottom"><div class="nav-system"><span class="system-dot"></span><strong>${liveHops?.live ? "Hop loop" : "Tape fallback"}</strong><small>1 Hz · no egress${liveHops?.hop_override ? " · injected" : ""}</small></div></div>
       </nav>
       <section class="workspace">
         <header class="global-header">
@@ -518,7 +665,7 @@ function citationButton(type, label, locator) {
 }
 
 function rmsChart(width, height, label) {
-  const values = feed.hops.slice(0, cursor + 1).map(item => item.rpp1.rms).filter(v => v != null);
+  const values = rmsSeries();
   if (!values.length) return `<p class="section-note">No RMS yet — source-gap</p>`;
   const min = Math.min(...values);
   const max = Math.max(...values);
@@ -533,7 +680,7 @@ function rmsChart(width, height, label) {
   const line = pts.map((p, i) => (i ? "L" : "M") + p).join(" ");
   const area = `${line} L${width},${height} L0,${height} Z`;
   const now = hop();
-  return `<div class="trend-chart"><svg viewBox="0 0 ${width} ${height}" role="img" aria-label="${esc(label)}"><path class="chart-grid" d="M0 20H${width}M0 ${Math.round(height / 2)}H${width}M0 ${height - 10}H${width}"/><path class="chart-area" d="${area}"/><path class="chart-line" d="${line}"/><circle class="chart-dot" cx="${last[0]}" cy="${last[1]}" r="4"/></svg><p class="section-note">${values.length} hops · ${dash(now.rpp1.source)} · RMS ${dash(now.rpp1.rms)} g</p></div>`;
+  return `<div class="trend-chart"><svg viewBox="0 0 ${width} ${height}" role="img" aria-label="${esc(label)}"><path class="chart-grid" d="M0 20H${width}M0 ${Math.round(height / 2)}H${width}M0 ${height - 10}H${width}"/><path class="chart-area" d="${area}"/><path class="chart-line" d="${line}"/><circle class="chart-dot" cx="${last[0]}" cy="${last[1]}" r="4"/></svg><p class="section-note">${values.length} hops · ${dash(now.rpp1?.source)} · RMS ${dash(now.rpp1?.rms)} g</p></div>`;
 }
 
 function filterIncidents(route) {
@@ -566,6 +713,7 @@ function inboxPage(route) {
   const ai = selectedValues("ai");
   const list = incidents();
   const critical = list.filter(item => item.priority === "Critical").length;
+  const high = list.filter(item => item.priority === "High").length;
   const unack = list.filter(item => item.status === "New").length;
   const progress = list.filter(item => item.status === "In progress").length;
   const aging = list.filter(item => item.ageMin >= 120).length;
@@ -577,26 +725,26 @@ function inboxPage(route) {
       <td class="mono">${item.asset}</td><td>${esc(item.area)}<span class="object-id">${esc(item.line)}</span></td>
       <td><span class="badge ${statusClass(item.status)}">${item.status}</span></td><td><span class="status ${statusClass(item.ai)}">${item.ai}</span></td>
       <td class="num">${item.last}</td><td class="num">${item.age}</td>
-    </tr>`).join("")}</tbody></table>` : `<div class="empty-state">${icon("filter", "lg")}<div><h2>${list.length ? "No matching incidents" : "No open incident"}</h2><p>${list.length ? "Current filters exclude all active cases." : "Healthy hops until flag_at. Replay continues at 1 Hz."}</p>${list.length ? `<button class="btn" data-action="clear-filters">Clear filters</button>` : ""}</div></div>`;
+    </tr>`).join("")}</tbody></table>` : `<div class="empty-state">${icon("filter", "lg")}<div><h2>${list.length ? "No matching incidents" : "No open incident"}</h2><p>${list.length ? "Current filters exclude all active cases." : "Hop loop healthy. Seeded cases load from sqlite; inject IR on stage."}</p>${list.length ? `<button class="btn" data-action="clear-filters">Clear filters</button>` : ""}</div></div>`;
   return `<main class="page"><div class="page-inner compact">
-    ${moduleHeader("Incidents", "Derived from the 20-hop CWRU slice. Empty until the 97→105 flip.", `${tapeStamp()}<button class="btn sm" data-action="toggle-scope">${icon("pin", "sm")} ${route.params.get("scope") === "site" ? "Entire site" : "Cell"}</button>`)}
+    ${moduleHeader("Incidents", "Live inbox from sqlite. Seeded High OR + Medium process; Critical IR arrives on inject.", `${tapeStamp()}<button class="btn sm" data-action="toggle-scope">${icon("pin", "sm")} ${route.params.get("scope") === "site" ? "Entire site" : "Cell"}</button>`)}
     <div class="tabs" role="tablist" aria-label="Incident registry view"><button class="tab active" role="tab" aria-selected="true">Active <span class="badge">${list.length}</span></button><button class="tab" role="tab" aria-selected="false" data-action="resolved-view">Resolved <span class="badge">0</span></button></div>
     <div style="height:12px"></div>
     <section class="metric-grid" aria-label="Incident metrics">
-      ${metricCard("critical", "Critical", String(critical), flagged() ? "BPFI flag" : "Waiting on flag_at", critical ? "critical" : "", metric === "critical")}
+      ${metricCard("critical", "Critical", String(critical), critical ? "Live / seeded" : "None open", critical ? "critical" : "", metric === "critical")}
       ${metricCard("unacknowledged", "Unacknowledged", String(unack), unack ? "Needs owner" : "None", unack ? "warning" : "", metric === "unacknowledged")}
-      ${metricCard("progress", "In progress", String(progress), "Work underway", progress ? "info" : "", metric === "progress")}
+      ${metricCard("progress", "In progress", String(progress), high ? `${high} high priority` : "Work underway", progress ? "info" : "", metric === "progress")}
       ${metricCard("aging", "Aging beyond target", String(aging), "Over 2 hours", aging ? "warning" : "", metric === "aging")}
     </section>
     <section class="inbox-layout">
       <aside class="panel filter-panel" aria-label="Incident filters">
         <div class="panel-header"><div class="filter-title">${icon("filter", "sm")}<strong>Filters</strong></div>${clearVisible ? `<button class="filter-clear" data-action="clear-filters">Clear all</button>` : ""}</div>
-        <fieldset class="filter-group"><legend>Priority</legend>${filterOption("priority", "Critical", "Critical", critical, priorities.has("Critical"))}</fieldset>
-        <fieldset class="filter-group"><legend>Case status</legend>${filterOption("status", "New", "New", unack, statuses.has("New"))}</fieldset>
-        <fieldset class="filter-group"><legend>AI run state</legend>${filterOption("ai", "L1", "L1", list.length, ai.has("L1"))}</fieldset>
+        <fieldset class="filter-group"><legend>Priority</legend>${filterOption("priority", "Critical", "Critical", critical, priorities.has("Critical"))}${filterOption("priority", "High", "High", high, priorities.has("High"))}${filterOption("priority", "Medium", "Medium", list.filter(i => i.priority === "Medium").length, priorities.has("Medium"))}</fieldset>
+        <fieldset class="filter-group"><legend>Case status</legend>${filterOption("status", "New", "New", unack, statuses.has("New"))}${filterOption("status", "Acknowledged", "Acknowledged", list.filter(i => i.status === "Acknowledged").length, statuses.has("Acknowledged"))}</fieldset>
+        <fieldset class="filter-group"><legend>AI run state</legend>${filterOption("ai", "L1", "L1", list.filter(i => i.ai === "L1").length, ai.has("L1"))}${filterOption("ai", "Ready", "Ready", list.filter(i => i.ai === "Ready").length, ai.has("Ready"))}</fieldset>
         <div class="filter-group"><span class="filter-group-title">Area / line</span><label class="filter-option"><input type="checkbox" checked disabled><span>${esc(feed.cell.name)}</span><span class="count">${list.length}</span></label></div>
       </aside>
-      <div class="panel table-panel"><div class="table-toolbar"><span class="table-count">${rows.length} active incidents</span><span class="section-note">Select a row for preview</span><span class="table-sort">Tape hop ${cursor + 1}</span></div>${table}</div>
+      <div class="panel table-panel"><div class="table-toolbar"><span class="table-count">${rows.length} active incidents</span><span class="section-note">Select a row for preview</span><span class="table-sort">${liveHops?.live ? "Live" : "Fallback"} · hop ${cursor + 1}</span></div>${table}</div>
     </section>
   </div></main>`;
 }
@@ -605,18 +753,23 @@ function incidentDetailPage(route) {
   const item = selectedIncident(route);
   const now = hop();
   if (!item) {
-    return `<main class="page incident-detail-page"><div class="page-inner compact">${moduleHeader("No incident", "Flag has not fired on this hop.", tapeStamp())}<div class="empty-state">${icon("clock", "lg")}<div><h2>Waiting on flag_at</h2><p class="mono">${esc(feed.manifest.flag_at)}</p></div></div></div></main>`;
+    return `<main class="page incident-detail-page"><div class="page-inner compact">${moduleHeader("No incident", "No case selected.", tapeStamp())}<div class="empty-state">${icon("clock", "lg")}<div><h2>Pick an inbox row</h2><p>Seeded cases are in sqlite. Live IR appears after inject.</p></div></div></div></main>`;
   }
   const cmms = feed.cmms.filter(row => row.fault === item.fault);
-  const inspectionAsset = board?.selection?.asset_id;
-  const inspectionComponent = board?.work_order?.evidence?.part;
+  const issueHit = boardIssues().find((row) => row.asset_id === item.asset && row.part === item.component);
+  const inspectionAsset = issueHit?.asset_id || board?.selection?.asset_id;
+  const inspectionComponent = issueHit?.part || board?.work_order?.evidence?.part;
   const mappedGeometry = Boolean(
     inspectionAsset === item.asset &&
     inspectionComponent === item.component &&
-    board?.fleet?.some(row => row.asset_id === inspectionAsset && row.part === inspectionComponent),
+    (
+      Boolean(issueHit) ||
+      board?.fleet?.some(row => row.asset_id === inspectionAsset && row.part === inspectionComponent)
+    ),
   );
   const inspectionExpanded = route.params.get("inspection") === "expanded";
-  const inspectionNotice = mappedGeometry ? `<button class="btn sm issue-marker" data-action="focus-inspection-target">Issue target: ${esc(inspectionComponent)}</button>` : `<span class="section-note">Location unavailable — no mapped geometry.</span>`;
+  const partShown = partReady && partAsset === item.asset;
+  const inspectionNotice = mappedGeometry ? `<button class="btn sm issue-marker" data-action="focus-inspection-target">Issue target: ${esc(item.component)}</button>` : `<span class="section-note">Location unavailable — no mapped geometry.</span>`;
   return `<main class="page incident-detail-page"><div class="page-inner compact">
     ${moduleHeader(`${item.id} · ${esc(item.title)}`, `${item.asset} / ${item.component} · ${esc(item.area)}`, `<button class="btn" data-action="view-floor">${icon("floor", "sm")}View on floor</button><button class="btn ${item.status === "Acknowledged" ? "" : "primary"}" data-action="acknowledge" data-focus-id="acknowledge" aria-pressed="${item.status === "Acknowledged"}">${icon("check", "sm")}${item.status === "Acknowledged" ? "Acknowledged" : "Acknowledge incident"}</button>`)}
     <div class="detail-meta"><span class="badge critical">Critical priority</span><span class="badge ${item.status === "Acknowledged" ? "" : "info"}">${item.status === "Acknowledged" ? "Acknowledged" : "New case"}</span><span>${icon("clock", "sm")}Flag ${clock(feed.flag.ts)} · last ${item.last} · ${item.detections} flagged hops</span><span>Signal: <strong class="${item.signal === "Elevated" ? "text-warning" : ""}">${item.signal}</strong></span><span>L1: <strong class="text-success">${esc(now.rpp1.engine)}</strong></span></div>
@@ -627,8 +780,8 @@ function incidentDetailPage(route) {
       <article class="question-card trust"><span class="question-number">03</span><h2>Why trust it?</h2><p>L0 pointer + L1 scalars. No 12 kHz on the board. ISO 15 kW floor — context only.</p><div class="inline-citations"><span class="badge ${now.rpp1.rms == null ? "warning" : "success"}">${now.rpp1.rms == null ? "RMS source-gap" : "RMS from window"}</span></div></article>
     </section>
     <section class="panel twin-panel${inspectionExpanded ? " inspection-expanded" : ""}" aria-labelledby="twin-inspection-heading">
-      <div class="panel-header"><h2 id="twin-inspection-heading">3D inspection</h2>${inspectionNotice}<button class="btn sm" data-action="toggle-inspection" data-focus-id="inspection-toggle" aria-expanded="${inspectionExpanded}" aria-controls="twin-inspection-frame">${inspectionExpanded ? "Collapse 3D inspection" : "Expand 3D inspection"}</button><p class="twin-status" role="status" aria-live="polite" data-twin-status data-state="loading">Loading 3D inspection…</p></div>
-      <iframe id="twin-inspection-frame" class="twin-frame" src="${twinOrigin}/twin/index.html?asset=${encodeURIComponent(mappedGeometry ? inspectionAsset : item.asset)}&component=${encodeURIComponent(mappedGeometry ? inspectionComponent : item.component)}" title="3D inspection of ${esc(item.asset)} ${esc(item.component)}" data-twin-frame data-inspection-asset="${esc(mappedGeometry ? inspectionAsset : item.asset)}" data-inspection-component="${esc(mappedGeometry ? inspectionComponent : "")}" data-issue-marker="${mappedGeometry}"></iframe>
+      <div class="panel-header"><h2 id="twin-inspection-heading">3D inspection</h2>${inspectionNotice}<button class="btn sm" data-action="toggle-inspection" data-focus-id="inspection-toggle" aria-expanded="${inspectionExpanded}" aria-controls="twin-inspection-frame">${inspectionExpanded ? "Collapse 3D inspection" : "Expand 3D inspection"}</button><p class="twin-status" role="status" aria-live="polite" data-part-status data-state="${partShown ? "ready" : "loading"}">${partShown ? "Ready" : "Loading…"}</p></div>
+      <div id="twin-inspection-frame" class="twin-frame twin-mount" data-part-mount aria-hidden="true" title="3D inspection of ${esc(item.asset)} ${esc(item.component)}"></div>
     </section>
     <section class="detail-grid">
       <article class="panel"><div class="panel-header"><h2>L1 hops</h2><span class="badge info" style="margin-left:auto">${cursor + 1} / ${feed.hops.length}</span></div><div class="panel-body"><div class="timeline">
@@ -645,7 +798,8 @@ function incidentDetailPage(route) {
 
 function stationState(id) {
   if (id === "RPP1") return flagged() ? { text: "flag", cls: "text-critical" } : { text: "ok", cls: "" };
-  if (id === "T1") return { text: "process", cls: "" };
+  const st = stationById(id);
+  if (st?.monitored || feed.fleet.some(r => r.asset_id === id)) return { text: "process", cls: "" };
   return { text: "no sensor", cls: "muted" };
 }
 
@@ -672,11 +826,11 @@ function floorPage(route) {
   const monitored = stations.filter(s => s.monitored).length;
   const viewButton = (key, label) => `<button type="button" class="btn sm ${view === key ? "primary" : ""}" data-action="floor-view" data-view="${key}" aria-pressed="${view === key}" data-focus-id="floor-view-${key}">${label}</button>`;
   return `<main class="page"><div class="floor-page">
-    <div class="floor-header"><div class="title-block"><h1 id="page-heading" tabindex="-1">Floor</h1><p class="subtitle">${esc(feed.cell.name)} · ${stations.length ? `${stations.length} stations · ${monitored} monitored` : "RPP1 + T1 monitored"}</p></div><div class="header-actions">${tapeStamp()}${flagged() ? `<span class="badge critical">1 flag</span>` : `<span class="badge">0 flags</span>`}<div class="segmented" role="group" aria-label="Floor view">${viewButton("plan", "Isometric")}${viewButton("top", "Top-down")}</div><button type="button" class="btn sm" data-action="floor-fit" data-focus-id="floor-fit">Fit line</button></div></div>
+    <div class="floor-header"><div class="title-block"><h1 id="page-heading" tabindex="-1">Floor</h1><p class="subtitle">${esc(feed.cell.name)} · ${stations.length ? `${stations.length} stations · ${monitored} monitored` : `${feed.fleet.length} monitored · 1 diagnosed`}</p></div><div class="header-actions">${tapeStamp()}${flagged() ? `<span class="badge critical">1 flag</span>` : `<span class="badge">0 flags</span>`}<div class="segmented" role="group" aria-label="Floor view">${viewButton("plan", "Isometric")}${viewButton("top", "Top-down")}</div><button type="button" class="btn sm" data-action="floor-fit" data-focus-id="floor-fit">Fit line</button></div></div>
     <section class="floor-stage" aria-label="Factory floor overview">
       <div class="floor-mount" data-floor-mount aria-hidden="true"></div>
       <aside class="floor-overlay"><div class="floor-overlay-header">${icon("floor", "sm")}Line</div><div class="tree">${floorTree(route)}</div></aside>
-      <div class="floor-legend"><span><i class="critical"></i>Flag</span><span><i></i>Monitored</span><span><i class="unmonitored"></i>No sensor</span><span class="floor-license">VLFT · CC BY-NC 4.0</span></div>
+      <div class="floor-legend"><span><i class="critical"></i>Flag</span><span><i></i>Monitored</span><span><i class="unmonitored"></i>No sensor</span><span class="floor-license">Scroll zoom · drag to slide · VLFT · CC BY-NC 4.0</span></div>
     </section>
   </div></main>`;
 }
@@ -690,9 +844,12 @@ function partFacts(asset, part) {
   if (!part) return null;
   if (asset.id === "RPP1" && bound) {
     const incident = derivedIncident();
-    return { part, bound: true, source: now.rpp1.source, window: now.rpp1.window, rms: now.rpp1.rms, rpm: now.rpp1.rpm, bpfi: now.rpp1.bpfi?.hz, fault: flagged() ? (now.rpp1.fault || feed.flag.fault) : null, incident, tone: flagged() ? "critical" : "success", state: flagged() ? "Fault flagged" : "No fault on this hop" };
+    return { part, bound: true, source: now.rpp1.source, window: now.rpp1.window, rms: now.rpp1.rms, rpm: now.rpp1.rpm, bpfi: now.rpp1.bpfi?.hz, bus_w: now.rpp1.bus_w, joint1_a: now.rpp1.joint1_a, fault: flagged() ? (now.rpp1.fault || feed.flag.fault) : null, incident, tone: flagged() ? "critical" : "success", state: flagged() ? "Fault flagged" : "No fault on this hop" };
   }
-  if (asset.id === "T1" && bound) return { part, bound: true, source: now.t1.source, cycle_s: now.t1.cycle_s, busy: now.t1.busy, fault: null, incident: null, tone: "neutral", state: "Process tag only · never diagnosed" };
+  if (bound) {
+    const slot = assetHop(asset.id);
+    return { part, bound: true, source: slot?.source || fleet.source, slot, fault: null, incident: null, tone: "neutral", state: "Process / electrical tags · never diagnosed" };
+  }
   return { part, bound: false, fault: null, incident: null, tone: "neutral", state: "No sensor on this part" };
 }
 
@@ -705,9 +862,9 @@ function partPanel(asset) {
   const badge = `<span class="badge ${facts.tone === "critical" ? "critical" : facts.tone === "success" ? "success" : ""}">${esc(facts.state)}</span>`;
   let body = "";
   if (facts.bound && asset.id === "RPP1") {
-    body = `<dl class="key-grid"><dt>Source</dt><dd class="mono">${esc(facts.source)}</dd><dt>Window</dt><dd class="mono">${esc(facts.window)}</dd><dt>RMS</dt><dd>${dash(facts.rms)} g</dd><dt>Speed</dt><dd>${dash(facts.rpm)} rpm</dd><dt>BPFI</dt><dd>${dash(facts.bpfi)} Hz</dd>${facts.fault ? `<dt>Fault</dt><dd class="text-critical">${esc(facts.fault)}</dd>` : ""}</dl>${facts.incident ? `<div class="rail-actions"><button class="btn primary sm" data-open-incident="${facts.incident.id}">Open ${facts.incident.id} ${icon("arrow", "sm")}</button><button class="btn sm" data-evidence="signal">Open exact signal</button></div>` : `<div class="rail-actions"><button class="btn sm" data-evidence="signal">Open exact signal</button></div>`}`;
+    body = `<dl class="key-grid"><dt>Source</dt><dd class="mono">${esc(facts.source)}</dd><dt>Window</dt><dd class="mono">${esc(facts.window)}</dd><dt>RMS</dt><dd>${dash(facts.rms)} g</dd><dt>Speed</dt><dd>${dash(facts.rpm)} rpm</dd><dt>BPFI</dt><dd>${dash(facts.bpfi)} Hz</dd><dt>bus_w</dt><dd>${dash(facts.bus_w)} W</dd><dt>joint1_a</dt><dd>${dash(facts.joint1_a)} A</dd>${facts.fault ? `<dt>Fault</dt><dd class="text-critical">${esc(facts.fault)}</dd>` : ""}</dl>${facts.incident ? `<div class="rail-actions"><button class="btn primary sm" data-open-incident="${facts.incident.id}">Open ${facts.incident.id} ${icon("arrow", "sm")}</button><button class="btn sm" data-evidence="signal">Open exact signal</button></div>` : `<div class="rail-actions"><button class="btn sm" data-evidence="signal">Open exact signal</button></div>`}`;
   } else if (facts.bound) {
-    body = `<dl class="key-grid"><dt>Source</dt><dd class="mono">${esc(facts.source)}</dd><dt>cycle_s</dt><dd>${dash(facts.cycle_s)}</dd><dt>busy</dt><dd>${dash(facts.busy)}</dd></dl>`;
+    body = processTagDl(facts.slot || { source: facts.source });
   } else {
     body = `<p class="section-note">Geometry only. No vibration channel, no faults recorded, nothing to diagnose.</p>`;
   }
@@ -717,7 +874,9 @@ function partPanel(asset) {
 function renderPanel(route, asset) {
   const open = route.params.get("render") === "3d";
   if (!open) return "";
-  return `<section class="panel render-panel" aria-labelledby="render-heading"><div class="panel-header"><h2 id="render-heading">3D render · ${asset.id}</h2><span class="section-note">Grayscale · this station only · click a part</span><p class="twin-status" role="status" aria-live="polite" data-part-status data-state="${partReady && partAsset === asset.id ? "ready" : "loading"}">${partReady && partAsset === asset.id ? "Render ready." : "Loading render…"}</p><button class="btn sm" data-action="toggle-render" data-focus-id="render-toggle" aria-expanded="true">Close 3D render</button></div><div class="render-body"><div class="render-mount" data-part-mount aria-hidden="true"></div><aside class="part-detail" aria-label="Selected part">${partPanel(asset)}</aside></div></section>`;
+  const ready = partReady && partAsset === asset.id;
+  // Vertical (portrait) panel: render on top, part facts below; sits in a sticky left column.
+  return `<section class="panel render-panel" aria-labelledby="render-heading"><div class="panel-header"><h2 id="render-heading">3D render · ${asset.id}</h2><p class="twin-status" role="status" aria-live="polite" data-part-status data-state="${ready ? "ready" : "loading"}">${ready ? "Ready" : "Loading…"}</p><button class="btn icon-only sm" data-action="toggle-render" data-focus-id="render-toggle" aria-expanded="true" aria-label="Close 3D render">${icon("close")}</button></div><div class="render-body"><div class="render-mount" data-part-mount aria-hidden="true"></div><aside class="part-detail" aria-label="Selected part">${partPanel(asset)}</aside></div><p class="render-note">Grayscale · this station only · drag to orbit · click a part</p></section>`;
 }
 
 function assetPage(route) {
@@ -727,22 +886,23 @@ function assetPage(route) {
   const keep = { tab: activeTab === "overview" ? null : activeTab, render: route.params.get("render") };
   const assetTab = (key, label) => `<a class="tab ${activeTab === key ? "active" : ""}" role="tab" aria-selected="${activeTab === key}" href="${hashFor(`/assets/${asset.id}`, { ...keep, tab: key })}">${label}</a>`;
   const isHero = asset.id === "RPP1";
-  const unmon = Boolean(asset.unmonitored);
+  const slot = assetHop(asset.id);
+  const unmon = Boolean(asset.unmonitored) || !feed.fleet.some(r => r.asset_id === asset.id);
   const history = isHero ? feed.cmms : [];
   const renderOpen = route.params.get("render") === "3d";
   const actions = `<button class="btn" data-action="toggle-render" data-focus-id="render-toggle" aria-expanded="${renderOpen}">${icon("asset", "sm")}${renderOpen ? "Close 3D render" : "Open 3D render"}</button><button class="btn" data-action="view-floor">${icon("floor", "sm")}View on floor</button><button class="btn primary" data-action="open-assist">${icon("spark", "sm")}Ask Maintenance Assist</button>`;
-  const ring = isHero ? dash(now.rpp1.rms) : unmon ? "—" : dash(now.t1.busy);
-  const ringNote = isHero ? "RMS g · current hop" : unmon ? "no sensor bound" : "busy · process tag";
-  const fact2 = isHero ? ["Current RMS", `${dash(now.rpp1.rms)} g`] : unmon ? ["VLFT model", esc(asset.model)] : ["cycle_s", dash(now.t1.cycle_s)];
+  const ring = isHero ? dash(now.rpp1.rms) : unmon ? "—" : dash(slot?.busy ?? Object.values(slot?.tags || {})[0]);
+  const ringNote = isHero ? "RMS g · current hop" : unmon ? "no sensor bound" : "process / electrical tags";
+  const fact2 = isHero ? ["Current RMS", `${dash(now.rpp1.rms)} g`] : unmon ? ["VLFT model", esc(asset.model)] : ["Tags", String(processTagEntries(slot).length)];
   const condition = isHero
-    ? `${flagged() ? `<div class="work-order-callout">${icon("alert")}<div><strong>${esc(asset.fault)} · ${esc(asset.component)}</strong><p class="mono">${esc(now.rpp1.source)} · ${esc(now.rpp1.window)}</p></div></div>` : `<p class="section-note">No flag on this hop.</p>`}${rmsChart(520, 80, "RPP1 RMS")}`
+    ? `${flagged() ? `<div class="work-order-callout">${icon("alert")}<div><strong>${esc(asset.fault)} · ${esc(asset.component)}</strong><p class="mono">${esc(now.rpp1.source)} · ${esc(now.rpp1.window)}</p></div></div>` : `<p class="section-note">No flag on this hop.</p>`}${rmsChart(520, 80, "RPP1 RMS")}<dl class="key-grid"><dt>bus_w</dt><dd>${dash(now.rpp1.bus_w)} W</dd><dt>joint1_a</dt><dd>${dash(now.rpp1.joint1_a)} A</dd></dl>`
     : unmon
       ? `<dl class="key-grid"><dt>VLFT model</dt><dd class="mono">${esc(asset.model)}</dd><dt>Cell</dt><dd>${esc(cellName(asset.cell))}</dd><dt>Signal source</dt><dd class="mono">none</dd></dl><p class="section-note">Unmonitored station. Geometry only; never diagnosed.</p>`
-      : `<dl class="key-grid"><dt>cycle_s</dt><dd>${dash(now.t1.cycle_s)}</dd><dt>busy</dt><dd>${dash(now.t1.busy)}</dd><dt>job_id</dt><dd>${dash(now.t1.job_id)}</dd><dt>source</dt><dd class="mono">${esc(now.t1.source)}</dd></dl><p class="section-note">T1 is process-only. Never diagnosed.</p>`;
+      : `${processTagDl(slot)}<p class="section-note">Process / electrical tags only. Never diagnosed. Not a vibration channel.</p>`;
   return `<main class="page"><div class="page-inner compact">
     ${moduleHeader(`${asset.id} · ${esc(asset.name)}`, `${esc(asset.location)} · ${esc(asset.component)} · ${esc(asset.source)}`, actions)}
     <div class="tabs" role="tablist">${assetTab("overview", "Overview")}${assetTab("maintenance", "Maintenance")}${assetTab("evidence", "Evidence")}${assetTab("activity", "Activity")}</div><div style="height:10px"></div>
-    ${renderPanel(route, asset)}
+    <div class="asset-layout ${renderOpen ? "has-render" : ""}">${renderOpen ? `<aside class="render-column">${renderPanel(route, asset)}</aside>` : ""}<div class="asset-main">
     <section class="asset-summary"><article class="panel asset-score"><div><div class="asset-score-ring" aria-label="${esc(asset.condition)}">${ring}</div><strong>${esc(asset.condition)}</strong><span>${ringNote}</span></div></article><article class="panel asset-facts"><div class="asset-fact"><span>Open incidents</span><strong class="${asset.incident ? "text-critical" : ""}">${asset.incident || "None"}</strong></div><div class="asset-fact"><span>${fact2[0]}</span><strong class="${unmon ? "mono" : "num"}">${fact2[1]}</strong></div><div class="asset-fact"><span>Last hop</span><strong>${clock(now.ts)}</strong></div><div class="asset-fact"><span>Source</span><strong class="mono">${esc(asset.source)}</strong></div></article></section>
     <section class="asset-columns">
       <div>
@@ -750,10 +910,11 @@ function assetPage(route) {
         <article class="panel"><div class="panel-header"><h2>Maintenance history</h2><span class="section-note" style="margin-left:auto">${isHero ? "Alias MTR-07" : "No CMMS rows"}</span></div>${history.length ? `<table class="simple-table"><thead><tr><th>Work order</th><th>Date</th><th>Fault</th><th>Action / part</th></tr></thead><tbody>${history.map(row => `<tr><td><button class="cite-button mono" data-evidence="history">${esc(row.wo_id)}</button></td><td>${esc(row.opened)}</td><td>${esc(row.fault)}</td><td>${esc(row.action)} · ${esc(row.parts)}</td></tr>`).join("")}</tbody></table>` : `<div class="panel-body"><p class="section-note">—</p></div>`}</article>
       </div>
       <div>
-        <article class="panel" style="margin-bottom:8px"><div class="panel-header"><h2>Evidence library</h2></div><div class="panel-body evidence-list">${isHero ? `<div class="evidence-row">${icon("intel")}<div><strong>CWRU window</strong><span class="mono">${esc(now.rpp1.source)}:${esc(now.rpp1.window)}</span></div><button data-evidence="signal">Open</button></div><div class="evidence-row">${icon("clock")}<div><strong>CMMS history</strong><span>${history.length} rows · alias MTR-07</span></div><button data-evidence="history">Open</button></div>` : unmon ? `<p class="section-note">No sensor, no manual, no CMMS rows on this feed.</p>` : `<p class="section-note">Process tags only. No vibration cite.</p>`}<div class="evidence-row">${icon("file")}<div><strong>Manual</strong><span>Source-gap — no packed page on this feed</span></div></div></div></article>
-        <article class="panel"><div class="panel-header"><h2>Recent activity</h2></div><div class="panel-body activity-list"><div class="activity-item"><time>${clock(now.ts)}</time><span class="event-mark"></span><div><strong>Hop ${cursor + 1}</strong><p>${isHero ? `RMS ${dash(now.rpp1.rms)} g` : unmon ? "no sensor · geometry only" : `busy ${dash(now.t1.busy)}`}</p></div></div>${flagged() && isHero ? `<div class="activity-item"><time>${clock(feed.flag.ts)}</time><span class="event-mark"></span><div><strong>Flag</strong><p>${esc(feed.flag.flag)} · ${esc(feed.flag.fault)}</p></div></div>` : ""}</div></article>
+        <article class="panel" style="margin-bottom:8px"><div class="panel-header"><h2>Evidence library</h2></div><div class="panel-body evidence-list">${isHero ? `<div class="evidence-row">${icon("intel")}<div><strong>CWRU window</strong><span class="mono">${esc(now.rpp1.source)}:${esc(now.rpp1.window)}</span></div><button data-evidence="signal">Open</button></div><div class="evidence-row">${icon("clock")}<div><strong>CMMS history</strong><span>${history.length} rows · alias MTR-07</span></div>${history.length ? `<button data-evidence="history">Open</button>` : `<span class="badge">Not available</span>`}</div>` : unmon ? `<p class="section-note">No sensor, no manual, no CMMS rows on this feed.</p>` : `<p class="section-note">Cited synthetic tags. No vibration cite. Not diagnosed.</p>`}<div class="evidence-row">${icon("file")}<div><strong>Manual</strong><span>Source-gap — no packed page on this feed</span></div><span class="badge">Not available</span></div></div></article>
+        <article class="panel"><div class="panel-header"><h2>Recent activity</h2></div><div class="panel-body activity-list"><div class="activity-item"><time>${clock(now.ts)}</time><span class="event-mark"></span><div><strong>Hop ${cursor + 1}</strong><p>${isHero ? `RMS ${dash(now.rpp1.rms)} g` : unmon ? "no sensor · geometry only" : processTagEntries(slot).map(([k, v]) => `${k}=${v}`).slice(0, 3).join(" · ")}</p></div></div>${flagged() && isHero ? `<div class="activity-item"><time>${clock(feed.flag.ts)}</time><span class="event-mark"></span><div><strong>Flag</strong><p>${esc(feed.flag.flag)} · ${esc(feed.flag.fault)}</p></div></div>` : ""}</div></article>
       </div>
     </section>
+    </div></div>
   </div></main>`;
 }
 
@@ -764,13 +925,13 @@ function intelligencePage(route) {
   return `<main class="page intelligence-page"><div class="page-inner compact">
     ${moduleHeader("Intelligence", "L1 hops from the 20 s slice. No seeded runs.", `${tapeStamp()}<button class="btn" data-evidence="containment">${icon("shield", "sm")}Inspect containment</button>`)}
     <section class="metric-grid" aria-label="Tape metrics">${metricStat("Hop", `${cursor + 1}/${feed.hops.length}`, clock(now.ts), "info", "Replay index on the 20-hop CWRU slice. 1 Hz, local tape only — no cloud fetch.")}${metricStat("Flagged hops", String(flaggedHops), flagged() ? feed.flag.fault : "before flag_at", flaggedHops ? "critical" : "", "Count of hops after flag_at where L1 wrote a fault. Healthy 97.mat until hop 10; then 105.mat inner_race.")}${metricStat("RMS", dash(now.rpp1.rms), "g · current", "", "Window RMS from PMMCP on this hop. ISO 20816 zones do not apply — this asset is below the 15 kW floor.")}${metricStat("BPFI", dash(now.rpp1.bpfi.hz), now.rpp1.bpfi.detected ? "detected" : "not detected", "", `Ball-pass inner-race frequency from the L1 envelope writer (${now.rpp1.engine}). Detected only after the 97→105 flip.`)}</section>
-    <section class="system-strip" aria-label="System health"><div class="system-cell"><span>Tape</span><strong><i class="live-dot"></i>${esc(feed.manifest.t0)} · ${feed.manifest.duration_s}s</strong></div><div class="system-cell"><span>L1</span><strong class="text-success">${icon("check", "sm")}${esc(now.rpp1.engine)}</strong></div><div class="system-cell"><span>T1</span><strong>vlft:process · not diagnosed</strong></div><div class="system-cell"><span>Containment</span>${containmentCell()}</div></section>
+    <section class="system-strip" aria-label="System health"><div class="system-cell"><span>Tape</span><strong><i class="live-dot"></i>${esc(feed.manifest.t0)} · ${feed.manifest.duration_s}s</strong></div><div class="system-cell"><span>L1</span><strong class="text-success">${icon("check", "sm")}${esc(now.rpp1.engine)}</strong></div><div class="system-cell"><span>Fleet</span><strong>${feed.fleet.length} monitored · 1 diagnosed</strong></div><div class="system-cell"><span>Containment</span>${containmentCell()}</div></section>
     <section class="intel-layout">
       <article class="panel"><div class="panel-header"><h2>Hop inbox</h2><span class="section-note" style="margin-left:auto">${cursor + 1} seen</span></div><div class="run-list">${feed.hops.slice(0, cursor + 1).map(item => `<div class="run-row ${`HOP-${item.i}` === run || (run === "TAPE-20" && item.i === cursor) ? "selected" : ""}" data-select-run="HOP-${item.i}" tabindex="0"><div class="run-main"><strong class="mono">HOP-${item.i}</strong><span>${clock(item.ts)} · ${item.rpp1.file}</span><br><span>RMS ${dash(item.rpp1.rms)} g · ${item.rpp1.fault || "healthy"}</span></div><div class="run-side"><span class="status ${statusClass(item.rpp1.fault ? "critical" : "healthy")}">${item.rpp1.fault || "ok"}</span><time>${esc(item.rpp1.window)}</time></div></div>`).join("")}</div></article>
       <article class="panel"><div class="trace-header"><div class="trace-title"><h2>Current hop</h2><span class="badge ${flagged() ? "critical" : "success"}">${flagged() ? "Flagged" : "Healthy"}</span></div><div class="trace-meta"><span class="mono">TAPE-20</span><span>RPP1 / URjoint1</span><span>${clock(now.ts)}</span><span>${esc(now.rpp1.engine)}</span></div></div><div class="trace-stages">
         <details class="trace-stage" open><summary class="trace-summary"><span class="timeline-icon">${icon("check", "sm")}</span><span class="trace-stage-label">L0</span><strong>DAQ drop</strong><time>${clock(now.ts)}</time></summary><div class="trace-body"><dl><dt>Source</dt><dd class="mono">${esc(now.rpp1.source)}</dd><dt>Window</dt><dd class="mono">${esc(now.rpp1.window)}</dd><dt>fs</dt><dd class="num">${now.rpp1.fs_hz} Hz</dd></dl><div class="inline-citations">${citationButton("signal", "Signal", now.rpp1.window)}</div></div></details>
-        <details class="trace-stage" open><summary class="trace-summary"><span class="timeline-icon">${icon("check", "sm")}</span><span class="trace-stage-label">L1</span><strong>Condition features</strong></summary><div class="trace-body"><dl><dt>RMS</dt><dd>${dash(now.rpp1.rms)} g</dd><dt>BPFI</dt><dd>${now.rpp1.bpfi.detected ? `${now.rpp1.bpfi.hz} Hz` : "not detected"}</dd><dt>Fault</dt><dd>${dash(now.rpp1.fault)}</dd></dl></div></details>
-        <details class="trace-stage" open><summary class="trace-summary"><span class="timeline-icon">${icon("check", "sm")}</span><span class="trace-stage-label">T1</span><strong>Process tags</strong></summary><div class="trace-body"><dl><dt>cycle_s</dt><dd>${dash(now.t1.cycle_s)}</dd><dt>busy</dt><dd>${dash(now.t1.busy)}</dd><dt>job_id</dt><dd>${dash(now.t1.job_id)}</dd><dt>source</dt><dd class="mono">${esc(now.t1.source)}</dd></dl></div></details>
+        <details class="trace-stage" open><summary class="trace-summary"><span class="timeline-icon">${icon("check", "sm")}</span><span class="trace-stage-label">L1</span><strong>Condition features</strong></summary><div class="trace-body"><dl><dt>RMS</dt><dd>${dash(now.rpp1.rms)} g</dd><dt>BPFI</dt><dd>${now.rpp1.bpfi.detected ? `${now.rpp1.bpfi.hz} Hz` : "not detected"}</dd><dt>Fault</dt><dd>${dash(now.rpp1.fault)}</dd><dt>bus_w</dt><dd>${dash(now.rpp1.bus_w)} W</dd></dl></div></details>
+        <details class="trace-stage" open><summary class="trace-summary"><span class="timeline-icon">${icon("check", "sm")}</span><span class="trace-stage-label">Fleet</span><strong>Process / electrical tags</strong></summary><div class="trace-body"><p class="section-note">Cited synthetic tags · not diagnosed</p>${processStrip(now)}${processTagDl(now.t1 || assetHop("T1"))}</div></details>
       </div></article>
     </section>
   </div></main>`;
@@ -787,6 +948,13 @@ function objectPreviewRail(route) {
     <div class="rail-actions"><button class="btn" data-action="open-assist">${icon("spark", "sm")}Ask Maintenance Assist</button></div>
   </div></aside>`;
   }
+  if (!hasIncident && asset.id !== "RPP1") {
+    const slot = assetHop(asset.id);
+    return `<aside class="utility-rail" aria-label="Object Preview" data-overlay-rail><div class="rail-header">${icon("eye")}<div class="rail-title"><strong>Object Preview</strong><span>${asset.id} · Asset</span></div><div class="rail-header-actions"><button class="btn icon-only sm" data-action="close-rail" aria-label="Close object preview">${icon("close")}</button></div></div><div class="rail-body">
+    <section class="rail-section"><div class="rail-kicker">Selected asset</div><div class="rail-heading">${asset.id} · ${esc(asset.name)}</div><span class="badge">process</span>${processTagDl(slot)}<p class="section-note">Never diagnosed. Assist binds this hop's L1 process / electrical tags.</p></section>
+    <div class="rail-actions"><button class="btn primary" data-action="open-asset">Open Asset 360</button><button class="btn" data-action="open-assist">${icon("spark", "sm")}Ask Maintenance Assist</button></div>
+  </div></aside>`;
+  }
   return `<aside class="utility-rail" aria-label="Object Preview" data-overlay-rail><div class="rail-header">${icon("eye")}<div class="rail-title"><strong>Object Preview</strong><span>${hasIncident ? `${incident.id} · Incident` : `${asset.id} · Asset`}</span></div><div class="rail-header-actions"><button class="btn icon-only sm" data-action="close-rail" aria-label="Close object preview">${icon("close")}</button></div></div><div class="rail-body">
     ${hasIncident ? `<section class="rail-section"><div class="rail-kicker">${incident.id}</div><div class="rail-heading">${esc(incident.title)}</div><div style="display:flex;gap:6px"><span class="badge critical">${incident.priority} priority</span><span class="badge info">${incident.status}</span></div><dl class="key-grid"><dt>Asset</dt><dd class="mono">${incident.asset} / ${incident.component}</dd><dt>Source</dt><dd class="mono">${esc(now.rpp1.source)}</dd><dt>Window</dt><dd class="mono">${esc(now.rpp1.window)}</dd><dt>RMS</dt><dd>${dash(now.rpp1.rms)} g</dd><dt>BPFI</dt><dd>${dash(now.rpp1.bpfi.hz)} Hz</dd></dl></section><section class="rail-section"><div class="rail-kicker">L1</div><p>${esc(now.rpp1.engine)} · fault ${esc(dash(now.rpp1.fault))}. WO ${esc(feed.flag.wo)}.</p><div class="inline-citations">${citationButton("signal", "Signal", now.rpp1.window)}</div></section><div class="rail-actions"><button class="btn primary" data-open-incident="${incident.id}">Open incident ${icon("arrow", "sm")}</button><div class="rail-actions inline"><button class="btn" data-action="view-floor">${icon("floor", "sm")}View on floor</button><button class="btn" data-action="open-assist">${icon("spark", "sm")}Ask Assist</button></div></div>` : `<section class="rail-section"><div class="rail-kicker">Selected asset</div><div class="rail-heading">${asset.id} · ${esc(asset.name)}</div><span class="badge ${statusClass(asset.condition)}">${esc(asset.condition)}</span><dl class="key-grid"><dt>Component</dt><dd>${esc(asset.component)}</dd><dt>Source</dt><dd class="mono">${esc(asset.source)}</dd><dt>Active case</dt><dd>${asset.incident || "None"}</dd></dl></section><div class="rail-actions"><button class="btn primary" data-action="open-asset">Open Asset 360</button>${asset.incident ? `<button class="btn" data-open-incident="${asset.incident}">Open incident</button>` : ""}<button class="btn" data-action="open-assist">${icon("spark", "sm")}Ask Maintenance Assist</button></div>`}
   </div></aside>`;
@@ -794,36 +962,68 @@ function objectPreviewRail(route) {
 
 function assistContext(asset, incident) {
   const now = hop();
-  const flags = `<div class="evidence-flags"><span class="badge ${now.rpp1.rms != null ? "success" : "warning"}">Signal ${now.rpp1.rms != null ? "ready" : "gap"}</span><span class="badge">Manual gap</span><span class="badge ${feed.cmms.length ? "success" : ""}">History ${feed.cmms.length ? "ready" : "gap"}</span></div>`;
-  return `<details class="context-capsule"><summary aria-label="Selected machinery context">${icon("asset", "sm")}<span class="context-summary"><strong class="mono">${asset.id} / ${esc(asset.component)}</strong><span class="context-fault">${esc(dash(asset.fault))}${incident ? ` · ${incident.id}` : ""}</span></span>${icon("chevron", "sm")}</summary><div class="context-detail"><div class="context-grid"><span>Incident</span><strong class="mono">${incident?.id || "None"}</strong><span>Asset</span><strong class="mono">${asset.id}</strong><span>Component</span><strong>${esc(asset.component)}</strong><span>Fault</span><strong>${esc(dash(asset.fault))}</strong><span>RMS</span><strong>${asset.id === "RPP1" ? `${dash(now.rpp1.rms)} g` : "—"}</strong><span>Source</span><strong class="mono">${esc(asset.source)}</strong></div><button class="context-change" data-action="view-floor" type="button">Change context</button></div></details>${flags}`;
+  const hero = isHeroAsset(asset);
+  const slot = assetHop(asset.id);
+  const tagCount = processTagEntries(slot).length;
+  const flags = hero
+    ? `<div class="evidence-flags"><span class="badge ${now.rpp1.rms != null ? "success" : "warning"}">Signal ${now.rpp1.rms != null ? "ready" : "gap"}</span><span class="badge">Manual gap</span><span class="badge ${feed.cmms.length ? "success" : ""}">History ${feed.cmms.length ? "ready" : "gap"}</span></div>`
+    : `<div class="evidence-flags"><span class="badge ${tagCount ? "success" : "warning"}">L1 tags ${tagCount ? "ready" : "gap"}</span><span class="badge warning">Signal gap</span><span class="badge">Manual gap</span><span class="badge">History gap</span></div>`;
+  const metricLabel = hero ? "RMS" : "Tags";
+  const metricValue = hero ? `${dash(now.rpp1.rms)} g` : String(tagCount);
+  return `<details class="context-capsule"><summary aria-label="Selected machinery context">${icon("asset", "sm")}<span class="context-summary"><strong class="mono">${asset.id} / ${esc(asset.component)}</strong><span class="context-fault">${esc(hero ? dash(asset.fault) : "process only")}${incident && hero ? ` · ${incident.id}` : ""}</span></span>${icon("chevron", "sm")}</summary><div class="context-detail"><div class="context-grid"><span>Incident</span><strong class="mono">${hero ? (incident?.id || "None") : "—"}</strong><span>Asset</span><strong class="mono">${asset.id}</strong><span>Component</span><strong>${esc(asset.component)}</strong><span>Fault</span><strong>${esc(hero ? dash(asset.fault) : "not diagnosed")}</strong><span>${metricLabel}</span><strong>${metricValue}</strong><span>Source</span><strong class="mono">${esc(asset.source)}</strong></div><button class="context-change" data-action="view-floor" type="button">Change context</button></div></details>${flags}`;
 }
 
-function answerContent(question) {
+function answerContent(question, asset) {
   const now = hop();
-  const inc = derivedIncident();
-  return `<div class="assist-message user"><div class="sender">You</div><p>${esc(question)}</p></div><div class="assist-message"><div class="sender">Maintenance Assist · L1 only</div><p>No L2 draft on this tape (<span class="mono">wo: ${esc(feed.flag.wo)}</span>). Numbers below are the current hop.</p><dl class="key-grid"><dt>Fault</dt><dd>${esc(dash(now.rpp1.fault))}</dd><dt>RMS</dt><dd>${dash(now.rpp1.rms)} g</dd><dt>BPFI</dt><dd>${now.rpp1.bpfi.detected ? `${now.rpp1.bpfi.hz} Hz` : "not detected"}</dd><dt>Window</dt><dd class="mono">${esc(now.rpp1.source)}:${esc(now.rpp1.window)}</dd><dt>Incident</dt><dd class="mono">${inc?.id || "—"}</dd></dl><div class="citation-list"><button class="citation-link" data-evidence="signal">${icon("intel")}<span>${esc(now.rpp1.source)} · ${esc(now.rpp1.window)}</span>${icon("external", "sm")}</button>${feed.cmms.map(row => `<button class="citation-link" data-evidence="history">${icon("clock")}<span>CMMS · ${esc(row.wo_id)}</span>${icon("external", "sm")}</button>`).join("")}</div></div>`;
+  if (isHeroAsset(asset)) {
+    const inc = derivedIncident();
+    return `<div class="assist-message user"><div class="sender">You</div><p>${esc(question)}</p></div><div class="assist-message"><div class="sender">Maintenance Assist · L1 only</div><p>No L2 draft on this tape (<span class="mono">wo: ${esc(feed.flag.wo)}</span>). Numbers below are the current hop.</p><dl class="key-grid"><dt>Fault</dt><dd>${esc(dash(now.rpp1.fault))}</dd><dt>RMS</dt><dd>${dash(now.rpp1.rms)} g</dd><dt>BPFI</dt><dd>${now.rpp1.bpfi.detected ? `${now.rpp1.bpfi.hz} Hz` : "not detected"}</dd><dt>Window</dt><dd class="mono">${esc(now.rpp1.source)}:${esc(now.rpp1.window)}</dd><dt>Incident</dt><dd class="mono">${inc?.id || "—"}</dd></dl><div class="citation-list"><button class="citation-link" data-evidence="signal">${icon("intel")}<span>${esc(now.rpp1.source)} · ${esc(now.rpp1.window)}</span>${icon("external", "sm")}</button>${feed.cmms.map(row => `<button class="citation-link" data-evidence="history">${icon("clock")}<span>CMMS · ${esc(row.wo_id)}</span>${icon("external", "sm")}</button>`).join("")}</div></div>`;
+  }
+  const slot = assetHop(asset.id);
+  const entries = processTagEntries(slot);
+  const rows = entries.map(([k, v]) => `<dt>${esc(k)}</dt><dd>${dash(v)}</dd>`).join("");
+  return `<div class="assist-message user"><div class="sender">You</div><p>${esc(question)}</p></div><div class="assist-message"><div class="sender">Maintenance Assist · L1 process tags</div><p>No vibration channel on <span class="mono">${esc(asset.id)}</span>. Not diagnosed. No work order. Numbers are this hop's cited process / electrical tags.</p><dl class="key-grid"><dt>Part</dt><dd class="mono">${esc(slot?.part || asset.component)}</dd><dt>Source</dt><dd class="mono">${esc(slot?.source || asset.source)}</dd>${rows}</dl><div class="citation-list"><button class="citation-link" data-evidence="process">${icon("intel")}<span>${esc(slot?.source || asset.source)} · hop ${cursor + 1}</span>${icon("external", "sm")}</button></div></div>`;
+}
+
+function assistSuggestions(asset) {
+  if (isHeroAsset(asset)) {
+    return `<div class="suggestions" aria-label="Suggested bounded questions"><button class="suggestion" data-suggestion="What L1 features are on this hop?">What L1 features are on this hop?</button><button class="suggestion" data-suggestion="Has the flag fired?">Has the flag fired?</button><button class="suggestion" data-suggestion="Show the exact evidence window.">Show the exact evidence window</button></div>`;
+  }
+  return `<div class="suggestions" aria-label="Suggested bounded questions"><button class="suggestion" data-suggestion="What L1 tags are on this hop?">What L1 tags are on this hop?</button><button class="suggestion" data-suggestion="Is this station busy?">Is this station busy?</button><button class="suggestion" data-suggestion="What is the cite for these tags?">What is the cite for these tags?</button></div>`;
+}
+
+function assistPipeline(asset, state) {
+  const now = hop();
+  if (isHeroAsset(asset)) {
+    return `<div class="assist-run"><details class="assist-details" ${state === "running" ? "open" : ""}><summary>${icon("intel", "sm")}Processing stages<span class="status ${state === "failed" ? "critical" : state === "running" ? "info" : "success"}">${state === "running" ? "Running" : state === "failed" ? "Failed" : "Ready"}</span></summary><div class="pipeline-mini"><div class="pipeline-step"><span class="pipeline-dot">${icon("check", "sm")}</span><div><strong>L0 pointer</strong><span>${esc(now.rpp1.file)}</span></div></div><div class="pipeline-step"><span class="pipeline-dot">${icon("check", "sm")}</span><div><strong>L1 features</strong><span>${esc(now.rpp1.engine)}</span></div></div><div class="pipeline-step"><span class="pipeline-dot"></span><div><strong>L2 work order</strong><span>wo: ${esc(feed.flag.wo)}</span></div></div></div></details><button class="btn" data-action="open-full-run">Open full run ${icon("arrow", "sm")}</button></div>`;
+  }
+  const slot = assetHop(asset.id);
+  const n = processTagEntries(slot).length;
+  return `<div class="assist-run"><details class="assist-details" ${state === "running" ? "open" : ""}><summary>${icon("intel", "sm")}Processing stages<span class="status ${state === "failed" ? "critical" : state === "running" ? "info" : "success"}">${state === "running" ? "Running" : state === "failed" ? "Failed" : "Ready"}</span></summary><div class="pipeline-mini"><div class="pipeline-step"><span class="pipeline-dot">${icon("check", "sm")}</span><div><strong>L1 process tags</strong><span>${n} · ${esc(slot?.source || asset.source)}</span></div></div><div class="pipeline-step"><span class="pipeline-dot"></span><div><strong>L0 vibration</strong><span>none on this asset</span></div></div><div class="pipeline-step"><span class="pipeline-dot"></span><div><strong>L2 work order</strong><span>not opened · never diagnosed</span></div></div></div></details></div>`;
 }
 
 function assistRail(route) {
   const incident = selectedIncident(route);
   const asset = selectedAsset(route);
-  let state = route.params.get("assistState") || (asset.supported ? "ready" : "unsupported");
-  if (!asset.supported) state = "unsupported";
-  const question = route.params.get("question") || draftQuestion || "What L1 features are on this hop?";
+  const canAssist = assistable(asset);
+  let state = route.params.get("assistState") || (canAssist ? "ready" : "unsupported");
+  if (!canAssist) state = "unsupported";
+  else if (state === "unsupported") state = "ready";
+  const question = route.params.get("question") || draftQuestion || (isHeroAsset(asset) ? "What L1 features are on this hop?" : "What L1 tags are on this hop?");
   let body = assistContext(asset, incident);
   let footer = "";
   if (state === "ready") {
-    body += `<div class="assist-empty">${icon("spark")}<p>Ask about this hop. Answers bind to L1 scalars on <span class="mono">${esc(asset.source)}</span>; no L2 draft is invented.</p></div>`;
-    footer += `<div class="suggestions" aria-label="Suggested bounded questions"><button class="suggestion" data-suggestion="What L1 features are on this hop?">What L1 features are on this hop?</button><button class="suggestion" data-suggestion="Has the flag fired?">Has the flag fired?</button><button class="suggestion" data-suggestion="Show the exact evidence window.">Show the exact evidence window</button></div>`;
+    body += `<div class="assist-empty">${icon("spark")}<p>Ask about this hop. Answers bind to L1 ${isHeroAsset(asset) ? "scalars" : "process / electrical tags"} on <span class="mono">${esc(asset.source)}</span>; no L2 draft is invented.${isHeroAsset(asset) ? "" : " Not diagnosed."}</p></div>`;
+    footer += assistSuggestions(asset);
   }
-  if (state === "running") body += `<div class="assist-message user"><div class="sender">You</div><p>${esc(question)}</p></div><div class="assist-state" aria-busy="true"><strong>${icon("spark")}Reading feed hop</strong><p>No model call. Binding L1 scalars.</p><div class="progress-track"><span></span></div></div>`;
-  if (state === "answered") body += answerContent(question);
-  if (state === "unsupported") body += `<div class="assist-state warning"><strong>${icon("alert")}Assistant unavailable for ${asset.id}</strong><p>Grounded assistance is configured only for RPP1 / URjoint1. T1 is process-only.</p><div class="rail-actions"><button class="btn" data-action="select-supported">Select supported RPP1 context</button></div></div>`;
+  if (state === "running") body += `<div class="assist-message user"><div class="sender">You</div><p>${esc(question)}</p></div><div class="assist-state" aria-busy="true"><strong>${icon("spark")}Reading feed hop</strong><p>No model call. Binding L1 ${isHeroAsset(asset) ? "scalars" : "process tags"}.</p><div class="progress-track"><span></span></div></div>`;
+  if (state === "answered") body += answerContent(question, asset);
+  if (state === "unsupported") body += `<div class="assist-state warning"><strong>${icon("alert")}Assistant unavailable for ${asset.id}</strong><p>No L1 tags on this station. Geometry only — nothing to bind. Pick a monitored asset.</p><div class="rail-actions"><button class="btn" data-action="select-supported">Select supported RPP1 context</button></div></div>`;
   if (state === "failed") body += `<div class="assist-message user"><div class="sender">You</div><p>${esc(question)}</p></div><div class="assist-state error" role="alert"><strong>${icon("alert")}Run failed</strong><p>Question retained.</p><div class="rail-actions"><button class="btn danger" data-action="retry-assist">Retry question</button></div></div>`;
   if (state === "offline") body += `<div class="assist-state offline" role="alert"><strong>${icon("alert")}Local gateway offline</strong><p>Feed replay still runs. Answers disabled.</p><dl class="key-grid"><dt>Gateway</dt><dd class="text-critical">Offline</dd><dt>Draft</dt><dd>Retained locally</dd></dl></div>`;
-  if (state !== "unsupported") body += `<div class="assist-run"><details class="assist-details" ${state === "running" ? "open" : ""}><summary>${icon("intel", "sm")}Processing stages<span class="status ${state === "failed" ? "critical" : state === "running" ? "info" : "success"}">${state === "running" ? "Running" : state === "failed" ? "Failed" : "Ready"}</span></summary><div class="pipeline-mini"><div class="pipeline-step"><span class="pipeline-dot">${icon("check", "sm")}</span><div><strong>L0 pointer</strong><span>${esc(hop().rpp1.file)}</span></div></div><div class="pipeline-step"><span class="pipeline-dot">${icon("check", "sm")}</span><div><strong>L1 features</strong><span>${esc(hop().rpp1.engine)}</span></div></div><div class="pipeline-step"><span class="pipeline-dot"></span><div><strong>L2 work order</strong><span>wo: ${esc(feed.flag.wo)}</span></div></div></div></details><button class="btn" data-action="open-full-run">Open full run ${icon("arrow", "sm")}</button></div>`;
+  if (state !== "unsupported") body += assistPipeline(asset, state);
   const disabled = ["running", "unsupported", "offline"].includes(state);
-  if (state !== "unsupported") footer += `<form class="composer" data-assist-form><label for="assist-question">Ask about this hop</label><div class="composer-box"><textarea id="assist-question" ${disabled ? "disabled" : ""} placeholder="Ask about L1 features or the flag">${state === "failed" ? esc(question) : ""}</textarea><button class="btn primary icon-only ${state === "running" ? "loading" : ""}" type="submit" ${disabled ? "disabled" : ""} aria-label="Send question">${state === "running" ? "" : icon("arrow")}</button></div><p class="composer-hint">Bound to ${asset.id} / ${asset.component} · Ctrl+Enter to send</p></form>`;
+  if (state !== "unsupported") footer += `<form class="composer" data-assist-form><label for="assist-question">Ask about this hop</label><div class="composer-box"><textarea id="assist-question" ${disabled ? "disabled" : ""} placeholder="${isHeroAsset(asset) ? "Ask about L1 features or the flag" : "Ask about this hop's L1 tags"}">${state === "failed" ? esc(question) : ""}</textarea><button class="btn primary icon-only ${state === "running" ? "loading" : ""}" type="submit" ${disabled ? "disabled" : ""} aria-label="Send question">${state === "running" ? "" : icon("arrow")}</button></div><p class="composer-hint">Bound to ${asset.id} / ${asset.component} · Ctrl+Enter to send</p></form>`;
   return `<aside class="utility-rail assist-rail" aria-label="Maintenance Assist" data-overlay-rail><div class="rail-header">${icon("spark")}<div class="rail-title"><strong>Maintenance Assist</strong><span>${asset.id} / ${asset.component} · L1 feed</span></div><div class="rail-header-actions"><span class="badge dark">LOCAL</span><button class="btn icon-only sm" data-action="close-rail" aria-label="Close Maintenance Assist">${icon("close")}</button></div></div><div class="rail-body">${body}</div>${footer ? `<div class="assist-footer">${footer}</div>` : ""}</aside>`;
 }
 
@@ -862,7 +1062,88 @@ function containmentRail(c) {
 let attemptState = "idle", attemptError = "";
 async function refreshBoard() {
   const response = await fetchBoard().catch(() => null);
-  board = response?.ok ? await response.json() : board;
+  const next = response?.ok ? await response.json() : board;
+  const beforeIssues = JSON.stringify(board?.issues);
+  board = next;
+  return beforeIssues !== JSON.stringify(board?.issues);
+}
+
+async function refreshLive() {
+  const [incRes, hopRes, issuesChanged] = await Promise.all([
+    fetchIncidents().catch(() => null),
+    fetchHops().catch(() => null),
+    refreshBoard(),
+  ]);
+  let changed = issuesChanged;
+  if (incRes?.ok) {
+    const data = await incRes.json();
+    const next = data.incidents || [];
+    if (JSON.stringify(next) !== JSON.stringify(liveIncidents)) {
+      liveIncidents = next;
+      changed = true;
+    }
+  }
+  if (hopRes?.ok) {
+    const data = await hopRes.json();
+    const before = JSON.stringify(liveHops?.latest);
+    liveHops = data;
+    if (data.latest) {
+      cursor = data.latest.hop ?? cursor;
+      healthyLoop = false;
+    }
+    if (JSON.stringify(data.latest) !== before) changed = true;
+  }
+  return changed;
+}
+
+async function injectFault(source = "ir", hops = 30) {
+  try {
+    const response = await fetch(`${apiBase()}/api/demo/inject`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ source, hops }),
+    });
+    const data = await response.json().catch(() => ({}));
+    console.info("inject", data);
+    await refreshLive();
+    render();
+  } catch (err) {
+    console.warn("inject failed", err);
+  }
+}
+
+async function postDetectOnce() {
+  // Live hop-loop posts detect itself. Tape fallback only.
+  if (liveHops?.live || detectPosted || !hop().rpp1?.fault) return;
+  detectPosted = true;
+  const now = hop();
+  const payload = {
+    asset_id: "RPP1",
+    part: "URjoint1",
+    fault: now.rpp1.fault,
+    source: now.rpp1.source,
+    window: now.rpp1.window,
+    rpm: now.rpp1.rpm,
+    rms: now.rpp1.rms,
+    ts: now.ts,
+  };
+  try {
+    const response = await fetch(`${apiBase()}/api/detect`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify(payload),
+    });
+    if (!response.ok) {
+      detectPosted = false;
+      return;
+    }
+  } catch (err) {
+    detectPosted = false;
+    return;
+  }
+  partIssuesKey = null;
+  await refreshLive();
+  render();
 }
 async function attemptExfil() {
   if (attemptState === "running") return;
@@ -883,12 +1164,17 @@ function evidenceRail(route) {
   const now = hop();
   const cont = containment();
   const contProven = cont.state === "CONTAINED" && cont.denies.length > 0;
-  const titles = { manual: ["Manual evidence", "source-gap"], history: ["History evidence", "CMMS"], signal: ["Signal evidence", now.rpp1.file], containment: ["Containment evidence", contProven ? `openshell · ${cont.sandbox}` : cont.state === "UNSAFE" ? "UNSAFE" : "source-gap"] };
+  const titles = { manual: ["Manual evidence", "source-gap"], history: ["History evidence", "CMMS"], signal: ["Signal evidence", now.rpp1.file], process: ["Process tags", selectedAsset(route).id], containment: ["Containment evidence", contProven ? `openshell · ${cont.sandbox}` : cont.state === "UNSAFE" ? "UNSAFE" : "source-gap"] };
   const gap = type === "manual" || (type === "containment" && !contProven && cont.state !== "UNSAFE");
   let content = "";
   if (type === "manual") content = `<section class="rail-section"><div class="rail-kicker">Manual</div><div class="rail-heading">Source-gap</div><p>No packed SKF page in this feed. Will not invent a quote.</p></section>`;
   if (type === "history") content = feed.cmms.length ? `<section class="rail-section"><div class="rail-kicker">CMMS rows</div><div class="rail-heading">Alias MTR-07 → RPP1</div></section>${feed.cmms.map(row => `<div class="evidence-document">wo_id: <mark>${esc(row.wo_id)}</mark><br>asset_id: ${esc(row.asset_id)}<br>opened: ${esc(row.opened)}<br>closed: ${dash(row.closed)}<br>fault: <mark>${esc(row.fault)}</mark><br>action: ${esc(row.action)}<br>parts: <mark>${esc(row.parts)}</mark><br>source: ${esc(row.source)}</div>`).join("")}` : `<section class="rail-section"><p>No CMMS rows for this asset.</p></section>`;
-  if (type === "signal") content = `<section class="rail-section"><div class="rail-kicker">Exact signal window</div><div class="rail-heading mono">${esc(now.rpp1.source)}</div><dl class="key-grid"><dt>Window</dt><dd class="num">${esc(now.rpp1.window)}</dd><dt>Sampling</dt><dd class="num">${now.rpp1.fs_hz} Hz</dd><dt>Speed</dt><dd class="num">${dash(now.rpp1.rpm)} rpm</dd><dt>RMS</dt><dd class="num">${dash(now.rpp1.rms)} g</dd><dt>BPFI</dt><dd>${now.rpp1.bpfi.detected ? `${now.rpp1.bpfi.hz} Hz` : "not detected"}</dd></dl></section>${rmsChart(340, 105, "RPP1 RMS series")}<div class="limit-note">${icon("alert", "sm")}No 12 kHz samples on the board. Locator retains ${esc(now.rpp1.file)} ${esc(now.rpp1.window)}.</div>`;
+  if (type === "signal") content = `<section class="rail-section"><div class="rail-kicker">Exact signal window</div><div class="rail-heading mono">${esc(now.rpp1?.source || "—")}</div><dl class="key-grid"><dt>Window</dt><dd class="num">${esc(now.rpp1?.window || "—")}</dd><dt>Sampling</dt><dd class="num">${dash(now.rpp1?.fs_hz)} Hz</dd><dt>Speed</dt><dd class="num">${dash(now.rpp1?.rpm)} rpm</dd><dt>RMS</dt><dd class="num">${dash(now.rpp1?.rms)} g</dd><dt>BPFI</dt><dd>${now.rpp1?.bpfi?.detected ? `${now.rpp1.bpfi.hz} Hz` : "not detected"}</dd></dl></section>${rmsChart(340, 105, "RPP1 RMS series")}<div class="limit-note">${icon("alert", "sm")}No 12 kHz samples on the board. Locator retains ${esc(now.rpp1?.file || "—")} ${esc(now.rpp1?.window || "")}.</div>`;
+  if (type === "process") {
+    const asset = selectedAsset(route);
+    const slot = assetHop(asset.id);
+    content = `<section class="rail-section"><div class="rail-kicker">Cited L1 tags</div><div class="rail-heading mono">${esc(asset.id)} · ${esc(slot?.source || asset.source)}</div>${processTagDl(slot)}<p class="section-note">Synthetic process / electrical tags from the catalog cite. Not a vibration channel. Never diagnosed.</p></section>`;
+  }
   if (type === "containment") content = containmentRail(cont);
   return `<aside class="utility-rail" aria-label="Evidence Viewer" data-overlay-rail><div class="rail-header">${icon("file")}<div class="rail-title"><strong>${titles[type][0]}</strong><span>${titles[type][1]}</span></div><div class="rail-header-actions"><button class="btn sm" data-action="return-rail">${icon("back", "sm")}Back</button><button class="btn icon-only sm" data-action="close-rail" aria-label="Close Evidence Viewer">${icon("close")}</button></div></div><div class="rail-body"><div class="viewer-toolbar"><span class="badge ${gap ? "warning" : cont.state === "UNSAFE" && type === "containment" ? "critical" : "success"}">${gap ? "Source-gap" : type === "containment" ? "Gateway audit" : "Feed artifact"}</span></div>${content}${type === "manual" && expanded ? `<p class="section-note">Still no page.</p>` : ""}${type === "manual" ? `<button class="btn" style="width:100%;margin-top:12px" data-action="expand-evidence">${expanded ? "Collapse full artifact" : "Open full artifact"}</button>` : ""}</div></aside>`;
 }
@@ -910,20 +1196,7 @@ function render() {
   app.innerHTML = shell(main, route, rail);
   syncFloor(route);
   syncPart(route);
-  const twinFrame = app.querySelector("[data-twin-frame]");
-  const twinStatus = app.querySelector("[data-twin-status]");
-  if (twinFrame && twinStatus) {
-    const setTwinStatus = (message, state) => {
-      twinStatus.textContent = message;
-      twinStatus.dataset.state = state;
-      twinFrame.setAttribute("aria-busy", String(state === "loading"));
-    };
-    twinFrame.addEventListener("load", () => {
-      setTwinStatus("Loading 3D inspection…", "loading");
-    });
-    twinFrame.addEventListener("error", () => setTwinStatus("Unable to load 3D inspection.", "failed"));
-  }
-  document.title = `${activeModule(route.path)[0].toUpperCase()}${activeModule(route.path).slice(1)} · Forge Operations`;
+  document.title = `${activeModule(route.path)[0].toUpperCase()}${activeModule(route.path).slice(1)} · Groundwork`;
   if (route.path !== previousPath) {
     previousPath = route.path;
     requestAnimationFrame(() => document.querySelector("#page-heading")?.focus({ preventScroll: true }));
@@ -976,7 +1249,7 @@ function onAppClick(event) {
     return;
   }
   if (target.dataset.openAsset) {
-    location.hash = hashFor(`/assets/${target.dataset.openAsset}`);
+    location.hash = hashFor(`/assets/${target.dataset.openAsset}`, { render: "3d" });
     return;
   }
   if (target.dataset.openIncident) {
@@ -1016,9 +1289,13 @@ function onAppClick(event) {
     updateRoute({ inspection: getRoute().params.get("inspection") === "expanded" ? null : "expanded" });
   }
   if (action === "focus-inspection-target") {
-    const twinFrame = app.querySelector("[data-twin-frame]");
-    if (twinFrame?.dataset.issueMarker === "true") {
-      __twin.lightPart(twinFrame.dataset.inspectionAsset, twinFrame.dataset.inspectionComponent);
+    const req = partRequest(getRoute());
+    if (req?.asset && req.component) {
+      partIssuesKey = null;
+      postPartIssues(req.asset);
+      partFrameWindow()?.postMessage({ type: "twin:light", assetId: req.asset, part: req.component }, twinOrigin);
+      partSelected = { asset: req.asset, part: req.component };
+      partSent = req.component;
     }
   }
   if (action === "view-floor") {
@@ -1026,9 +1303,12 @@ function onAppClick(event) {
     location.hash = hashFor("/floor", { asset: asset.id, incident: asset.incident || selectedIncident(getRoute())?.id, rail: "preview" });
   }
   if (action === "open-full-run") location.hash = hashFor("/intelligence", { run: "TAPE-20", incident: selectedIncident(getRoute())?.id });
-  if (action === "open-asset") location.hash = hashFor(`/assets/${selectedAsset(getRoute()).id}`);
+  if (action === "open-asset") {
+    const fromFloor = getRoute().path === "/floor";
+    location.hash = hashFor(`/assets/${selectedAsset(getRoute()).id}`, fromFloor ? { render: "3d" } : {});
+  }
   if (action === "select-supported") location.hash = hashFor("/floor", { asset: "RPP1", incident: derivedIncident()?.id, rail: "assist", assistState: "ready" });
-  if (action === "retry-assist") startAssist(getRoute().params.get("question") || draftQuestion || "What L1 features are on this hop?");
+  if (action === "retry-assist") startAssist(getRoute().params.get("question") || draftQuestion || (isHeroAsset(selectedAsset(getRoute())) ? "What L1 features are on this hop?" : "What L1 tags are on this hop?"));
   if (action === "acknowledge") {
     const id = selectedIncident(getRoute())?.id;
     if (!id) return;
@@ -1122,16 +1402,19 @@ app.addEventListener("submit", event => {
 function startReplay() {
   clearInterval(replayTimer);
   if (matchMedia("(prefers-reduced-motion: reduce)").matches) {
-    cursor = feed.hops.length - 1;
+    if (!liveHops?.live) cursor = Math.min(9, feed.hops.length - 1);
     render();
     return;
   }
   replayTimer = setInterval(() => {
-    if (cursor >= feed.hops.length - 1) {
-      clearInterval(replayTimer);
+    if (liveHops?.live) {
+      // cursor advanced by refreshLive from hop-loop
+      render();
       return;
     }
-    cursor += 1;
+    // Fallback: forever-loop healthy hops 0–9
+    const healthyEnd = Math.min(9, feed.hops.length - 1);
+    cursor = (cursor + 1) % (healthyEnd + 1);
     render();
   }, 1000);
 }
@@ -1163,14 +1446,25 @@ async function boot() {
   if (!response.ok) throw new Error(`feed.json ${response.status}`);
   feed = await response.json();
   board = boardResponse?.ok ? await boardResponse.json() : null;
+  await refreshLive();
   loadStations();
-  cursor = 0;
+  cursor = liveHops?.latest?.hop ?? 0;
   if (!location.hash) location.replace("#/incidents");
   else render();
   startReplay();
-  // Containment evidence is live gateway state, so keep it current after the tape replay ends.
-  setInterval(async () => { if (attemptState === "running") return; const before = JSON.stringify(board?.containment); await refreshBoard(); if (JSON.stringify(board?.containment) !== before) render(); }, 5000);
+  setInterval(async () => {
+    if (attemptState === "running") return;
+    const beforeContainment = JSON.stringify(board?.containment);
+    const changed = await refreshLive();
+    if (changed || JSON.stringify(board?.containment) !== beforeContainment) render();
+  }, 1000);
 }
+
+window.addEventListener("keydown", (event) => {
+  if (!(event.altKey && (event.key === "i" || event.key === "I"))) return;
+  event.preventDefault();
+  injectFault(event.shiftKey ? "clear" : "ir", 30);
+});
 
 window.addEventListener("hashchange", render);
 window.addEventListener("message", handleTwinMessage);

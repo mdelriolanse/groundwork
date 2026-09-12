@@ -7,7 +7,7 @@
     "window_s": 2.0,
     "flag_at": "2026-09-12T13:58:00.000-04:00",
     "flag_hop": 10,
-    "honesty": "L1 scalars from CWRU windows. No 12 kHz on the board. T1 is vlft:process."
+    "honesty": "L1 scalars from CWRU windows for RPP1. Fleet process/electrical tags are synthetic cites. No 12 kHz on the board. Only RPP1 is diagnosed."
   },
   "cell": {
     "name": "VFLab \u00b7 hinge assembly",
@@ -29,13 +29,243 @@
     },
     {
       "asset_id": "T1",
-      "role": "sibling",
+      "role": "process",
       "part": "T_Machine_Static",
       "name": "Tightener",
       "source": "vlft:process",
       "aliases": [],
       "supported": false,
       "glb": "Tightener_Station.glb"
+    },
+    {
+      "asset_id": "RT1",
+      "role": "process",
+      "part": "R_Table",
+      "name": "Rotating table",
+      "source": "synthetic:indexer",
+      "aliases": [],
+      "supported": false,
+      "glb": "Rotating_Table_Station.glb"
+    },
+    {
+      "asset_id": "PPW1",
+      "role": "process",
+      "part": "WC1_Static",
+      "name": "Wing conveyor 1",
+      "source": "synthetic:vac-gripper",
+      "aliases": [],
+      "supported": false,
+      "glb": "Wing_Conveyor_1_Station.glb"
+    },
+    {
+      "asset_id": "PPH1",
+      "role": "process",
+      "part": "WC2_Static",
+      "name": "Wing conveyor 2",
+      "source": "synthetic:vac-gripper",
+      "aliases": [],
+      "supported": false,
+      "glb": "Wing_Conveyor_2_Station.glb"
+    },
+    {
+      "asset_id": "MTR07-CAD",
+      "role": "process",
+      "part": "1LE1003-1EB23-4JA4",
+      "name": "Siemens 1LE1003",
+      "source": "synthetic:siemens-1le1003",
+      "aliases": [],
+      "supported": false,
+      "glb": "Siemens_1LE1003_Motor.glb"
+    },
+    {
+      "asset_id": "B1",
+      "role": "process",
+      "part": "belt",
+      "name": "Conveyor buffer 1",
+      "source": "synthetic:dorner-gearmotor",
+      "aliases": [],
+      "supported": false,
+      "glb": "Conveyor_Main.glb"
+    },
+    {
+      "asset_id": "B2",
+      "role": "process",
+      "part": "belt",
+      "name": "Conveyor buffer 2",
+      "source": "synthetic:dorner-gearmotor",
+      "aliases": [],
+      "supported": false,
+      "glb": "Conveyor_Main.glb"
+    },
+    {
+      "asset_id": "B3",
+      "role": "process",
+      "part": "belt",
+      "name": "Conveyor buffer 3",
+      "source": "synthetic:dorner-gearmotor",
+      "aliases": [],
+      "supported": false,
+      "glb": "Conveyor_Main.glb"
+    },
+    {
+      "asset_id": "B4",
+      "role": "process",
+      "part": "belt",
+      "name": "Conveyor buffer 4",
+      "source": "synthetic:dorner-gearmotor",
+      "aliases": [],
+      "supported": false,
+      "glb": "Conveyor_Main.glb"
+    },
+    {
+      "asset_id": "PI1",
+      "role": "process",
+      "part": "PI_Machine_Static",
+      "name": "Pin insert 1",
+      "source": "synthetic:vlft-pi",
+      "aliases": [],
+      "supported": false,
+      "glb": "Pin_Insertion_Station.glb"
+    },
+    {
+      "asset_id": "PI2",
+      "role": "process",
+      "part": "PI_Machine_Static",
+      "name": "Pin insert 2",
+      "source": "synthetic:vlft-pi",
+      "aliases": [],
+      "supported": false,
+      "glb": "Pin_Insertion_Station.glb"
+    },
+    {
+      "asset_id": "PI3",
+      "role": "process",
+      "part": "PI_Machine_Static",
+      "name": "Pin insert 3",
+      "source": "synthetic:vlft-pi",
+      "aliases": [],
+      "supported": false,
+      "glb": "Pin_Insertion_Station.glb"
+    },
+    {
+      "asset_id": "PI4",
+      "role": "process",
+      "part": "PI_Machine_Static",
+      "name": "Pin insert 4",
+      "source": "synthetic:vlft-pi",
+      "aliases": [],
+      "supported": false,
+      "glb": "Pin_Insertion_Station.glb"
+    },
+    {
+      "asset_id": "PP1",
+      "role": "process",
+      "part": "PP_Static",
+      "name": "Pick & place 1",
+      "source": "synthetic:vac-gripper",
+      "aliases": [],
+      "supported": false,
+      "glb": "Pick_and_Place_Station.glb"
+    },
+    {
+      "asset_id": "PP2",
+      "role": "process",
+      "part": "PP_Static",
+      "name": "Pick & place 2",
+      "source": "synthetic:vac-gripper",
+      "aliases": [],
+      "supported": false,
+      "glb": "Pick_and_Place_Station.glb"
+    },
+    {
+      "asset_id": "PP3",
+      "role": "process",
+      "part": "PP_Static",
+      "name": "Pick & place 3",
+      "source": "synthetic:vac-gripper",
+      "aliases": [],
+      "supported": false,
+      "glb": "Pick_and_Place_Station.glb"
+    },
+    {
+      "asset_id": "PP4",
+      "role": "process",
+      "part": "PP_Static",
+      "name": "Pick & place 4",
+      "source": "synthetic:vac-gripper",
+      "aliases": [],
+      "supported": false,
+      "glb": "Pick_and_Place_Station.glb"
+    },
+    {
+      "asset_id": "PP5",
+      "role": "process",
+      "part": "PP_Static",
+      "name": "Pick & place box",
+      "source": "synthetic:vac-gripper",
+      "aliases": [],
+      "supported": false,
+      "glb": "Pick_and_Place_Station_Box.glb"
+    },
+    {
+      "asset_id": "R1",
+      "role": "process",
+      "part": "R_Machine_Static",
+      "name": "Riveter 1",
+      "source": "synthetic:baltec-en20",
+      "aliases": [],
+      "supported": false,
+      "glb": "Riveting_Station.glb"
+    },
+    {
+      "asset_id": "R2",
+      "role": "process",
+      "part": "R_Machine_Static",
+      "name": "Riveter 2",
+      "source": "synthetic:baltec-en20",
+      "aliases": [],
+      "supported": false,
+      "glb": "Riveting_Station.glb"
+    },
+    {
+      "asset_id": "R3",
+      "role": "process",
+      "part": "R_Machine_Static",
+      "name": "Riveter 3",
+      "source": "synthetic:baltec-en20",
+      "aliases": [],
+      "supported": false,
+      "glb": "Riveting_Station.glb"
+    },
+    {
+      "asset_id": "R4",
+      "role": "process",
+      "part": "R_Machine_Static",
+      "name": "Riveter 4",
+      "source": "synthetic:baltec-en20",
+      "aliases": [],
+      "supported": false,
+      "glb": "Riveting_Station.glb"
+    },
+    {
+      "asset_id": "C1",
+      "role": "process",
+      "part": "Cs_Camera",
+      "name": "Inspection camera",
+      "source": "synthetic:aoi-lux",
+      "aliases": [],
+      "supported": false,
+      "glb": "Inspection_Camera_Station.glb"
+    },
+    {
+      "asset_id": "CB1",
+      "role": "process",
+      "part": "CB_Static",
+      "name": "Collection box",
+      "source": "synthetic:vac-gripper",
+      "aliases": [],
+      "supported": false,
+      "glb": "Collection_Box_Station.glb"
     }
   ],
   "hops": [
@@ -61,21 +291,337 @@
         "window": "1.53..3.53",
         "file": "97.mat",
         "channel": "X097_DE_time",
-        "fs_hz": 48000
+        "fs_hz": 48000,
+        "bus_w": 79.0,
+        "joint1_a": 0.393
       },
       "t1": {
         "cycle_s": 2.0,
         "busy": 0,
-        "job_id": 59,
+        "job_id": 79,
+        "torque_nm": 0.0,
+        "spindle_rpm": 0,
         "source": "vlft:process",
         "part": "T_Machine_Static"
+      },
+      "assets": {
+        "T1": {
+          "part": "T_Machine_Static",
+          "source": "vlft:process",
+          "cycle_s": 2.0,
+          "busy": 0,
+          "job_id": 79,
+          "torque_nm": 0.0,
+          "spindle_rpm": 0,
+          "tags": {
+            "cycle_s": 2.0,
+            "busy": 0,
+            "job_id": 79,
+            "torque_nm": 0.0,
+            "spindle_rpm": 0
+          }
+        },
+        "PI1": {
+          "part": "PI_Machine_Static",
+          "source": "synthetic:vlft-pi",
+          "cycle_s": 2.0,
+          "busy": 0,
+          "insert_force_n": 0.0,
+          "bowl_on": 0,
+          "tags": {
+            "cycle_s": 2.0,
+            "busy": 0,
+            "insert_force_n": 0.0,
+            "bowl_on": 0
+          }
+        },
+        "PI2": {
+          "part": "PI_Machine_Static",
+          "source": "synthetic:vlft-pi",
+          "cycle_s": 2.0,
+          "busy": 1,
+          "insert_force_n": 297.0,
+          "bowl_on": 1,
+          "tags": {
+            "cycle_s": 2.0,
+            "busy": 1,
+            "insert_force_n": 297.0,
+            "bowl_on": 1
+          }
+        },
+        "PI3": {
+          "part": "PI_Machine_Static",
+          "source": "synthetic:vlft-pi",
+          "cycle_s": 2.0,
+          "busy": 0,
+          "insert_force_n": 0.0,
+          "bowl_on": 0,
+          "tags": {
+            "cycle_s": 2.0,
+            "busy": 0,
+            "insert_force_n": 0.0,
+            "bowl_on": 0
+          }
+        },
+        "PI4": {
+          "part": "PI_Machine_Static",
+          "source": "synthetic:vlft-pi",
+          "cycle_s": 2.0,
+          "busy": 0,
+          "insert_force_n": 0.0,
+          "bowl_on": 0,
+          "tags": {
+            "cycle_s": 2.0,
+            "busy": 0,
+            "insert_force_n": 0.0,
+            "bowl_on": 0
+          }
+        },
+        "R1": {
+          "part": "R_Machine_Static",
+          "source": "synthetic:baltec-en20",
+          "cycle_s": 2.0,
+          "busy": 0,
+          "set_force_n": 0.0,
+          "air_bar": 5.85,
+          "tags": {
+            "cycle_s": 2.0,
+            "busy": 0,
+            "set_force_n": 0.0,
+            "air_bar": 5.85
+          }
+        },
+        "R2": {
+          "part": "R_Machine_Static",
+          "source": "synthetic:baltec-en20",
+          "cycle_s": 2.0,
+          "busy": 1,
+          "set_force_n": 2540.0,
+          "air_bar": 5.53,
+          "tags": {
+            "cycle_s": 2.0,
+            "busy": 1,
+            "set_force_n": 2540.0,
+            "air_bar": 5.53
+          }
+        },
+        "R3": {
+          "part": "R_Machine_Static",
+          "source": "synthetic:baltec-en20",
+          "cycle_s": 2.0,
+          "busy": 0,
+          "set_force_n": 0.0,
+          "air_bar": 5.73,
+          "tags": {
+            "cycle_s": 2.0,
+            "busy": 0,
+            "set_force_n": 0.0,
+            "air_bar": 5.73
+          }
+        },
+        "R4": {
+          "part": "R_Machine_Static",
+          "source": "synthetic:baltec-en20",
+          "cycle_s": 2.0,
+          "busy": 0,
+          "set_force_n": 0.0,
+          "air_bar": 5.82,
+          "tags": {
+            "cycle_s": 2.0,
+            "busy": 0,
+            "set_force_n": 0.0,
+            "air_bar": 5.82
+          }
+        },
+        "PP1": {
+          "part": "PP_Static",
+          "source": "synthetic:vac-gripper",
+          "cycle_s": 2.0,
+          "busy": 0,
+          "vac_kpa": 0.0,
+          "tags": {
+            "cycle_s": 2.0,
+            "busy": 0,
+            "vac_kpa": 0.0
+          }
+        },
+        "PP2": {
+          "part": "PP_Static",
+          "source": "synthetic:vac-gripper",
+          "cycle_s": 2.0,
+          "busy": 1,
+          "vac_kpa": 69.2,
+          "tags": {
+            "cycle_s": 2.0,
+            "busy": 1,
+            "vac_kpa": 69.2
+          }
+        },
+        "PP3": {
+          "part": "PP_Static",
+          "source": "synthetic:vac-gripper",
+          "cycle_s": 2.0,
+          "busy": 1,
+          "vac_kpa": 79.7,
+          "tags": {
+            "cycle_s": 2.0,
+            "busy": 1,
+            "vac_kpa": 79.7
+          }
+        },
+        "PP4": {
+          "part": "PP_Static",
+          "source": "synthetic:vac-gripper",
+          "cycle_s": 2.0,
+          "busy": 0,
+          "vac_kpa": 0.0,
+          "tags": {
+            "cycle_s": 2.0,
+            "busy": 0,
+            "vac_kpa": 0.0
+          }
+        },
+        "PP5": {
+          "part": "PP_Static",
+          "source": "synthetic:vac-gripper",
+          "cycle_s": 2.0,
+          "busy": 0,
+          "vac_kpa": 0.0,
+          "tags": {
+            "cycle_s": 2.0,
+            "busy": 0,
+            "vac_kpa": 0.0
+          }
+        },
+        "PPW1": {
+          "part": "WC1_Static",
+          "source": "synthetic:vac-gripper",
+          "cycle_s": 2.0,
+          "busy": 0,
+          "vac_kpa": 0.0,
+          "tags": {
+            "cycle_s": 2.0,
+            "busy": 0,
+            "vac_kpa": 0.0
+          }
+        },
+        "PPH1": {
+          "part": "WC2_Static",
+          "source": "synthetic:vac-gripper",
+          "cycle_s": 2.0,
+          "busy": 0,
+          "vac_kpa": 0.0,
+          "tags": {
+            "cycle_s": 2.0,
+            "busy": 0,
+            "vac_kpa": 0.0
+          }
+        },
+        "CB1": {
+          "part": "CB_Static",
+          "source": "synthetic:vac-gripper",
+          "cycle_s": 2.0,
+          "busy": 1,
+          "vac_kpa": 77.7,
+          "tags": {
+            "cycle_s": 2.0,
+            "busy": 1,
+            "vac_kpa": 77.7
+          }
+        },
+        "RPP1": {
+          "part": "URjoint1",
+          "source": "synthetic:ur5e-factsheet",
+          "bus_w": 79.0,
+          "joint1_a": 0.393,
+          "tags": {
+            "bus_w": 79.0,
+            "joint1_a": 0.393
+          }
+        },
+        "RT1": {
+          "part": "R_Table",
+          "source": "synthetic:indexer",
+          "cycle_s": 2.0,
+          "busy": 0,
+          "index_rpm": 0,
+          "tags": {
+            "cycle_s": 2.0,
+            "busy": 0,
+            "index_rpm": 0
+          }
+        },
+        "B1": {
+          "part": "belt",
+          "source": "synthetic:dorner-gearmotor",
+          "belt_m_s": 0.149,
+          "motor_a": 1.22,
+          "tags": {
+            "belt_m_s": 0.149,
+            "motor_a": 1.22
+          }
+        },
+        "B2": {
+          "part": "belt",
+          "source": "synthetic:dorner-gearmotor",
+          "belt_m_s": 0.149,
+          "motor_a": 1.13,
+          "tags": {
+            "belt_m_s": 0.149,
+            "motor_a": 1.13
+          }
+        },
+        "B3": {
+          "part": "belt",
+          "source": "synthetic:dorner-gearmotor",
+          "belt_m_s": 0.159,
+          "motor_a": 1.11,
+          "tags": {
+            "belt_m_s": 0.159,
+            "motor_a": 1.11
+          }
+        },
+        "B4": {
+          "part": "belt",
+          "source": "synthetic:dorner-gearmotor",
+          "belt_m_s": 0.148,
+          "motor_a": 1.18,
+          "tags": {
+            "belt_m_s": 0.148,
+            "motor_a": 1.18
+          }
+        },
+        "C1": {
+          "part": "Cs_Camera",
+          "source": "synthetic:aoi-lux",
+          "cycle_s": 2.0,
+          "busy": 1,
+          "lux": 1308,
+          "tags": {
+            "cycle_s": 2.0,
+            "busy": 1,
+            "lux": 1308
+          }
+        },
+        "MTR07-CAD": {
+          "part": "1LE1003-1EB23-4JA4",
+          "source": "synthetic:siemens-1le1003",
+          "current_a": 3.05,
+          "winding_c": 89.4,
+          "rpm": 1473,
+          "tags": {
+            "current_a": 3.05,
+            "winding_c": 89.4,
+            "rpm": 1473
+          }
+        }
       }
     },
     {
       "i": 1,
       "ts": "2026-09-12T13:57:51.000-04:00",
       "rpp1": {
-        "rms": 0.0749,
+        "rms": 0.0737,
         "rpm": 1797,
         "bpfi": {
           "detected": false,
@@ -93,21 +639,337 @@
         "window": "2.53..4.53",
         "file": "97.mat",
         "channel": "X097_DE_time",
-        "fs_hz": 48000
+        "fs_hz": 48000,
+        "bus_w": 80.5,
+        "joint1_a": 0.405
       },
       "t1": {
         "cycle_s": 2.0,
         "busy": 0,
-        "job_id": 59,
+        "job_id": 79,
+        "torque_nm": 0.0,
+        "spindle_rpm": 0,
         "source": "vlft:process",
         "part": "T_Machine_Static"
+      },
+      "assets": {
+        "T1": {
+          "part": "T_Machine_Static",
+          "source": "vlft:process",
+          "cycle_s": 2.0,
+          "busy": 0,
+          "job_id": 79,
+          "torque_nm": 0.0,
+          "spindle_rpm": 0,
+          "tags": {
+            "cycle_s": 2.0,
+            "busy": 0,
+            "job_id": 79,
+            "torque_nm": 0.0,
+            "spindle_rpm": 0
+          }
+        },
+        "PI1": {
+          "part": "PI_Machine_Static",
+          "source": "synthetic:vlft-pi",
+          "cycle_s": 2.0,
+          "busy": 0,
+          "insert_force_n": 0.0,
+          "bowl_on": 0,
+          "tags": {
+            "cycle_s": 2.0,
+            "busy": 0,
+            "insert_force_n": 0.0,
+            "bowl_on": 0
+          }
+        },
+        "PI2": {
+          "part": "PI_Machine_Static",
+          "source": "synthetic:vlft-pi",
+          "cycle_s": 2.0,
+          "busy": 1,
+          "insert_force_n": 251.0,
+          "bowl_on": 1,
+          "tags": {
+            "cycle_s": 2.0,
+            "busy": 1,
+            "insert_force_n": 251.0,
+            "bowl_on": 1
+          }
+        },
+        "PI3": {
+          "part": "PI_Machine_Static",
+          "source": "synthetic:vlft-pi",
+          "cycle_s": 2.0,
+          "busy": 0,
+          "insert_force_n": 0.0,
+          "bowl_on": 0,
+          "tags": {
+            "cycle_s": 2.0,
+            "busy": 0,
+            "insert_force_n": 0.0,
+            "bowl_on": 0
+          }
+        },
+        "PI4": {
+          "part": "PI_Machine_Static",
+          "source": "synthetic:vlft-pi",
+          "cycle_s": 2.0,
+          "busy": 0,
+          "insert_force_n": 0.0,
+          "bowl_on": 0,
+          "tags": {
+            "cycle_s": 2.0,
+            "busy": 0,
+            "insert_force_n": 0.0,
+            "bowl_on": 0
+          }
+        },
+        "R1": {
+          "part": "R_Machine_Static",
+          "source": "synthetic:baltec-en20",
+          "cycle_s": 2.0,
+          "busy": 0,
+          "set_force_n": 0.0,
+          "air_bar": 5.89,
+          "tags": {
+            "cycle_s": 2.0,
+            "busy": 0,
+            "set_force_n": 0.0,
+            "air_bar": 5.89
+          }
+        },
+        "R2": {
+          "part": "R_Machine_Static",
+          "source": "synthetic:baltec-en20",
+          "cycle_s": 2.0,
+          "busy": 1,
+          "set_force_n": 3260.0,
+          "air_bar": 5.79,
+          "tags": {
+            "cycle_s": 2.0,
+            "busy": 1,
+            "set_force_n": 3260.0,
+            "air_bar": 5.79
+          }
+        },
+        "R3": {
+          "part": "R_Machine_Static",
+          "source": "synthetic:baltec-en20",
+          "cycle_s": 2.0,
+          "busy": 0,
+          "set_force_n": 0.0,
+          "air_bar": 5.75,
+          "tags": {
+            "cycle_s": 2.0,
+            "busy": 0,
+            "set_force_n": 0.0,
+            "air_bar": 5.75
+          }
+        },
+        "R4": {
+          "part": "R_Machine_Static",
+          "source": "synthetic:baltec-en20",
+          "cycle_s": 2.0,
+          "busy": 0,
+          "set_force_n": 0.0,
+          "air_bar": 5.82,
+          "tags": {
+            "cycle_s": 2.0,
+            "busy": 0,
+            "set_force_n": 0.0,
+            "air_bar": 5.82
+          }
+        },
+        "PP1": {
+          "part": "PP_Static",
+          "source": "synthetic:vac-gripper",
+          "cycle_s": 2.0,
+          "busy": 0,
+          "vac_kpa": 0.0,
+          "tags": {
+            "cycle_s": 2.0,
+            "busy": 0,
+            "vac_kpa": 0.0
+          }
+        },
+        "PP2": {
+          "part": "PP_Static",
+          "source": "synthetic:vac-gripper",
+          "cycle_s": 2.0,
+          "busy": 1,
+          "vac_kpa": 69.4,
+          "tags": {
+            "cycle_s": 2.0,
+            "busy": 1,
+            "vac_kpa": 69.4
+          }
+        },
+        "PP3": {
+          "part": "PP_Static",
+          "source": "synthetic:vac-gripper",
+          "cycle_s": 2.0,
+          "busy": 1,
+          "vac_kpa": 77.9,
+          "tags": {
+            "cycle_s": 2.0,
+            "busy": 1,
+            "vac_kpa": 77.9
+          }
+        },
+        "PP4": {
+          "part": "PP_Static",
+          "source": "synthetic:vac-gripper",
+          "cycle_s": 2.0,
+          "busy": 0,
+          "vac_kpa": 0.0,
+          "tags": {
+            "cycle_s": 2.0,
+            "busy": 0,
+            "vac_kpa": 0.0
+          }
+        },
+        "PP5": {
+          "part": "PP_Static",
+          "source": "synthetic:vac-gripper",
+          "cycle_s": 2.0,
+          "busy": 0,
+          "vac_kpa": 0.0,
+          "tags": {
+            "cycle_s": 2.0,
+            "busy": 0,
+            "vac_kpa": 0.0
+          }
+        },
+        "PPW1": {
+          "part": "WC1_Static",
+          "source": "synthetic:vac-gripper",
+          "cycle_s": 2.0,
+          "busy": 0,
+          "vac_kpa": 0.0,
+          "tags": {
+            "cycle_s": 2.0,
+            "busy": 0,
+            "vac_kpa": 0.0
+          }
+        },
+        "PPH1": {
+          "part": "WC2_Static",
+          "source": "synthetic:vac-gripper",
+          "cycle_s": 2.0,
+          "busy": 0,
+          "vac_kpa": 0.0,
+          "tags": {
+            "cycle_s": 2.0,
+            "busy": 0,
+            "vac_kpa": 0.0
+          }
+        },
+        "CB1": {
+          "part": "CB_Static",
+          "source": "synthetic:vac-gripper",
+          "cycle_s": 2.0,
+          "busy": 1,
+          "vac_kpa": 73.9,
+          "tags": {
+            "cycle_s": 2.0,
+            "busy": 1,
+            "vac_kpa": 73.9
+          }
+        },
+        "RPP1": {
+          "part": "URjoint1",
+          "source": "synthetic:ur5e-factsheet",
+          "bus_w": 80.5,
+          "joint1_a": 0.405,
+          "tags": {
+            "bus_w": 80.5,
+            "joint1_a": 0.405
+          }
+        },
+        "RT1": {
+          "part": "R_Table",
+          "source": "synthetic:indexer",
+          "cycle_s": 2.0,
+          "busy": 0,
+          "index_rpm": 0,
+          "tags": {
+            "cycle_s": 2.0,
+            "busy": 0,
+            "index_rpm": 0
+          }
+        },
+        "B1": {
+          "part": "belt",
+          "source": "synthetic:dorner-gearmotor",
+          "belt_m_s": 0.143,
+          "motor_a": 1.11,
+          "tags": {
+            "belt_m_s": 0.143,
+            "motor_a": 1.11
+          }
+        },
+        "B2": {
+          "part": "belt",
+          "source": "synthetic:dorner-gearmotor",
+          "belt_m_s": 0.16,
+          "motor_a": 1.24,
+          "tags": {
+            "belt_m_s": 0.16,
+            "motor_a": 1.24
+          }
+        },
+        "B3": {
+          "part": "belt",
+          "source": "synthetic:dorner-gearmotor",
+          "belt_m_s": 0.162,
+          "motor_a": 1.16,
+          "tags": {
+            "belt_m_s": 0.162,
+            "motor_a": 1.16
+          }
+        },
+        "B4": {
+          "part": "belt",
+          "source": "synthetic:dorner-gearmotor",
+          "belt_m_s": 0.142,
+          "motor_a": 1.22,
+          "tags": {
+            "belt_m_s": 0.142,
+            "motor_a": 1.22
+          }
+        },
+        "C1": {
+          "part": "Cs_Camera",
+          "source": "synthetic:aoi-lux",
+          "cycle_s": 2.0,
+          "busy": 1,
+          "lux": 1040,
+          "tags": {
+            "cycle_s": 2.0,
+            "busy": 1,
+            "lux": 1040
+          }
+        },
+        "MTR07-CAD": {
+          "part": "1LE1003-1EB23-4JA4",
+          "source": "synthetic:siemens-1le1003",
+          "current_a": 3.01,
+          "winding_c": 71.8,
+          "rpm": 1421,
+          "tags": {
+            "current_a": 3.01,
+            "winding_c": 71.8,
+            "rpm": 1421
+          }
+        }
       }
     },
     {
       "i": 2,
       "ts": "2026-09-12T13:57:52.000-04:00",
       "rpp1": {
-        "rms": 0.0727,
+        "rms": 0.0737,
         "rpm": 1797,
         "bpfi": {
           "detected": false,
@@ -125,21 +987,337 @@
         "window": "0.45..2.45",
         "file": "97.mat",
         "channel": "X097_DE_time",
-        "fs_hz": 48000
+        "fs_hz": 48000,
+        "bus_w": 79.1,
+        "joint1_a": 0.405
       },
       "t1": {
         "cycle_s": 2.0,
-        "busy": 1,
-        "job_id": 60,
+        "busy": 0,
+        "job_id": 79,
+        "torque_nm": 0.0,
+        "spindle_rpm": 0,
         "source": "vlft:process",
         "part": "T_Machine_Static"
+      },
+      "assets": {
+        "T1": {
+          "part": "T_Machine_Static",
+          "source": "vlft:process",
+          "cycle_s": 2.0,
+          "busy": 0,
+          "job_id": 79,
+          "torque_nm": 0.0,
+          "spindle_rpm": 0,
+          "tags": {
+            "cycle_s": 2.0,
+            "busy": 0,
+            "job_id": 79,
+            "torque_nm": 0.0,
+            "spindle_rpm": 0
+          }
+        },
+        "PI1": {
+          "part": "PI_Machine_Static",
+          "source": "synthetic:vlft-pi",
+          "cycle_s": 2.0,
+          "busy": 1,
+          "insert_force_n": 184.0,
+          "bowl_on": 1,
+          "tags": {
+            "cycle_s": 2.0,
+            "busy": 1,
+            "insert_force_n": 184.0,
+            "bowl_on": 1
+          }
+        },
+        "PI2": {
+          "part": "PI_Machine_Static",
+          "source": "synthetic:vlft-pi",
+          "cycle_s": 2.0,
+          "busy": 0,
+          "insert_force_n": 0.0,
+          "bowl_on": 0,
+          "tags": {
+            "cycle_s": 2.0,
+            "busy": 0,
+            "insert_force_n": 0.0,
+            "bowl_on": 0
+          }
+        },
+        "PI3": {
+          "part": "PI_Machine_Static",
+          "source": "synthetic:vlft-pi",
+          "cycle_s": 2.0,
+          "busy": 0,
+          "insert_force_n": 0.0,
+          "bowl_on": 0,
+          "tags": {
+            "cycle_s": 2.0,
+            "busy": 0,
+            "insert_force_n": 0.0,
+            "bowl_on": 0
+          }
+        },
+        "PI4": {
+          "part": "PI_Machine_Static",
+          "source": "synthetic:vlft-pi",
+          "cycle_s": 2.0,
+          "busy": 1,
+          "insert_force_n": 291.0,
+          "bowl_on": 1,
+          "tags": {
+            "cycle_s": 2.0,
+            "busy": 1,
+            "insert_force_n": 291.0,
+            "bowl_on": 1
+          }
+        },
+        "R1": {
+          "part": "R_Machine_Static",
+          "source": "synthetic:baltec-en20",
+          "cycle_s": 2.0,
+          "busy": 1,
+          "set_force_n": 3970.0,
+          "air_bar": 5.98,
+          "tags": {
+            "cycle_s": 2.0,
+            "busy": 1,
+            "set_force_n": 3970.0,
+            "air_bar": 5.98
+          }
+        },
+        "R2": {
+          "part": "R_Machine_Static",
+          "source": "synthetic:baltec-en20",
+          "cycle_s": 2.0,
+          "busy": 0,
+          "set_force_n": 0.0,
+          "air_bar": 5.91,
+          "tags": {
+            "cycle_s": 2.0,
+            "busy": 0,
+            "set_force_n": 0.0,
+            "air_bar": 5.91
+          }
+        },
+        "R3": {
+          "part": "R_Machine_Static",
+          "source": "synthetic:baltec-en20",
+          "cycle_s": 2.0,
+          "busy": 0,
+          "set_force_n": 0.0,
+          "air_bar": 5.71,
+          "tags": {
+            "cycle_s": 2.0,
+            "busy": 0,
+            "set_force_n": 0.0,
+            "air_bar": 5.71
+          }
+        },
+        "R4": {
+          "part": "R_Machine_Static",
+          "source": "synthetic:baltec-en20",
+          "cycle_s": 2.0,
+          "busy": 1,
+          "set_force_n": 2910.0,
+          "air_bar": 6.02,
+          "tags": {
+            "cycle_s": 2.0,
+            "busy": 1,
+            "set_force_n": 2910.0,
+            "air_bar": 6.02
+          }
+        },
+        "PP1": {
+          "part": "PP_Static",
+          "source": "synthetic:vac-gripper",
+          "cycle_s": 2.0,
+          "busy": 1,
+          "vac_kpa": 69.8,
+          "tags": {
+            "cycle_s": 2.0,
+            "busy": 1,
+            "vac_kpa": 69.8
+          }
+        },
+        "PP2": {
+          "part": "PP_Static",
+          "source": "synthetic:vac-gripper",
+          "cycle_s": 2.0,
+          "busy": 0,
+          "vac_kpa": 0.0,
+          "tags": {
+            "cycle_s": 2.0,
+            "busy": 0,
+            "vac_kpa": 0.0
+          }
+        },
+        "PP3": {
+          "part": "PP_Static",
+          "source": "synthetic:vac-gripper",
+          "cycle_s": 2.0,
+          "busy": 0,
+          "vac_kpa": 0.0,
+          "tags": {
+            "cycle_s": 2.0,
+            "busy": 0,
+            "vac_kpa": 0.0
+          }
+        },
+        "PP4": {
+          "part": "PP_Static",
+          "source": "synthetic:vac-gripper",
+          "cycle_s": 2.0,
+          "busy": 0,
+          "vac_kpa": 0.0,
+          "tags": {
+            "cycle_s": 2.0,
+            "busy": 0,
+            "vac_kpa": 0.0
+          }
+        },
+        "PP5": {
+          "part": "PP_Static",
+          "source": "synthetic:vac-gripper",
+          "cycle_s": 2.0,
+          "busy": 1,
+          "vac_kpa": 73.6,
+          "tags": {
+            "cycle_s": 2.0,
+            "busy": 1,
+            "vac_kpa": 73.6
+          }
+        },
+        "PPW1": {
+          "part": "WC1_Static",
+          "source": "synthetic:vac-gripper",
+          "cycle_s": 2.0,
+          "busy": 0,
+          "vac_kpa": 0.0,
+          "tags": {
+            "cycle_s": 2.0,
+            "busy": 0,
+            "vac_kpa": 0.0
+          }
+        },
+        "PPH1": {
+          "part": "WC2_Static",
+          "source": "synthetic:vac-gripper",
+          "cycle_s": 2.0,
+          "busy": 0,
+          "vac_kpa": 0.0,
+          "tags": {
+            "cycle_s": 2.0,
+            "busy": 0,
+            "vac_kpa": 0.0
+          }
+        },
+        "CB1": {
+          "part": "CB_Static",
+          "source": "synthetic:vac-gripper",
+          "cycle_s": 2.0,
+          "busy": 0,
+          "vac_kpa": 0.0,
+          "tags": {
+            "cycle_s": 2.0,
+            "busy": 0,
+            "vac_kpa": 0.0
+          }
+        },
+        "RPP1": {
+          "part": "URjoint1",
+          "source": "synthetic:ur5e-factsheet",
+          "bus_w": 79.1,
+          "joint1_a": 0.405,
+          "tags": {
+            "bus_w": 79.1,
+            "joint1_a": 0.405
+          }
+        },
+        "RT1": {
+          "part": "R_Table",
+          "source": "synthetic:indexer",
+          "cycle_s": 2.0,
+          "busy": 0,
+          "index_rpm": 0,
+          "tags": {
+            "cycle_s": 2.0,
+            "busy": 0,
+            "index_rpm": 0
+          }
+        },
+        "B1": {
+          "part": "belt",
+          "source": "synthetic:dorner-gearmotor",
+          "belt_m_s": 0.152,
+          "motor_a": 1.23,
+          "tags": {
+            "belt_m_s": 0.152,
+            "motor_a": 1.23
+          }
+        },
+        "B2": {
+          "part": "belt",
+          "source": "synthetic:dorner-gearmotor",
+          "belt_m_s": 0.145,
+          "motor_a": 1.16,
+          "tags": {
+            "belt_m_s": 0.145,
+            "motor_a": 1.16
+          }
+        },
+        "B3": {
+          "part": "belt",
+          "source": "synthetic:dorner-gearmotor",
+          "belt_m_s": 0.156,
+          "motor_a": 1.15,
+          "tags": {
+            "belt_m_s": 0.156,
+            "motor_a": 1.15
+          }
+        },
+        "B4": {
+          "part": "belt",
+          "source": "synthetic:dorner-gearmotor",
+          "belt_m_s": 0.154,
+          "motor_a": 1.1,
+          "tags": {
+            "belt_m_s": 0.154,
+            "motor_a": 1.1
+          }
+        },
+        "C1": {
+          "part": "Cs_Camera",
+          "source": "synthetic:aoi-lux",
+          "cycle_s": 2.0,
+          "busy": 0,
+          "lux": 905,
+          "tags": {
+            "cycle_s": 2.0,
+            "busy": 0,
+            "lux": 905
+          }
+        },
+        "MTR07-CAD": {
+          "part": "1LE1003-1EB23-4JA4",
+          "source": "synthetic:siemens-1le1003",
+          "current_a": 3.1,
+          "winding_c": 88.6,
+          "rpm": 1452,
+          "tags": {
+            "current_a": 3.1,
+            "winding_c": 88.6,
+            "rpm": 1452
+          }
+        }
       }
     },
     {
       "i": 3,
       "ts": "2026-09-12T13:57:53.000-04:00",
       "rpp1": {
-        "rms": 0.0736,
+        "rms": 0.0737,
         "rpm": 1797,
         "bpfi": {
           "detected": false,
@@ -157,21 +1335,337 @@
         "window": "1.45..3.45",
         "file": "97.mat",
         "channel": "X097_DE_time",
-        "fs_hz": 48000
+        "fs_hz": 48000,
+        "bus_w": 80.8,
+        "joint1_a": 0.398
       },
       "t1": {
         "cycle_s": 2.0,
-        "busy": 1,
-        "job_id": 60,
+        "busy": 0,
+        "job_id": 79,
+        "torque_nm": 0.0,
+        "spindle_rpm": 0,
         "source": "vlft:process",
         "part": "T_Machine_Static"
+      },
+      "assets": {
+        "T1": {
+          "part": "T_Machine_Static",
+          "source": "vlft:process",
+          "cycle_s": 2.0,
+          "busy": 0,
+          "job_id": 79,
+          "torque_nm": 0.0,
+          "spindle_rpm": 0,
+          "tags": {
+            "cycle_s": 2.0,
+            "busy": 0,
+            "job_id": 79,
+            "torque_nm": 0.0,
+            "spindle_rpm": 0
+          }
+        },
+        "PI1": {
+          "part": "PI_Machine_Static",
+          "source": "synthetic:vlft-pi",
+          "cycle_s": 2.0,
+          "busy": 1,
+          "insert_force_n": 169.0,
+          "bowl_on": 1,
+          "tags": {
+            "cycle_s": 2.0,
+            "busy": 1,
+            "insert_force_n": 169.0,
+            "bowl_on": 1
+          }
+        },
+        "PI2": {
+          "part": "PI_Machine_Static",
+          "source": "synthetic:vlft-pi",
+          "cycle_s": 2.0,
+          "busy": 0,
+          "insert_force_n": 0.0,
+          "bowl_on": 0,
+          "tags": {
+            "cycle_s": 2.0,
+            "busy": 0,
+            "insert_force_n": 0.0,
+            "bowl_on": 0
+          }
+        },
+        "PI3": {
+          "part": "PI_Machine_Static",
+          "source": "synthetic:vlft-pi",
+          "cycle_s": 2.0,
+          "busy": 0,
+          "insert_force_n": 0.0,
+          "bowl_on": 0,
+          "tags": {
+            "cycle_s": 2.0,
+            "busy": 0,
+            "insert_force_n": 0.0,
+            "bowl_on": 0
+          }
+        },
+        "PI4": {
+          "part": "PI_Machine_Static",
+          "source": "synthetic:vlft-pi",
+          "cycle_s": 2.0,
+          "busy": 1,
+          "insert_force_n": 176.0,
+          "bowl_on": 1,
+          "tags": {
+            "cycle_s": 2.0,
+            "busy": 1,
+            "insert_force_n": 176.0,
+            "bowl_on": 1
+          }
+        },
+        "R1": {
+          "part": "R_Machine_Static",
+          "source": "synthetic:baltec-en20",
+          "cycle_s": 2.0,
+          "busy": 1,
+          "set_force_n": 2070.0,
+          "air_bar": 5.74,
+          "tags": {
+            "cycle_s": 2.0,
+            "busy": 1,
+            "set_force_n": 2070.0,
+            "air_bar": 5.74
+          }
+        },
+        "R2": {
+          "part": "R_Machine_Static",
+          "source": "synthetic:baltec-en20",
+          "cycle_s": 2.0,
+          "busy": 0,
+          "set_force_n": 0.0,
+          "air_bar": 5.87,
+          "tags": {
+            "cycle_s": 2.0,
+            "busy": 0,
+            "set_force_n": 0.0,
+            "air_bar": 5.87
+          }
+        },
+        "R3": {
+          "part": "R_Machine_Static",
+          "source": "synthetic:baltec-en20",
+          "cycle_s": 2.0,
+          "busy": 0,
+          "set_force_n": 0.0,
+          "air_bar": 5.71,
+          "tags": {
+            "cycle_s": 2.0,
+            "busy": 0,
+            "set_force_n": 0.0,
+            "air_bar": 5.71
+          }
+        },
+        "R4": {
+          "part": "R_Machine_Static",
+          "source": "synthetic:baltec-en20",
+          "cycle_s": 2.0,
+          "busy": 1,
+          "set_force_n": 3260.0,
+          "air_bar": 5.66,
+          "tags": {
+            "cycle_s": 2.0,
+            "busy": 1,
+            "set_force_n": 3260.0,
+            "air_bar": 5.66
+          }
+        },
+        "PP1": {
+          "part": "PP_Static",
+          "source": "synthetic:vac-gripper",
+          "cycle_s": 2.0,
+          "busy": 1,
+          "vac_kpa": 69.8,
+          "tags": {
+            "cycle_s": 2.0,
+            "busy": 1,
+            "vac_kpa": 69.8
+          }
+        },
+        "PP2": {
+          "part": "PP_Static",
+          "source": "synthetic:vac-gripper",
+          "cycle_s": 2.0,
+          "busy": 0,
+          "vac_kpa": 0.0,
+          "tags": {
+            "cycle_s": 2.0,
+            "busy": 0,
+            "vac_kpa": 0.0
+          }
+        },
+        "PP3": {
+          "part": "PP_Static",
+          "source": "synthetic:vac-gripper",
+          "cycle_s": 2.0,
+          "busy": 0,
+          "vac_kpa": 0.0,
+          "tags": {
+            "cycle_s": 2.0,
+            "busy": 0,
+            "vac_kpa": 0.0
+          }
+        },
+        "PP4": {
+          "part": "PP_Static",
+          "source": "synthetic:vac-gripper",
+          "cycle_s": 2.0,
+          "busy": 0,
+          "vac_kpa": 0.0,
+          "tags": {
+            "cycle_s": 2.0,
+            "busy": 0,
+            "vac_kpa": 0.0
+          }
+        },
+        "PP5": {
+          "part": "PP_Static",
+          "source": "synthetic:vac-gripper",
+          "cycle_s": 2.0,
+          "busy": 1,
+          "vac_kpa": 75.5,
+          "tags": {
+            "cycle_s": 2.0,
+            "busy": 1,
+            "vac_kpa": 75.5
+          }
+        },
+        "PPW1": {
+          "part": "WC1_Static",
+          "source": "synthetic:vac-gripper",
+          "cycle_s": 2.0,
+          "busy": 0,
+          "vac_kpa": 0.0,
+          "tags": {
+            "cycle_s": 2.0,
+            "busy": 0,
+            "vac_kpa": 0.0
+          }
+        },
+        "PPH1": {
+          "part": "WC2_Static",
+          "source": "synthetic:vac-gripper",
+          "cycle_s": 2.0,
+          "busy": 0,
+          "vac_kpa": 0.0,
+          "tags": {
+            "cycle_s": 2.0,
+            "busy": 0,
+            "vac_kpa": 0.0
+          }
+        },
+        "CB1": {
+          "part": "CB_Static",
+          "source": "synthetic:vac-gripper",
+          "cycle_s": 2.0,
+          "busy": 0,
+          "vac_kpa": 0.0,
+          "tags": {
+            "cycle_s": 2.0,
+            "busy": 0,
+            "vac_kpa": 0.0
+          }
+        },
+        "RPP1": {
+          "part": "URjoint1",
+          "source": "synthetic:ur5e-factsheet",
+          "bus_w": 80.8,
+          "joint1_a": 0.398,
+          "tags": {
+            "bus_w": 80.8,
+            "joint1_a": 0.398
+          }
+        },
+        "RT1": {
+          "part": "R_Table",
+          "source": "synthetic:indexer",
+          "cycle_s": 2.0,
+          "busy": 0,
+          "index_rpm": 0,
+          "tags": {
+            "cycle_s": 2.0,
+            "busy": 0,
+            "index_rpm": 0
+          }
+        },
+        "B1": {
+          "part": "belt",
+          "source": "synthetic:dorner-gearmotor",
+          "belt_m_s": 0.156,
+          "motor_a": 1.12,
+          "tags": {
+            "belt_m_s": 0.156,
+            "motor_a": 1.12
+          }
+        },
+        "B2": {
+          "part": "belt",
+          "source": "synthetic:dorner-gearmotor",
+          "belt_m_s": 0.15,
+          "motor_a": 1.22,
+          "tags": {
+            "belt_m_s": 0.15,
+            "motor_a": 1.22
+          }
+        },
+        "B3": {
+          "part": "belt",
+          "source": "synthetic:dorner-gearmotor",
+          "belt_m_s": 0.152,
+          "motor_a": 1.15,
+          "tags": {
+            "belt_m_s": 0.152,
+            "motor_a": 1.15
+          }
+        },
+        "B4": {
+          "part": "belt",
+          "source": "synthetic:dorner-gearmotor",
+          "belt_m_s": 0.142,
+          "motor_a": 1.13,
+          "tags": {
+            "belt_m_s": 0.142,
+            "motor_a": 1.13
+          }
+        },
+        "C1": {
+          "part": "Cs_Camera",
+          "source": "synthetic:aoi-lux",
+          "cycle_s": 2.0,
+          "busy": 0,
+          "lux": 907,
+          "tags": {
+            "cycle_s": 2.0,
+            "busy": 0,
+            "lux": 907
+          }
+        },
+        "MTR07-CAD": {
+          "part": "1LE1003-1EB23-4JA4",
+          "source": "synthetic:siemens-1le1003",
+          "current_a": 2.92,
+          "winding_c": 72.5,
+          "rpm": 1443,
+          "tags": {
+            "current_a": 2.92,
+            "winding_c": 72.5,
+            "rpm": 1443
+          }
+        }
       }
     },
     {
       "i": 4,
       "ts": "2026-09-12T13:57:54.000-04:00",
       "rpp1": {
-        "rms": 0.0749,
+        "rms": 0.0737,
         "rpm": 1797,
         "bpfi": {
           "detected": false,
@@ -189,21 +1683,337 @@
         "window": "2.45..4.45",
         "file": "97.mat",
         "channel": "X097_DE_time",
-        "fs_hz": 48000
+        "fs_hz": 48000,
+        "bus_w": 212.0,
+        "joint1_a": 2.91
       },
       "t1": {
         "cycle_s": 2.0,
-        "busy": 0,
-        "job_id": 60,
+        "busy": 1,
+        "job_id": 80,
+        "torque_nm": 1.06,
+        "spindle_rpm": 1079,
         "source": "vlft:process",
         "part": "T_Machine_Static"
+      },
+      "assets": {
+        "T1": {
+          "part": "T_Machine_Static",
+          "source": "vlft:process",
+          "cycle_s": 2.0,
+          "busy": 1,
+          "job_id": 80,
+          "torque_nm": 1.06,
+          "spindle_rpm": 1079,
+          "tags": {
+            "cycle_s": 2.0,
+            "busy": 1,
+            "job_id": 80,
+            "torque_nm": 1.06,
+            "spindle_rpm": 1079
+          }
+        },
+        "PI1": {
+          "part": "PI_Machine_Static",
+          "source": "synthetic:vlft-pi",
+          "cycle_s": 2.0,
+          "busy": 0,
+          "insert_force_n": 0.0,
+          "bowl_on": 0,
+          "tags": {
+            "cycle_s": 2.0,
+            "busy": 0,
+            "insert_force_n": 0.0,
+            "bowl_on": 0
+          }
+        },
+        "PI2": {
+          "part": "PI_Machine_Static",
+          "source": "synthetic:vlft-pi",
+          "cycle_s": 2.0,
+          "busy": 0,
+          "insert_force_n": 0.0,
+          "bowl_on": 0,
+          "tags": {
+            "cycle_s": 2.0,
+            "busy": 0,
+            "insert_force_n": 0.0,
+            "bowl_on": 0
+          }
+        },
+        "PI3": {
+          "part": "PI_Machine_Static",
+          "source": "synthetic:vlft-pi",
+          "cycle_s": 2.0,
+          "busy": 1,
+          "insert_force_n": 264.0,
+          "bowl_on": 1,
+          "tags": {
+            "cycle_s": 2.0,
+            "busy": 1,
+            "insert_force_n": 264.0,
+            "bowl_on": 1
+          }
+        },
+        "PI4": {
+          "part": "PI_Machine_Static",
+          "source": "synthetic:vlft-pi",
+          "cycle_s": 2.0,
+          "busy": 0,
+          "insert_force_n": 0.0,
+          "bowl_on": 0,
+          "tags": {
+            "cycle_s": 2.0,
+            "busy": 0,
+            "insert_force_n": 0.0,
+            "bowl_on": 0
+          }
+        },
+        "R1": {
+          "part": "R_Machine_Static",
+          "source": "synthetic:baltec-en20",
+          "cycle_s": 2.0,
+          "busy": 0,
+          "set_force_n": 0.0,
+          "air_bar": 5.85,
+          "tags": {
+            "cycle_s": 2.0,
+            "busy": 0,
+            "set_force_n": 0.0,
+            "air_bar": 5.85
+          }
+        },
+        "R2": {
+          "part": "R_Machine_Static",
+          "source": "synthetic:baltec-en20",
+          "cycle_s": 2.0,
+          "busy": 0,
+          "set_force_n": 0.0,
+          "air_bar": 5.85,
+          "tags": {
+            "cycle_s": 2.0,
+            "busy": 0,
+            "set_force_n": 0.0,
+            "air_bar": 5.85
+          }
+        },
+        "R3": {
+          "part": "R_Machine_Static",
+          "source": "synthetic:baltec-en20",
+          "cycle_s": 2.0,
+          "busy": 1,
+          "set_force_n": 3800.0,
+          "air_bar": 6.05,
+          "tags": {
+            "cycle_s": 2.0,
+            "busy": 1,
+            "set_force_n": 3800.0,
+            "air_bar": 6.05
+          }
+        },
+        "R4": {
+          "part": "R_Machine_Static",
+          "source": "synthetic:baltec-en20",
+          "cycle_s": 2.0,
+          "busy": 0,
+          "set_force_n": 0.0,
+          "air_bar": 5.83,
+          "tags": {
+            "cycle_s": 2.0,
+            "busy": 0,
+            "set_force_n": 0.0,
+            "air_bar": 5.83
+          }
+        },
+        "PP1": {
+          "part": "PP_Static",
+          "source": "synthetic:vac-gripper",
+          "cycle_s": 2.0,
+          "busy": 0,
+          "vac_kpa": 0.0,
+          "tags": {
+            "cycle_s": 2.0,
+            "busy": 0,
+            "vac_kpa": 0.0
+          }
+        },
+        "PP2": {
+          "part": "PP_Static",
+          "source": "synthetic:vac-gripper",
+          "cycle_s": 2.0,
+          "busy": 0,
+          "vac_kpa": 0.0,
+          "tags": {
+            "cycle_s": 2.0,
+            "busy": 0,
+            "vac_kpa": 0.0
+          }
+        },
+        "PP3": {
+          "part": "PP_Static",
+          "source": "synthetic:vac-gripper",
+          "cycle_s": 2.0,
+          "busy": 0,
+          "vac_kpa": 0.0,
+          "tags": {
+            "cycle_s": 2.0,
+            "busy": 0,
+            "vac_kpa": 0.0
+          }
+        },
+        "PP4": {
+          "part": "PP_Static",
+          "source": "synthetic:vac-gripper",
+          "cycle_s": 2.0,
+          "busy": 1,
+          "vac_kpa": 68.3,
+          "tags": {
+            "cycle_s": 2.0,
+            "busy": 1,
+            "vac_kpa": 68.3
+          }
+        },
+        "PP5": {
+          "part": "PP_Static",
+          "source": "synthetic:vac-gripper",
+          "cycle_s": 2.0,
+          "busy": 0,
+          "vac_kpa": 0.0,
+          "tags": {
+            "cycle_s": 2.0,
+            "busy": 0,
+            "vac_kpa": 0.0
+          }
+        },
+        "PPW1": {
+          "part": "WC1_Static",
+          "source": "synthetic:vac-gripper",
+          "cycle_s": 2.0,
+          "busy": 1,
+          "vac_kpa": 74.2,
+          "tags": {
+            "cycle_s": 2.0,
+            "busy": 1,
+            "vac_kpa": 74.2
+          }
+        },
+        "PPH1": {
+          "part": "WC2_Static",
+          "source": "synthetic:vac-gripper",
+          "cycle_s": 2.0,
+          "busy": 1,
+          "vac_kpa": 65.2,
+          "tags": {
+            "cycle_s": 2.0,
+            "busy": 1,
+            "vac_kpa": 65.2
+          }
+        },
+        "CB1": {
+          "part": "CB_Static",
+          "source": "synthetic:vac-gripper",
+          "cycle_s": 2.0,
+          "busy": 0,
+          "vac_kpa": 0.0,
+          "tags": {
+            "cycle_s": 2.0,
+            "busy": 0,
+            "vac_kpa": 0.0
+          }
+        },
+        "RPP1": {
+          "part": "URjoint1",
+          "source": "synthetic:ur5e-factsheet",
+          "bus_w": 212.0,
+          "joint1_a": 2.91,
+          "tags": {
+            "bus_w": 212.0,
+            "joint1_a": 2.91
+          }
+        },
+        "RT1": {
+          "part": "R_Table",
+          "source": "synthetic:indexer",
+          "cycle_s": 2.0,
+          "busy": 1,
+          "index_rpm": 11,
+          "tags": {
+            "cycle_s": 2.0,
+            "busy": 1,
+            "index_rpm": 11
+          }
+        },
+        "B1": {
+          "part": "belt",
+          "source": "synthetic:dorner-gearmotor",
+          "belt_m_s": 0.146,
+          "motor_a": 1.24,
+          "tags": {
+            "belt_m_s": 0.146,
+            "motor_a": 1.24
+          }
+        },
+        "B2": {
+          "part": "belt",
+          "source": "synthetic:dorner-gearmotor",
+          "belt_m_s": 0.155,
+          "motor_a": 1.17,
+          "tags": {
+            "belt_m_s": 0.155,
+            "motor_a": 1.17
+          }
+        },
+        "B3": {
+          "part": "belt",
+          "source": "synthetic:dorner-gearmotor",
+          "belt_m_s": 0.154,
+          "motor_a": 1.13,
+          "tags": {
+            "belt_m_s": 0.154,
+            "motor_a": 1.13
+          }
+        },
+        "B4": {
+          "part": "belt",
+          "source": "synthetic:dorner-gearmotor",
+          "belt_m_s": 0.148,
+          "motor_a": 1.26,
+          "tags": {
+            "belt_m_s": 0.148,
+            "motor_a": 1.26
+          }
+        },
+        "C1": {
+          "part": "Cs_Camera",
+          "source": "synthetic:aoi-lux",
+          "cycle_s": 2.0,
+          "busy": 0,
+          "lux": 904,
+          "tags": {
+            "cycle_s": 2.0,
+            "busy": 0,
+            "lux": 904
+          }
+        },
+        "MTR07-CAD": {
+          "part": "1LE1003-1EB23-4JA4",
+          "source": "synthetic:siemens-1le1003",
+          "current_a": 2.86,
+          "winding_c": 74.9,
+          "rpm": 1449,
+          "tags": {
+            "current_a": 2.86,
+            "winding_c": 74.9,
+            "rpm": 1449
+          }
+        }
       }
     },
     {
       "i": 5,
       "ts": "2026-09-12T13:57:55.000-04:00",
       "rpp1": {
-        "rms": 0.0728,
+        "rms": 0.0737,
         "rpm": 1797,
         "bpfi": {
           "detected": false,
@@ -221,21 +2031,337 @@
         "window": "0.37..2.37",
         "file": "97.mat",
         "channel": "X097_DE_time",
-        "fs_hz": 48000
+        "fs_hz": 48000,
+        "bus_w": 203.0,
+        "joint1_a": 3.56
       },
       "t1": {
         "cycle_s": 2.0,
-        "busy": 0,
-        "job_id": 60,
+        "busy": 1,
+        "job_id": 80,
+        "torque_nm": 1.93,
+        "spindle_rpm": 1168,
         "source": "vlft:process",
         "part": "T_Machine_Static"
+      },
+      "assets": {
+        "T1": {
+          "part": "T_Machine_Static",
+          "source": "vlft:process",
+          "cycle_s": 2.0,
+          "busy": 1,
+          "job_id": 80,
+          "torque_nm": 1.93,
+          "spindle_rpm": 1168,
+          "tags": {
+            "cycle_s": 2.0,
+            "busy": 1,
+            "job_id": 80,
+            "torque_nm": 1.93,
+            "spindle_rpm": 1168
+          }
+        },
+        "PI1": {
+          "part": "PI_Machine_Static",
+          "source": "synthetic:vlft-pi",
+          "cycle_s": 2.0,
+          "busy": 0,
+          "insert_force_n": 0.0,
+          "bowl_on": 0,
+          "tags": {
+            "cycle_s": 2.0,
+            "busy": 0,
+            "insert_force_n": 0.0,
+            "bowl_on": 0
+          }
+        },
+        "PI2": {
+          "part": "PI_Machine_Static",
+          "source": "synthetic:vlft-pi",
+          "cycle_s": 2.0,
+          "busy": 0,
+          "insert_force_n": 0.0,
+          "bowl_on": 0,
+          "tags": {
+            "cycle_s": 2.0,
+            "busy": 0,
+            "insert_force_n": 0.0,
+            "bowl_on": 0
+          }
+        },
+        "PI3": {
+          "part": "PI_Machine_Static",
+          "source": "synthetic:vlft-pi",
+          "cycle_s": 2.0,
+          "busy": 1,
+          "insert_force_n": 330.0,
+          "bowl_on": 1,
+          "tags": {
+            "cycle_s": 2.0,
+            "busy": 1,
+            "insert_force_n": 330.0,
+            "bowl_on": 1
+          }
+        },
+        "PI4": {
+          "part": "PI_Machine_Static",
+          "source": "synthetic:vlft-pi",
+          "cycle_s": 2.0,
+          "busy": 0,
+          "insert_force_n": 0.0,
+          "bowl_on": 0,
+          "tags": {
+            "cycle_s": 2.0,
+            "busy": 0,
+            "insert_force_n": 0.0,
+            "bowl_on": 0
+          }
+        },
+        "R1": {
+          "part": "R_Machine_Static",
+          "source": "synthetic:baltec-en20",
+          "cycle_s": 2.0,
+          "busy": 0,
+          "set_force_n": 0.0,
+          "air_bar": 5.88,
+          "tags": {
+            "cycle_s": 2.0,
+            "busy": 0,
+            "set_force_n": 0.0,
+            "air_bar": 5.88
+          }
+        },
+        "R2": {
+          "part": "R_Machine_Static",
+          "source": "synthetic:baltec-en20",
+          "cycle_s": 2.0,
+          "busy": 0,
+          "set_force_n": 0.0,
+          "air_bar": 5.74,
+          "tags": {
+            "cycle_s": 2.0,
+            "busy": 0,
+            "set_force_n": 0.0,
+            "air_bar": 5.74
+          }
+        },
+        "R3": {
+          "part": "R_Machine_Static",
+          "source": "synthetic:baltec-en20",
+          "cycle_s": 2.0,
+          "busy": 1,
+          "set_force_n": 2160.0,
+          "air_bar": 5.65,
+          "tags": {
+            "cycle_s": 2.0,
+            "busy": 1,
+            "set_force_n": 2160.0,
+            "air_bar": 5.65
+          }
+        },
+        "R4": {
+          "part": "R_Machine_Static",
+          "source": "synthetic:baltec-en20",
+          "cycle_s": 2.0,
+          "busy": 0,
+          "set_force_n": 0.0,
+          "air_bar": 5.82,
+          "tags": {
+            "cycle_s": 2.0,
+            "busy": 0,
+            "set_force_n": 0.0,
+            "air_bar": 5.82
+          }
+        },
+        "PP1": {
+          "part": "PP_Static",
+          "source": "synthetic:vac-gripper",
+          "cycle_s": 2.0,
+          "busy": 0,
+          "vac_kpa": 0.0,
+          "tags": {
+            "cycle_s": 2.0,
+            "busy": 0,
+            "vac_kpa": 0.0
+          }
+        },
+        "PP2": {
+          "part": "PP_Static",
+          "source": "synthetic:vac-gripper",
+          "cycle_s": 2.0,
+          "busy": 0,
+          "vac_kpa": 0.0,
+          "tags": {
+            "cycle_s": 2.0,
+            "busy": 0,
+            "vac_kpa": 0.0
+          }
+        },
+        "PP3": {
+          "part": "PP_Static",
+          "source": "synthetic:vac-gripper",
+          "cycle_s": 2.0,
+          "busy": 0,
+          "vac_kpa": 0.0,
+          "tags": {
+            "cycle_s": 2.0,
+            "busy": 0,
+            "vac_kpa": 0.0
+          }
+        },
+        "PP4": {
+          "part": "PP_Static",
+          "source": "synthetic:vac-gripper",
+          "cycle_s": 2.0,
+          "busy": 1,
+          "vac_kpa": 78.4,
+          "tags": {
+            "cycle_s": 2.0,
+            "busy": 1,
+            "vac_kpa": 78.4
+          }
+        },
+        "PP5": {
+          "part": "PP_Static",
+          "source": "synthetic:vac-gripper",
+          "cycle_s": 2.0,
+          "busy": 0,
+          "vac_kpa": 0.0,
+          "tags": {
+            "cycle_s": 2.0,
+            "busy": 0,
+            "vac_kpa": 0.0
+          }
+        },
+        "PPW1": {
+          "part": "WC1_Static",
+          "source": "synthetic:vac-gripper",
+          "cycle_s": 2.0,
+          "busy": 1,
+          "vac_kpa": 78.5,
+          "tags": {
+            "cycle_s": 2.0,
+            "busy": 1,
+            "vac_kpa": 78.5
+          }
+        },
+        "PPH1": {
+          "part": "WC2_Static",
+          "source": "synthetic:vac-gripper",
+          "cycle_s": 2.0,
+          "busy": 1,
+          "vac_kpa": 79.9,
+          "tags": {
+            "cycle_s": 2.0,
+            "busy": 1,
+            "vac_kpa": 79.9
+          }
+        },
+        "CB1": {
+          "part": "CB_Static",
+          "source": "synthetic:vac-gripper",
+          "cycle_s": 2.0,
+          "busy": 0,
+          "vac_kpa": 0.0,
+          "tags": {
+            "cycle_s": 2.0,
+            "busy": 0,
+            "vac_kpa": 0.0
+          }
+        },
+        "RPP1": {
+          "part": "URjoint1",
+          "source": "synthetic:ur5e-factsheet",
+          "bus_w": 203.0,
+          "joint1_a": 3.56,
+          "tags": {
+            "bus_w": 203.0,
+            "joint1_a": 3.56
+          }
+        },
+        "RT1": {
+          "part": "R_Table",
+          "source": "synthetic:indexer",
+          "cycle_s": 2.0,
+          "busy": 1,
+          "index_rpm": 13,
+          "tags": {
+            "cycle_s": 2.0,
+            "busy": 1,
+            "index_rpm": 13
+          }
+        },
+        "B1": {
+          "part": "belt",
+          "source": "synthetic:dorner-gearmotor",
+          "belt_m_s": 0.159,
+          "motor_a": 1.25,
+          "tags": {
+            "belt_m_s": 0.159,
+            "motor_a": 1.25
+          }
+        },
+        "B2": {
+          "part": "belt",
+          "source": "synthetic:dorner-gearmotor",
+          "belt_m_s": 0.149,
+          "motor_a": 1.2,
+          "tags": {
+            "belt_m_s": 0.149,
+            "motor_a": 1.2
+          }
+        },
+        "B3": {
+          "part": "belt",
+          "source": "synthetic:dorner-gearmotor",
+          "belt_m_s": 0.15,
+          "motor_a": 1.11,
+          "tags": {
+            "belt_m_s": 0.15,
+            "motor_a": 1.11
+          }
+        },
+        "B4": {
+          "part": "belt",
+          "source": "synthetic:dorner-gearmotor",
+          "belt_m_s": 0.149,
+          "motor_a": 1.13,
+          "tags": {
+            "belt_m_s": 0.149,
+            "motor_a": 1.13
+          }
+        },
+        "C1": {
+          "part": "Cs_Camera",
+          "source": "synthetic:aoi-lux",
+          "cycle_s": 2.0,
+          "busy": 0,
+          "lux": 900,
+          "tags": {
+            "cycle_s": 2.0,
+            "busy": 0,
+            "lux": 900
+          }
+        },
+        "MTR07-CAD": {
+          "part": "1LE1003-1EB23-4JA4",
+          "source": "synthetic:siemens-1le1003",
+          "current_a": 3.02,
+          "winding_c": 71.0,
+          "rpm": 1408,
+          "tags": {
+            "current_a": 3.02,
+            "winding_c": 71.0,
+            "rpm": 1408
+          }
+        }
       }
     },
     {
       "i": 6,
       "ts": "2026-09-12T13:57:56.000-04:00",
       "rpp1": {
-        "rms": 0.0735,
+        "rms": 0.0737,
         "rpm": 1797,
         "bpfi": {
           "detected": false,
@@ -253,21 +2379,337 @@
         "window": "1.37..3.37",
         "file": "97.mat",
         "channel": "X097_DE_time",
-        "fs_hz": 48000
+        "fs_hz": 48000,
+        "bus_w": 79.3,
+        "joint1_a": 0.402
       },
       "t1": {
         "cycle_s": 2.0,
         "busy": 0,
-        "job_id": 60,
+        "job_id": 80,
+        "torque_nm": 0.0,
+        "spindle_rpm": 0,
         "source": "vlft:process",
         "part": "T_Machine_Static"
+      },
+      "assets": {
+        "T1": {
+          "part": "T_Machine_Static",
+          "source": "vlft:process",
+          "cycle_s": 2.0,
+          "busy": 0,
+          "job_id": 80,
+          "torque_nm": 0.0,
+          "spindle_rpm": 0,
+          "tags": {
+            "cycle_s": 2.0,
+            "busy": 0,
+            "job_id": 80,
+            "torque_nm": 0.0,
+            "spindle_rpm": 0
+          }
+        },
+        "PI1": {
+          "part": "PI_Machine_Static",
+          "source": "synthetic:vlft-pi",
+          "cycle_s": 2.0,
+          "busy": 0,
+          "insert_force_n": 0.0,
+          "bowl_on": 0,
+          "tags": {
+            "cycle_s": 2.0,
+            "busy": 0,
+            "insert_force_n": 0.0,
+            "bowl_on": 0
+          }
+        },
+        "PI2": {
+          "part": "PI_Machine_Static",
+          "source": "synthetic:vlft-pi",
+          "cycle_s": 2.0,
+          "busy": 1,
+          "insert_force_n": 220.0,
+          "bowl_on": 1,
+          "tags": {
+            "cycle_s": 2.0,
+            "busy": 1,
+            "insert_force_n": 220.0,
+            "bowl_on": 1
+          }
+        },
+        "PI3": {
+          "part": "PI_Machine_Static",
+          "source": "synthetic:vlft-pi",
+          "cycle_s": 2.0,
+          "busy": 0,
+          "insert_force_n": 0.0,
+          "bowl_on": 0,
+          "tags": {
+            "cycle_s": 2.0,
+            "busy": 0,
+            "insert_force_n": 0.0,
+            "bowl_on": 0
+          }
+        },
+        "PI4": {
+          "part": "PI_Machine_Static",
+          "source": "synthetic:vlft-pi",
+          "cycle_s": 2.0,
+          "busy": 0,
+          "insert_force_n": 0.0,
+          "bowl_on": 0,
+          "tags": {
+            "cycle_s": 2.0,
+            "busy": 0,
+            "insert_force_n": 0.0,
+            "bowl_on": 0
+          }
+        },
+        "R1": {
+          "part": "R_Machine_Static",
+          "source": "synthetic:baltec-en20",
+          "cycle_s": 2.0,
+          "busy": 0,
+          "set_force_n": 0.0,
+          "air_bar": 5.86,
+          "tags": {
+            "cycle_s": 2.0,
+            "busy": 0,
+            "set_force_n": 0.0,
+            "air_bar": 5.86
+          }
+        },
+        "R2": {
+          "part": "R_Machine_Static",
+          "source": "synthetic:baltec-en20",
+          "cycle_s": 2.0,
+          "busy": 1,
+          "set_force_n": 3680.0,
+          "air_bar": 5.72,
+          "tags": {
+            "cycle_s": 2.0,
+            "busy": 1,
+            "set_force_n": 3680.0,
+            "air_bar": 5.72
+          }
+        },
+        "R3": {
+          "part": "R_Machine_Static",
+          "source": "synthetic:baltec-en20",
+          "cycle_s": 2.0,
+          "busy": 0,
+          "set_force_n": 0.0,
+          "air_bar": 5.91,
+          "tags": {
+            "cycle_s": 2.0,
+            "busy": 0,
+            "set_force_n": 0.0,
+            "air_bar": 5.91
+          }
+        },
+        "R4": {
+          "part": "R_Machine_Static",
+          "source": "synthetic:baltec-en20",
+          "cycle_s": 2.0,
+          "busy": 0,
+          "set_force_n": 0.0,
+          "air_bar": 5.79,
+          "tags": {
+            "cycle_s": 2.0,
+            "busy": 0,
+            "set_force_n": 0.0,
+            "air_bar": 5.79
+          }
+        },
+        "PP1": {
+          "part": "PP_Static",
+          "source": "synthetic:vac-gripper",
+          "cycle_s": 2.0,
+          "busy": 0,
+          "vac_kpa": 0.0,
+          "tags": {
+            "cycle_s": 2.0,
+            "busy": 0,
+            "vac_kpa": 0.0
+          }
+        },
+        "PP2": {
+          "part": "PP_Static",
+          "source": "synthetic:vac-gripper",
+          "cycle_s": 2.0,
+          "busy": 1,
+          "vac_kpa": 64.5,
+          "tags": {
+            "cycle_s": 2.0,
+            "busy": 1,
+            "vac_kpa": 64.5
+          }
+        },
+        "PP3": {
+          "part": "PP_Static",
+          "source": "synthetic:vac-gripper",
+          "cycle_s": 2.0,
+          "busy": 1,
+          "vac_kpa": 77.3,
+          "tags": {
+            "cycle_s": 2.0,
+            "busy": 1,
+            "vac_kpa": 77.3
+          }
+        },
+        "PP4": {
+          "part": "PP_Static",
+          "source": "synthetic:vac-gripper",
+          "cycle_s": 2.0,
+          "busy": 0,
+          "vac_kpa": 0.0,
+          "tags": {
+            "cycle_s": 2.0,
+            "busy": 0,
+            "vac_kpa": 0.0
+          }
+        },
+        "PP5": {
+          "part": "PP_Static",
+          "source": "synthetic:vac-gripper",
+          "cycle_s": 2.0,
+          "busy": 0,
+          "vac_kpa": 0.0,
+          "tags": {
+            "cycle_s": 2.0,
+            "busy": 0,
+            "vac_kpa": 0.0
+          }
+        },
+        "PPW1": {
+          "part": "WC1_Static",
+          "source": "synthetic:vac-gripper",
+          "cycle_s": 2.0,
+          "busy": 0,
+          "vac_kpa": 0.0,
+          "tags": {
+            "cycle_s": 2.0,
+            "busy": 0,
+            "vac_kpa": 0.0
+          }
+        },
+        "PPH1": {
+          "part": "WC2_Static",
+          "source": "synthetic:vac-gripper",
+          "cycle_s": 2.0,
+          "busy": 0,
+          "vac_kpa": 0.0,
+          "tags": {
+            "cycle_s": 2.0,
+            "busy": 0,
+            "vac_kpa": 0.0
+          }
+        },
+        "CB1": {
+          "part": "CB_Static",
+          "source": "synthetic:vac-gripper",
+          "cycle_s": 2.0,
+          "busy": 1,
+          "vac_kpa": 64.5,
+          "tags": {
+            "cycle_s": 2.0,
+            "busy": 1,
+            "vac_kpa": 64.5
+          }
+        },
+        "RPP1": {
+          "part": "URjoint1",
+          "source": "synthetic:ur5e-factsheet",
+          "bus_w": 79.3,
+          "joint1_a": 0.402,
+          "tags": {
+            "bus_w": 79.3,
+            "joint1_a": 0.402
+          }
+        },
+        "RT1": {
+          "part": "R_Table",
+          "source": "synthetic:indexer",
+          "cycle_s": 2.0,
+          "busy": 0,
+          "index_rpm": 0,
+          "tags": {
+            "cycle_s": 2.0,
+            "busy": 0,
+            "index_rpm": 0
+          }
+        },
+        "B1": {
+          "part": "belt",
+          "source": "synthetic:dorner-gearmotor",
+          "belt_m_s": 0.144,
+          "motor_a": 1.23,
+          "tags": {
+            "belt_m_s": 0.144,
+            "motor_a": 1.23
+          }
+        },
+        "B2": {
+          "part": "belt",
+          "source": "synthetic:dorner-gearmotor",
+          "belt_m_s": 0.154,
+          "motor_a": 1.19,
+          "tags": {
+            "belt_m_s": 0.154,
+            "motor_a": 1.19
+          }
+        },
+        "B3": {
+          "part": "belt",
+          "source": "synthetic:dorner-gearmotor",
+          "belt_m_s": 0.14,
+          "motor_a": 1.24,
+          "tags": {
+            "belt_m_s": 0.14,
+            "motor_a": 1.24
+          }
+        },
+        "B4": {
+          "part": "belt",
+          "source": "synthetic:dorner-gearmotor",
+          "belt_m_s": 0.152,
+          "motor_a": 1.13,
+          "tags": {
+            "belt_m_s": 0.152,
+            "motor_a": 1.13
+          }
+        },
+        "C1": {
+          "part": "Cs_Camera",
+          "source": "synthetic:aoi-lux",
+          "cycle_s": 2.0,
+          "busy": 1,
+          "lux": 1202,
+          "tags": {
+            "cycle_s": 2.0,
+            "busy": 1,
+            "lux": 1202
+          }
+        },
+        "MTR07-CAD": {
+          "part": "1LE1003-1EB23-4JA4",
+          "source": "synthetic:siemens-1le1003",
+          "current_a": 2.98,
+          "winding_c": 81.7,
+          "rpm": 1432,
+          "tags": {
+            "current_a": 2.98,
+            "winding_c": 81.7,
+            "rpm": 1432
+          }
+        }
       }
     },
     {
       "i": 7,
       "ts": "2026-09-12T13:57:57.000-04:00",
       "rpp1": {
-        "rms": 0.0748,
+        "rms": 0.0737,
         "rpm": 1797,
         "bpfi": {
           "detected": false,
@@ -285,21 +2727,337 @@
         "window": "2.37..4.37",
         "file": "97.mat",
         "channel": "X097_DE_time",
-        "fs_hz": 48000
+        "fs_hz": 48000,
+        "bus_w": 79.1,
+        "joint1_a": 0.401
       },
       "t1": {
         "cycle_s": 2.0,
         "busy": 0,
-        "job_id": 60,
+        "job_id": 80,
+        "torque_nm": 0.0,
+        "spindle_rpm": 0,
         "source": "vlft:process",
         "part": "T_Machine_Static"
+      },
+      "assets": {
+        "T1": {
+          "part": "T_Machine_Static",
+          "source": "vlft:process",
+          "cycle_s": 2.0,
+          "busy": 0,
+          "job_id": 80,
+          "torque_nm": 0.0,
+          "spindle_rpm": 0,
+          "tags": {
+            "cycle_s": 2.0,
+            "busy": 0,
+            "job_id": 80,
+            "torque_nm": 0.0,
+            "spindle_rpm": 0
+          }
+        },
+        "PI1": {
+          "part": "PI_Machine_Static",
+          "source": "synthetic:vlft-pi",
+          "cycle_s": 2.0,
+          "busy": 0,
+          "insert_force_n": 0.0,
+          "bowl_on": 0,
+          "tags": {
+            "cycle_s": 2.0,
+            "busy": 0,
+            "insert_force_n": 0.0,
+            "bowl_on": 0
+          }
+        },
+        "PI2": {
+          "part": "PI_Machine_Static",
+          "source": "synthetic:vlft-pi",
+          "cycle_s": 2.0,
+          "busy": 1,
+          "insert_force_n": 350.0,
+          "bowl_on": 1,
+          "tags": {
+            "cycle_s": 2.0,
+            "busy": 1,
+            "insert_force_n": 350.0,
+            "bowl_on": 1
+          }
+        },
+        "PI3": {
+          "part": "PI_Machine_Static",
+          "source": "synthetic:vlft-pi",
+          "cycle_s": 2.0,
+          "busy": 0,
+          "insert_force_n": 0.0,
+          "bowl_on": 0,
+          "tags": {
+            "cycle_s": 2.0,
+            "busy": 0,
+            "insert_force_n": 0.0,
+            "bowl_on": 0
+          }
+        },
+        "PI4": {
+          "part": "PI_Machine_Static",
+          "source": "synthetic:vlft-pi",
+          "cycle_s": 2.0,
+          "busy": 0,
+          "insert_force_n": 0.0,
+          "bowl_on": 0,
+          "tags": {
+            "cycle_s": 2.0,
+            "busy": 0,
+            "insert_force_n": 0.0,
+            "bowl_on": 0
+          }
+        },
+        "R1": {
+          "part": "R_Machine_Static",
+          "source": "synthetic:baltec-en20",
+          "cycle_s": 2.0,
+          "busy": 0,
+          "set_force_n": 0.0,
+          "air_bar": 5.86,
+          "tags": {
+            "cycle_s": 2.0,
+            "busy": 0,
+            "set_force_n": 0.0,
+            "air_bar": 5.86
+          }
+        },
+        "R2": {
+          "part": "R_Machine_Static",
+          "source": "synthetic:baltec-en20",
+          "cycle_s": 2.0,
+          "busy": 1,
+          "set_force_n": 2240.0,
+          "air_bar": 6.04,
+          "tags": {
+            "cycle_s": 2.0,
+            "busy": 1,
+            "set_force_n": 2240.0,
+            "air_bar": 6.04
+          }
+        },
+        "R3": {
+          "part": "R_Machine_Static",
+          "source": "synthetic:baltec-en20",
+          "cycle_s": 2.0,
+          "busy": 0,
+          "set_force_n": 0.0,
+          "air_bar": 5.7,
+          "tags": {
+            "cycle_s": 2.0,
+            "busy": 0,
+            "set_force_n": 0.0,
+            "air_bar": 5.7
+          }
+        },
+        "R4": {
+          "part": "R_Machine_Static",
+          "source": "synthetic:baltec-en20",
+          "cycle_s": 2.0,
+          "busy": 0,
+          "set_force_n": 0.0,
+          "air_bar": 5.8,
+          "tags": {
+            "cycle_s": 2.0,
+            "busy": 0,
+            "set_force_n": 0.0,
+            "air_bar": 5.8
+          }
+        },
+        "PP1": {
+          "part": "PP_Static",
+          "source": "synthetic:vac-gripper",
+          "cycle_s": 2.0,
+          "busy": 0,
+          "vac_kpa": 0.0,
+          "tags": {
+            "cycle_s": 2.0,
+            "busy": 0,
+            "vac_kpa": 0.0
+          }
+        },
+        "PP2": {
+          "part": "PP_Static",
+          "source": "synthetic:vac-gripper",
+          "cycle_s": 2.0,
+          "busy": 1,
+          "vac_kpa": 79.1,
+          "tags": {
+            "cycle_s": 2.0,
+            "busy": 1,
+            "vac_kpa": 79.1
+          }
+        },
+        "PP3": {
+          "part": "PP_Static",
+          "source": "synthetic:vac-gripper",
+          "cycle_s": 2.0,
+          "busy": 1,
+          "vac_kpa": 71.0,
+          "tags": {
+            "cycle_s": 2.0,
+            "busy": 1,
+            "vac_kpa": 71.0
+          }
+        },
+        "PP4": {
+          "part": "PP_Static",
+          "source": "synthetic:vac-gripper",
+          "cycle_s": 2.0,
+          "busy": 0,
+          "vac_kpa": 0.0,
+          "tags": {
+            "cycle_s": 2.0,
+            "busy": 0,
+            "vac_kpa": 0.0
+          }
+        },
+        "PP5": {
+          "part": "PP_Static",
+          "source": "synthetic:vac-gripper",
+          "cycle_s": 2.0,
+          "busy": 0,
+          "vac_kpa": 0.0,
+          "tags": {
+            "cycle_s": 2.0,
+            "busy": 0,
+            "vac_kpa": 0.0
+          }
+        },
+        "PPW1": {
+          "part": "WC1_Static",
+          "source": "synthetic:vac-gripper",
+          "cycle_s": 2.0,
+          "busy": 0,
+          "vac_kpa": 0.0,
+          "tags": {
+            "cycle_s": 2.0,
+            "busy": 0,
+            "vac_kpa": 0.0
+          }
+        },
+        "PPH1": {
+          "part": "WC2_Static",
+          "source": "synthetic:vac-gripper",
+          "cycle_s": 2.0,
+          "busy": 0,
+          "vac_kpa": 0.0,
+          "tags": {
+            "cycle_s": 2.0,
+            "busy": 0,
+            "vac_kpa": 0.0
+          }
+        },
+        "CB1": {
+          "part": "CB_Static",
+          "source": "synthetic:vac-gripper",
+          "cycle_s": 2.0,
+          "busy": 1,
+          "vac_kpa": 61.5,
+          "tags": {
+            "cycle_s": 2.0,
+            "busy": 1,
+            "vac_kpa": 61.5
+          }
+        },
+        "RPP1": {
+          "part": "URjoint1",
+          "source": "synthetic:ur5e-factsheet",
+          "bus_w": 79.1,
+          "joint1_a": 0.401,
+          "tags": {
+            "bus_w": 79.1,
+            "joint1_a": 0.401
+          }
+        },
+        "RT1": {
+          "part": "R_Table",
+          "source": "synthetic:indexer",
+          "cycle_s": 2.0,
+          "busy": 0,
+          "index_rpm": 0,
+          "tags": {
+            "cycle_s": 2.0,
+            "busy": 0,
+            "index_rpm": 0
+          }
+        },
+        "B1": {
+          "part": "belt",
+          "source": "synthetic:dorner-gearmotor",
+          "belt_m_s": 0.143,
+          "motor_a": 1.15,
+          "tags": {
+            "belt_m_s": 0.143,
+            "motor_a": 1.15
+          }
+        },
+        "B2": {
+          "part": "belt",
+          "source": "synthetic:dorner-gearmotor",
+          "belt_m_s": 0.143,
+          "motor_a": 1.19,
+          "tags": {
+            "belt_m_s": 0.143,
+            "motor_a": 1.19
+          }
+        },
+        "B3": {
+          "part": "belt",
+          "source": "synthetic:dorner-gearmotor",
+          "belt_m_s": 0.154,
+          "motor_a": 1.18,
+          "tags": {
+            "belt_m_s": 0.154,
+            "motor_a": 1.18
+          }
+        },
+        "B4": {
+          "part": "belt",
+          "source": "synthetic:dorner-gearmotor",
+          "belt_m_s": 0.15,
+          "motor_a": 1.17,
+          "tags": {
+            "belt_m_s": 0.15,
+            "motor_a": 1.17
+          }
+        },
+        "C1": {
+          "part": "Cs_Camera",
+          "source": "synthetic:aoi-lux",
+          "cycle_s": 2.0,
+          "busy": 1,
+          "lux": 1417,
+          "tags": {
+            "cycle_s": 2.0,
+            "busy": 1,
+            "lux": 1417
+          }
+        },
+        "MTR07-CAD": {
+          "part": "1LE1003-1EB23-4JA4",
+          "source": "synthetic:siemens-1le1003",
+          "current_a": 3.17,
+          "winding_c": 72.0,
+          "rpm": 1450,
+          "tags": {
+            "current_a": 3.17,
+            "winding_c": 72.0,
+            "rpm": 1450
+          }
+        }
       }
     },
     {
       "i": 8,
       "ts": "2026-09-12T13:57:58.000-04:00",
       "rpp1": {
-        "rms": 0.0728,
+        "rms": 0.0737,
         "rpm": 1797,
         "bpfi": {
           "detected": false,
@@ -317,21 +3075,337 @@
         "window": "0.28..2.28",
         "file": "97.mat",
         "channel": "X097_DE_time",
-        "fs_hz": 48000
+        "fs_hz": 48000,
+        "bus_w": 79.6,
+        "joint1_a": 0.392
       },
       "t1": {
         "cycle_s": 2.0,
         "busy": 0,
-        "job_id": 60,
+        "job_id": 80,
+        "torque_nm": 0.0,
+        "spindle_rpm": 0,
         "source": "vlft:process",
         "part": "T_Machine_Static"
+      },
+      "assets": {
+        "T1": {
+          "part": "T_Machine_Static",
+          "source": "vlft:process",
+          "cycle_s": 2.0,
+          "busy": 0,
+          "job_id": 80,
+          "torque_nm": 0.0,
+          "spindle_rpm": 0,
+          "tags": {
+            "cycle_s": 2.0,
+            "busy": 0,
+            "job_id": 80,
+            "torque_nm": 0.0,
+            "spindle_rpm": 0
+          }
+        },
+        "PI1": {
+          "part": "PI_Machine_Static",
+          "source": "synthetic:vlft-pi",
+          "cycle_s": 2.0,
+          "busy": 1,
+          "insert_force_n": 329.0,
+          "bowl_on": 1,
+          "tags": {
+            "cycle_s": 2.0,
+            "busy": 1,
+            "insert_force_n": 329.0,
+            "bowl_on": 1
+          }
+        },
+        "PI2": {
+          "part": "PI_Machine_Static",
+          "source": "synthetic:vlft-pi",
+          "cycle_s": 2.0,
+          "busy": 0,
+          "insert_force_n": 0.0,
+          "bowl_on": 0,
+          "tags": {
+            "cycle_s": 2.0,
+            "busy": 0,
+            "insert_force_n": 0.0,
+            "bowl_on": 0
+          }
+        },
+        "PI3": {
+          "part": "PI_Machine_Static",
+          "source": "synthetic:vlft-pi",
+          "cycle_s": 2.0,
+          "busy": 0,
+          "insert_force_n": 0.0,
+          "bowl_on": 0,
+          "tags": {
+            "cycle_s": 2.0,
+            "busy": 0,
+            "insert_force_n": 0.0,
+            "bowl_on": 0
+          }
+        },
+        "PI4": {
+          "part": "PI_Machine_Static",
+          "source": "synthetic:vlft-pi",
+          "cycle_s": 2.0,
+          "busy": 1,
+          "insert_force_n": 242.0,
+          "bowl_on": 1,
+          "tags": {
+            "cycle_s": 2.0,
+            "busy": 1,
+            "insert_force_n": 242.0,
+            "bowl_on": 1
+          }
+        },
+        "R1": {
+          "part": "R_Machine_Static",
+          "source": "synthetic:baltec-en20",
+          "cycle_s": 2.0,
+          "busy": 1,
+          "set_force_n": 2940.0,
+          "air_bar": 5.58,
+          "tags": {
+            "cycle_s": 2.0,
+            "busy": 1,
+            "set_force_n": 2940.0,
+            "air_bar": 5.58
+          }
+        },
+        "R2": {
+          "part": "R_Machine_Static",
+          "source": "synthetic:baltec-en20",
+          "cycle_s": 2.0,
+          "busy": 0,
+          "set_force_n": 0.0,
+          "air_bar": 5.84,
+          "tags": {
+            "cycle_s": 2.0,
+            "busy": 0,
+            "set_force_n": 0.0,
+            "air_bar": 5.84
+          }
+        },
+        "R3": {
+          "part": "R_Machine_Static",
+          "source": "synthetic:baltec-en20",
+          "cycle_s": 2.0,
+          "busy": 0,
+          "set_force_n": 0.0,
+          "air_bar": 5.75,
+          "tags": {
+            "cycle_s": 2.0,
+            "busy": 0,
+            "set_force_n": 0.0,
+            "air_bar": 5.75
+          }
+        },
+        "R4": {
+          "part": "R_Machine_Static",
+          "source": "synthetic:baltec-en20",
+          "cycle_s": 2.0,
+          "busy": 1,
+          "set_force_n": 1790.0,
+          "air_bar": 6.03,
+          "tags": {
+            "cycle_s": 2.0,
+            "busy": 1,
+            "set_force_n": 1790.0,
+            "air_bar": 6.03
+          }
+        },
+        "PP1": {
+          "part": "PP_Static",
+          "source": "synthetic:vac-gripper",
+          "cycle_s": 2.0,
+          "busy": 1,
+          "vac_kpa": 65.7,
+          "tags": {
+            "cycle_s": 2.0,
+            "busy": 1,
+            "vac_kpa": 65.7
+          }
+        },
+        "PP2": {
+          "part": "PP_Static",
+          "source": "synthetic:vac-gripper",
+          "cycle_s": 2.0,
+          "busy": 0,
+          "vac_kpa": 0.0,
+          "tags": {
+            "cycle_s": 2.0,
+            "busy": 0,
+            "vac_kpa": 0.0
+          }
+        },
+        "PP3": {
+          "part": "PP_Static",
+          "source": "synthetic:vac-gripper",
+          "cycle_s": 2.0,
+          "busy": 0,
+          "vac_kpa": 0.0,
+          "tags": {
+            "cycle_s": 2.0,
+            "busy": 0,
+            "vac_kpa": 0.0
+          }
+        },
+        "PP4": {
+          "part": "PP_Static",
+          "source": "synthetic:vac-gripper",
+          "cycle_s": 2.0,
+          "busy": 0,
+          "vac_kpa": 0.0,
+          "tags": {
+            "cycle_s": 2.0,
+            "busy": 0,
+            "vac_kpa": 0.0
+          }
+        },
+        "PP5": {
+          "part": "PP_Static",
+          "source": "synthetic:vac-gripper",
+          "cycle_s": 2.0,
+          "busy": 1,
+          "vac_kpa": 72.9,
+          "tags": {
+            "cycle_s": 2.0,
+            "busy": 1,
+            "vac_kpa": 72.9
+          }
+        },
+        "PPW1": {
+          "part": "WC1_Static",
+          "source": "synthetic:vac-gripper",
+          "cycle_s": 2.0,
+          "busy": 0,
+          "vac_kpa": 0.0,
+          "tags": {
+            "cycle_s": 2.0,
+            "busy": 0,
+            "vac_kpa": 0.0
+          }
+        },
+        "PPH1": {
+          "part": "WC2_Static",
+          "source": "synthetic:vac-gripper",
+          "cycle_s": 2.0,
+          "busy": 0,
+          "vac_kpa": 0.0,
+          "tags": {
+            "cycle_s": 2.0,
+            "busy": 0,
+            "vac_kpa": 0.0
+          }
+        },
+        "CB1": {
+          "part": "CB_Static",
+          "source": "synthetic:vac-gripper",
+          "cycle_s": 2.0,
+          "busy": 0,
+          "vac_kpa": 0.0,
+          "tags": {
+            "cycle_s": 2.0,
+            "busy": 0,
+            "vac_kpa": 0.0
+          }
+        },
+        "RPP1": {
+          "part": "URjoint1",
+          "source": "synthetic:ur5e-factsheet",
+          "bus_w": 79.6,
+          "joint1_a": 0.392,
+          "tags": {
+            "bus_w": 79.6,
+            "joint1_a": 0.392
+          }
+        },
+        "RT1": {
+          "part": "R_Table",
+          "source": "synthetic:indexer",
+          "cycle_s": 2.0,
+          "busy": 0,
+          "index_rpm": 0,
+          "tags": {
+            "cycle_s": 2.0,
+            "busy": 0,
+            "index_rpm": 0
+          }
+        },
+        "B1": {
+          "part": "belt",
+          "source": "synthetic:dorner-gearmotor",
+          "belt_m_s": 0.144,
+          "motor_a": 1.2,
+          "tags": {
+            "belt_m_s": 0.144,
+            "motor_a": 1.2
+          }
+        },
+        "B2": {
+          "part": "belt",
+          "source": "synthetic:dorner-gearmotor",
+          "belt_m_s": 0.158,
+          "motor_a": 1.18,
+          "tags": {
+            "belt_m_s": 0.158,
+            "motor_a": 1.18
+          }
+        },
+        "B3": {
+          "part": "belt",
+          "source": "synthetic:dorner-gearmotor",
+          "belt_m_s": 0.16,
+          "motor_a": 1.23,
+          "tags": {
+            "belt_m_s": 0.16,
+            "motor_a": 1.23
+          }
+        },
+        "B4": {
+          "part": "belt",
+          "source": "synthetic:dorner-gearmotor",
+          "belt_m_s": 0.156,
+          "motor_a": 1.13,
+          "tags": {
+            "belt_m_s": 0.156,
+            "motor_a": 1.13
+          }
+        },
+        "C1": {
+          "part": "Cs_Camera",
+          "source": "synthetic:aoi-lux",
+          "cycle_s": 2.0,
+          "busy": 0,
+          "lux": 893,
+          "tags": {
+            "cycle_s": 2.0,
+            "busy": 0,
+            "lux": 893
+          }
+        },
+        "MTR07-CAD": {
+          "part": "1LE1003-1EB23-4JA4",
+          "source": "synthetic:siemens-1le1003",
+          "current_a": 2.9,
+          "winding_c": 84.7,
+          "rpm": 1417,
+          "tags": {
+            "current_a": 2.9,
+            "winding_c": 84.7,
+            "rpm": 1417
+          }
+        }
       }
     },
     {
       "i": 9,
       "ts": "2026-09-12T13:57:59.000-04:00",
       "rpp1": {
-        "rms": 0.0733,
+        "rms": 0.0737,
         "rpm": 1797,
         "bpfi": {
           "detected": false,
@@ -349,14 +3423,330 @@
         "window": "1.28..3.28",
         "file": "97.mat",
         "channel": "X097_DE_time",
-        "fs_hz": 48000
+        "fs_hz": 48000,
+        "bus_w": 80.1,
+        "joint1_a": 0.402
       },
       "t1": {
         "cycle_s": 2.0,
         "busy": 0,
-        "job_id": 60,
+        "job_id": 80,
+        "torque_nm": 0.0,
+        "spindle_rpm": 0,
         "source": "vlft:process",
         "part": "T_Machine_Static"
+      },
+      "assets": {
+        "T1": {
+          "part": "T_Machine_Static",
+          "source": "vlft:process",
+          "cycle_s": 2.0,
+          "busy": 0,
+          "job_id": 80,
+          "torque_nm": 0.0,
+          "spindle_rpm": 0,
+          "tags": {
+            "cycle_s": 2.0,
+            "busy": 0,
+            "job_id": 80,
+            "torque_nm": 0.0,
+            "spindle_rpm": 0
+          }
+        },
+        "PI1": {
+          "part": "PI_Machine_Static",
+          "source": "synthetic:vlft-pi",
+          "cycle_s": 2.0,
+          "busy": 1,
+          "insert_force_n": 352.0,
+          "bowl_on": 1,
+          "tags": {
+            "cycle_s": 2.0,
+            "busy": 1,
+            "insert_force_n": 352.0,
+            "bowl_on": 1
+          }
+        },
+        "PI2": {
+          "part": "PI_Machine_Static",
+          "source": "synthetic:vlft-pi",
+          "cycle_s": 2.0,
+          "busy": 0,
+          "insert_force_n": 0.0,
+          "bowl_on": 0,
+          "tags": {
+            "cycle_s": 2.0,
+            "busy": 0,
+            "insert_force_n": 0.0,
+            "bowl_on": 0
+          }
+        },
+        "PI3": {
+          "part": "PI_Machine_Static",
+          "source": "synthetic:vlft-pi",
+          "cycle_s": 2.0,
+          "busy": 0,
+          "insert_force_n": 0.0,
+          "bowl_on": 0,
+          "tags": {
+            "cycle_s": 2.0,
+            "busy": 0,
+            "insert_force_n": 0.0,
+            "bowl_on": 0
+          }
+        },
+        "PI4": {
+          "part": "PI_Machine_Static",
+          "source": "synthetic:vlft-pi",
+          "cycle_s": 2.0,
+          "busy": 1,
+          "insert_force_n": 341.0,
+          "bowl_on": 1,
+          "tags": {
+            "cycle_s": 2.0,
+            "busy": 1,
+            "insert_force_n": 341.0,
+            "bowl_on": 1
+          }
+        },
+        "R1": {
+          "part": "R_Machine_Static",
+          "source": "synthetic:baltec-en20",
+          "cycle_s": 2.0,
+          "busy": 1,
+          "set_force_n": 1990.0,
+          "air_bar": 6.06,
+          "tags": {
+            "cycle_s": 2.0,
+            "busy": 1,
+            "set_force_n": 1990.0,
+            "air_bar": 6.06
+          }
+        },
+        "R2": {
+          "part": "R_Machine_Static",
+          "source": "synthetic:baltec-en20",
+          "cycle_s": 2.0,
+          "busy": 0,
+          "set_force_n": 0.0,
+          "air_bar": 5.83,
+          "tags": {
+            "cycle_s": 2.0,
+            "busy": 0,
+            "set_force_n": 0.0,
+            "air_bar": 5.83
+          }
+        },
+        "R3": {
+          "part": "R_Machine_Static",
+          "source": "synthetic:baltec-en20",
+          "cycle_s": 2.0,
+          "busy": 0,
+          "set_force_n": 0.0,
+          "air_bar": 5.81,
+          "tags": {
+            "cycle_s": 2.0,
+            "busy": 0,
+            "set_force_n": 0.0,
+            "air_bar": 5.81
+          }
+        },
+        "R4": {
+          "part": "R_Machine_Static",
+          "source": "synthetic:baltec-en20",
+          "cycle_s": 2.0,
+          "busy": 1,
+          "set_force_n": 2640.0,
+          "air_bar": 5.63,
+          "tags": {
+            "cycle_s": 2.0,
+            "busy": 1,
+            "set_force_n": 2640.0,
+            "air_bar": 5.63
+          }
+        },
+        "PP1": {
+          "part": "PP_Static",
+          "source": "synthetic:vac-gripper",
+          "cycle_s": 2.0,
+          "busy": 1,
+          "vac_kpa": 60.1,
+          "tags": {
+            "cycle_s": 2.0,
+            "busy": 1,
+            "vac_kpa": 60.1
+          }
+        },
+        "PP2": {
+          "part": "PP_Static",
+          "source": "synthetic:vac-gripper",
+          "cycle_s": 2.0,
+          "busy": 0,
+          "vac_kpa": 0.0,
+          "tags": {
+            "cycle_s": 2.0,
+            "busy": 0,
+            "vac_kpa": 0.0
+          }
+        },
+        "PP3": {
+          "part": "PP_Static",
+          "source": "synthetic:vac-gripper",
+          "cycle_s": 2.0,
+          "busy": 0,
+          "vac_kpa": 0.0,
+          "tags": {
+            "cycle_s": 2.0,
+            "busy": 0,
+            "vac_kpa": 0.0
+          }
+        },
+        "PP4": {
+          "part": "PP_Static",
+          "source": "synthetic:vac-gripper",
+          "cycle_s": 2.0,
+          "busy": 0,
+          "vac_kpa": 0.0,
+          "tags": {
+            "cycle_s": 2.0,
+            "busy": 0,
+            "vac_kpa": 0.0
+          }
+        },
+        "PP5": {
+          "part": "PP_Static",
+          "source": "synthetic:vac-gripper",
+          "cycle_s": 2.0,
+          "busy": 1,
+          "vac_kpa": 74.0,
+          "tags": {
+            "cycle_s": 2.0,
+            "busy": 1,
+            "vac_kpa": 74.0
+          }
+        },
+        "PPW1": {
+          "part": "WC1_Static",
+          "source": "synthetic:vac-gripper",
+          "cycle_s": 2.0,
+          "busy": 0,
+          "vac_kpa": 0.0,
+          "tags": {
+            "cycle_s": 2.0,
+            "busy": 0,
+            "vac_kpa": 0.0
+          }
+        },
+        "PPH1": {
+          "part": "WC2_Static",
+          "source": "synthetic:vac-gripper",
+          "cycle_s": 2.0,
+          "busy": 0,
+          "vac_kpa": 0.0,
+          "tags": {
+            "cycle_s": 2.0,
+            "busy": 0,
+            "vac_kpa": 0.0
+          }
+        },
+        "CB1": {
+          "part": "CB_Static",
+          "source": "synthetic:vac-gripper",
+          "cycle_s": 2.0,
+          "busy": 0,
+          "vac_kpa": 0.0,
+          "tags": {
+            "cycle_s": 2.0,
+            "busy": 0,
+            "vac_kpa": 0.0
+          }
+        },
+        "RPP1": {
+          "part": "URjoint1",
+          "source": "synthetic:ur5e-factsheet",
+          "bus_w": 80.1,
+          "joint1_a": 0.402,
+          "tags": {
+            "bus_w": 80.1,
+            "joint1_a": 0.402
+          }
+        },
+        "RT1": {
+          "part": "R_Table",
+          "source": "synthetic:indexer",
+          "cycle_s": 2.0,
+          "busy": 0,
+          "index_rpm": 0,
+          "tags": {
+            "cycle_s": 2.0,
+            "busy": 0,
+            "index_rpm": 0
+          }
+        },
+        "B1": {
+          "part": "belt",
+          "source": "synthetic:dorner-gearmotor",
+          "belt_m_s": 0.147,
+          "motor_a": 1.22,
+          "tags": {
+            "belt_m_s": 0.147,
+            "motor_a": 1.22
+          }
+        },
+        "B2": {
+          "part": "belt",
+          "source": "synthetic:dorner-gearmotor",
+          "belt_m_s": 0.154,
+          "motor_a": 1.09,
+          "tags": {
+            "belt_m_s": 0.154,
+            "motor_a": 1.09
+          }
+        },
+        "B3": {
+          "part": "belt",
+          "source": "synthetic:dorner-gearmotor",
+          "belt_m_s": 0.144,
+          "motor_a": 1.16,
+          "tags": {
+            "belt_m_s": 0.144,
+            "motor_a": 1.16
+          }
+        },
+        "B4": {
+          "part": "belt",
+          "source": "synthetic:dorner-gearmotor",
+          "belt_m_s": 0.146,
+          "motor_a": 1.12,
+          "tags": {
+            "belt_m_s": 0.146,
+            "motor_a": 1.12
+          }
+        },
+        "C1": {
+          "part": "Cs_Camera",
+          "source": "synthetic:aoi-lux",
+          "cycle_s": 2.0,
+          "busy": 0,
+          "lux": 899,
+          "tags": {
+            "cycle_s": 2.0,
+            "busy": 0,
+            "lux": 899
+          }
+        },
+        "MTR07-CAD": {
+          "part": "1LE1003-1EB23-4JA4",
+          "source": "synthetic:siemens-1le1003",
+          "current_a": 3.0,
+          "winding_c": 80.0,
+          "rpm": 1433,
+          "tags": {
+            "current_a": 3.0,
+            "winding_c": 80.0,
+            "rpm": 1433
+          }
+        }
       }
     },
     {
@@ -366,317 +3756,3477 @@
         "rms": 0.289,
         "rpm": 1797,
         "bpfi": {
-          "detected": true,
-          "hz": 161.5,
-          "strength": "envelope"
+          "detected": false,
+          "hz": null,
+          "strength": null
         },
         "bpfo": {
-          "detected": true,
-          "hz": 102.0,
-          "strength": "envelope"
+          "detected": false,
+          "hz": null,
+          "strength": null
         },
-        "fault": "inner_race",
+        "fault": null,
         "engine": "envelope",
         "source": "cwru:105.mat:X105_DE_time",
         "window": "0.00..2.00",
         "file": "105.mat",
         "channel": "X105_DE_time",
-        "fs_hz": 12000
+        "fs_hz": 12000,
+        "bus_w": 216.0,
+        "joint1_a": 2.19
       },
       "t1": {
         "cycle_s": 2.0,
         "busy": 1,
-        "job_id": 61,
+        "job_id": 81,
+        "torque_nm": 1.15,
+        "spindle_rpm": 614,
         "source": "vlft:process",
         "part": "T_Machine_Static"
+      },
+      "assets": {
+        "T1": {
+          "part": "T_Machine_Static",
+          "source": "vlft:process",
+          "cycle_s": 2.0,
+          "busy": 1,
+          "job_id": 81,
+          "torque_nm": 1.15,
+          "spindle_rpm": 614,
+          "tags": {
+            "cycle_s": 2.0,
+            "busy": 1,
+            "job_id": 81,
+            "torque_nm": 1.15,
+            "spindle_rpm": 614
+          }
+        },
+        "PI1": {
+          "part": "PI_Machine_Static",
+          "source": "synthetic:vlft-pi",
+          "cycle_s": 2.0,
+          "busy": 0,
+          "insert_force_n": 0.0,
+          "bowl_on": 0,
+          "tags": {
+            "cycle_s": 2.0,
+            "busy": 0,
+            "insert_force_n": 0.0,
+            "bowl_on": 0
+          }
+        },
+        "PI2": {
+          "part": "PI_Machine_Static",
+          "source": "synthetic:vlft-pi",
+          "cycle_s": 2.0,
+          "busy": 0,
+          "insert_force_n": 0.0,
+          "bowl_on": 0,
+          "tags": {
+            "cycle_s": 2.0,
+            "busy": 0,
+            "insert_force_n": 0.0,
+            "bowl_on": 0
+          }
+        },
+        "PI3": {
+          "part": "PI_Machine_Static",
+          "source": "synthetic:vlft-pi",
+          "cycle_s": 2.0,
+          "busy": 1,
+          "insert_force_n": 366.0,
+          "bowl_on": 1,
+          "tags": {
+            "cycle_s": 2.0,
+            "busy": 1,
+            "insert_force_n": 366.0,
+            "bowl_on": 1
+          }
+        },
+        "PI4": {
+          "part": "PI_Machine_Static",
+          "source": "synthetic:vlft-pi",
+          "cycle_s": 2.0,
+          "busy": 0,
+          "insert_force_n": 0.0,
+          "bowl_on": 0,
+          "tags": {
+            "cycle_s": 2.0,
+            "busy": 0,
+            "insert_force_n": 0.0,
+            "bowl_on": 0
+          }
+        },
+        "R1": {
+          "part": "R_Machine_Static",
+          "source": "synthetic:baltec-en20",
+          "cycle_s": 2.0,
+          "busy": 0,
+          "set_force_n": 0.0,
+          "air_bar": 5.81,
+          "tags": {
+            "cycle_s": 2.0,
+            "busy": 0,
+            "set_force_n": 0.0,
+            "air_bar": 5.81
+          }
+        },
+        "R2": {
+          "part": "R_Machine_Static",
+          "source": "synthetic:baltec-en20",
+          "cycle_s": 2.0,
+          "busy": 0,
+          "set_force_n": 0.0,
+          "air_bar": 5.71,
+          "tags": {
+            "cycle_s": 2.0,
+            "busy": 0,
+            "set_force_n": 0.0,
+            "air_bar": 5.71
+          }
+        },
+        "R3": {
+          "part": "R_Machine_Static",
+          "source": "synthetic:baltec-en20",
+          "cycle_s": 2.0,
+          "busy": 1,
+          "set_force_n": 2340.0,
+          "air_bar": 5.71,
+          "tags": {
+            "cycle_s": 2.0,
+            "busy": 1,
+            "set_force_n": 2340.0,
+            "air_bar": 5.71
+          }
+        },
+        "R4": {
+          "part": "R_Machine_Static",
+          "source": "synthetic:baltec-en20",
+          "cycle_s": 2.0,
+          "busy": 0,
+          "set_force_n": 0.0,
+          "air_bar": 5.71,
+          "tags": {
+            "cycle_s": 2.0,
+            "busy": 0,
+            "set_force_n": 0.0,
+            "air_bar": 5.71
+          }
+        },
+        "PP1": {
+          "part": "PP_Static",
+          "source": "synthetic:vac-gripper",
+          "cycle_s": 2.0,
+          "busy": 0,
+          "vac_kpa": 0.0,
+          "tags": {
+            "cycle_s": 2.0,
+            "busy": 0,
+            "vac_kpa": 0.0
+          }
+        },
+        "PP2": {
+          "part": "PP_Static",
+          "source": "synthetic:vac-gripper",
+          "cycle_s": 2.0,
+          "busy": 0,
+          "vac_kpa": 0.0,
+          "tags": {
+            "cycle_s": 2.0,
+            "busy": 0,
+            "vac_kpa": 0.0
+          }
+        },
+        "PP3": {
+          "part": "PP_Static",
+          "source": "synthetic:vac-gripper",
+          "cycle_s": 2.0,
+          "busy": 0,
+          "vac_kpa": 0.0,
+          "tags": {
+            "cycle_s": 2.0,
+            "busy": 0,
+            "vac_kpa": 0.0
+          }
+        },
+        "PP4": {
+          "part": "PP_Static",
+          "source": "synthetic:vac-gripper",
+          "cycle_s": 2.0,
+          "busy": 1,
+          "vac_kpa": 79.7,
+          "tags": {
+            "cycle_s": 2.0,
+            "busy": 1,
+            "vac_kpa": 79.7
+          }
+        },
+        "PP5": {
+          "part": "PP_Static",
+          "source": "synthetic:vac-gripper",
+          "cycle_s": 2.0,
+          "busy": 0,
+          "vac_kpa": 0.0,
+          "tags": {
+            "cycle_s": 2.0,
+            "busy": 0,
+            "vac_kpa": 0.0
+          }
+        },
+        "PPW1": {
+          "part": "WC1_Static",
+          "source": "synthetic:vac-gripper",
+          "cycle_s": 2.0,
+          "busy": 1,
+          "vac_kpa": 78.4,
+          "tags": {
+            "cycle_s": 2.0,
+            "busy": 1,
+            "vac_kpa": 78.4
+          }
+        },
+        "PPH1": {
+          "part": "WC2_Static",
+          "source": "synthetic:vac-gripper",
+          "cycle_s": 2.0,
+          "busy": 1,
+          "vac_kpa": 61.4,
+          "tags": {
+            "cycle_s": 2.0,
+            "busy": 1,
+            "vac_kpa": 61.4
+          }
+        },
+        "CB1": {
+          "part": "CB_Static",
+          "source": "synthetic:vac-gripper",
+          "cycle_s": 2.0,
+          "busy": 0,
+          "vac_kpa": 0.0,
+          "tags": {
+            "cycle_s": 2.0,
+            "busy": 0,
+            "vac_kpa": 0.0
+          }
+        },
+        "RPP1": {
+          "part": "URjoint1",
+          "source": "synthetic:ur5e-factsheet",
+          "bus_w": 216.0,
+          "joint1_a": 2.19,
+          "tags": {
+            "bus_w": 216.0,
+            "joint1_a": 2.19
+          }
+        },
+        "RT1": {
+          "part": "R_Table",
+          "source": "synthetic:indexer",
+          "cycle_s": 2.0,
+          "busy": 1,
+          "index_rpm": 9,
+          "tags": {
+            "cycle_s": 2.0,
+            "busy": 1,
+            "index_rpm": 9
+          }
+        },
+        "B1": {
+          "part": "belt",
+          "source": "synthetic:dorner-gearmotor",
+          "belt_m_s": 0.155,
+          "motor_a": 1.26,
+          "tags": {
+            "belt_m_s": 0.155,
+            "motor_a": 1.26
+          }
+        },
+        "B2": {
+          "part": "belt",
+          "source": "synthetic:dorner-gearmotor",
+          "belt_m_s": 0.151,
+          "motor_a": 1.23,
+          "tags": {
+            "belt_m_s": 0.151,
+            "motor_a": 1.23
+          }
+        },
+        "B3": {
+          "part": "belt",
+          "source": "synthetic:dorner-gearmotor",
+          "belt_m_s": 0.163,
+          "motor_a": 1.15,
+          "tags": {
+            "belt_m_s": 0.163,
+            "motor_a": 1.15
+          }
+        },
+        "B4": {
+          "part": "belt",
+          "source": "synthetic:dorner-gearmotor",
+          "belt_m_s": 0.151,
+          "motor_a": 1.17,
+          "tags": {
+            "belt_m_s": 0.151,
+            "motor_a": 1.17
+          }
+        },
+        "C1": {
+          "part": "Cs_Camera",
+          "source": "synthetic:aoi-lux",
+          "cycle_s": 2.0,
+          "busy": 0,
+          "lux": 891,
+          "tags": {
+            "cycle_s": 2.0,
+            "busy": 0,
+            "lux": 891
+          }
+        },
+        "MTR07-CAD": {
+          "part": "1LE1003-1EB23-4JA4",
+          "source": "synthetic:siemens-1le1003",
+          "current_a": 3.24,
+          "winding_c": 79.4,
+          "rpm": 1463,
+          "tags": {
+            "current_a": 3.24,
+            "winding_c": 79.4,
+            "rpm": 1463
+          }
+        }
       }
     },
     {
       "i": 11,
       "ts": "2026-09-12T13:58:01.000-04:00",
       "rpp1": {
-        "rms": 0.292,
+        "rms": 0.289,
         "rpm": 1797,
         "bpfi": {
-          "detected": true,
-          "hz": 161.5,
-          "strength": "envelope"
+          "detected": false,
+          "hz": null,
+          "strength": null
         },
         "bpfo": {
-          "detected": true,
-          "hz": 102.0,
-          "strength": "envelope"
+          "detected": false,
+          "hz": null,
+          "strength": null
         },
-        "fault": "inner_race",
+        "fault": null,
         "engine": "envelope",
         "source": "cwru:105.mat:X105_DE_time",
         "window": "1.00..3.00",
         "file": "105.mat",
         "channel": "X105_DE_time",
-        "fs_hz": 12000
+        "fs_hz": 12000,
+        "bus_w": 213.0,
+        "joint1_a": 2.36
       },
       "t1": {
         "cycle_s": 2.0,
         "busy": 1,
-        "job_id": 61,
+        "job_id": 81,
+        "torque_nm": 1.26,
+        "spindle_rpm": 687,
         "source": "vlft:process",
         "part": "T_Machine_Static"
+      },
+      "assets": {
+        "T1": {
+          "part": "T_Machine_Static",
+          "source": "vlft:process",
+          "cycle_s": 2.0,
+          "busy": 1,
+          "job_id": 81,
+          "torque_nm": 1.26,
+          "spindle_rpm": 687,
+          "tags": {
+            "cycle_s": 2.0,
+            "busy": 1,
+            "job_id": 81,
+            "torque_nm": 1.26,
+            "spindle_rpm": 687
+          }
+        },
+        "PI1": {
+          "part": "PI_Machine_Static",
+          "source": "synthetic:vlft-pi",
+          "cycle_s": 2.0,
+          "busy": 0,
+          "insert_force_n": 0.0,
+          "bowl_on": 0,
+          "tags": {
+            "cycle_s": 2.0,
+            "busy": 0,
+            "insert_force_n": 0.0,
+            "bowl_on": 0
+          }
+        },
+        "PI2": {
+          "part": "PI_Machine_Static",
+          "source": "synthetic:vlft-pi",
+          "cycle_s": 2.0,
+          "busy": 0,
+          "insert_force_n": 0.0,
+          "bowl_on": 0,
+          "tags": {
+            "cycle_s": 2.0,
+            "busy": 0,
+            "insert_force_n": 0.0,
+            "bowl_on": 0
+          }
+        },
+        "PI3": {
+          "part": "PI_Machine_Static",
+          "source": "synthetic:vlft-pi",
+          "cycle_s": 2.0,
+          "busy": 1,
+          "insert_force_n": 376.0,
+          "bowl_on": 1,
+          "tags": {
+            "cycle_s": 2.0,
+            "busy": 1,
+            "insert_force_n": 376.0,
+            "bowl_on": 1
+          }
+        },
+        "PI4": {
+          "part": "PI_Machine_Static",
+          "source": "synthetic:vlft-pi",
+          "cycle_s": 2.0,
+          "busy": 0,
+          "insert_force_n": 0.0,
+          "bowl_on": 0,
+          "tags": {
+            "cycle_s": 2.0,
+            "busy": 0,
+            "insert_force_n": 0.0,
+            "bowl_on": 0
+          }
+        },
+        "R1": {
+          "part": "R_Machine_Static",
+          "source": "synthetic:baltec-en20",
+          "cycle_s": 2.0,
+          "busy": 0,
+          "set_force_n": 0.0,
+          "air_bar": 5.79,
+          "tags": {
+            "cycle_s": 2.0,
+            "busy": 0,
+            "set_force_n": 0.0,
+            "air_bar": 5.79
+          }
+        },
+        "R2": {
+          "part": "R_Machine_Static",
+          "source": "synthetic:baltec-en20",
+          "cycle_s": 2.0,
+          "busy": 0,
+          "set_force_n": 0.0,
+          "air_bar": 5.83,
+          "tags": {
+            "cycle_s": 2.0,
+            "busy": 0,
+            "set_force_n": 0.0,
+            "air_bar": 5.83
+          }
+        },
+        "R3": {
+          "part": "R_Machine_Static",
+          "source": "synthetic:baltec-en20",
+          "cycle_s": 2.0,
+          "busy": 1,
+          "set_force_n": 1520.0,
+          "air_bar": 6.17,
+          "tags": {
+            "cycle_s": 2.0,
+            "busy": 1,
+            "set_force_n": 1520.0,
+            "air_bar": 6.17
+          }
+        },
+        "R4": {
+          "part": "R_Machine_Static",
+          "source": "synthetic:baltec-en20",
+          "cycle_s": 2.0,
+          "busy": 0,
+          "set_force_n": 0.0,
+          "air_bar": 5.77,
+          "tags": {
+            "cycle_s": 2.0,
+            "busy": 0,
+            "set_force_n": 0.0,
+            "air_bar": 5.77
+          }
+        },
+        "PP1": {
+          "part": "PP_Static",
+          "source": "synthetic:vac-gripper",
+          "cycle_s": 2.0,
+          "busy": 0,
+          "vac_kpa": 0.0,
+          "tags": {
+            "cycle_s": 2.0,
+            "busy": 0,
+            "vac_kpa": 0.0
+          }
+        },
+        "PP2": {
+          "part": "PP_Static",
+          "source": "synthetic:vac-gripper",
+          "cycle_s": 2.0,
+          "busy": 0,
+          "vac_kpa": 0.0,
+          "tags": {
+            "cycle_s": 2.0,
+            "busy": 0,
+            "vac_kpa": 0.0
+          }
+        },
+        "PP3": {
+          "part": "PP_Static",
+          "source": "synthetic:vac-gripper",
+          "cycle_s": 2.0,
+          "busy": 0,
+          "vac_kpa": 0.0,
+          "tags": {
+            "cycle_s": 2.0,
+            "busy": 0,
+            "vac_kpa": 0.0
+          }
+        },
+        "PP4": {
+          "part": "PP_Static",
+          "source": "synthetic:vac-gripper",
+          "cycle_s": 2.0,
+          "busy": 1,
+          "vac_kpa": 69.0,
+          "tags": {
+            "cycle_s": 2.0,
+            "busy": 1,
+            "vac_kpa": 69.0
+          }
+        },
+        "PP5": {
+          "part": "PP_Static",
+          "source": "synthetic:vac-gripper",
+          "cycle_s": 2.0,
+          "busy": 0,
+          "vac_kpa": 0.0,
+          "tags": {
+            "cycle_s": 2.0,
+            "busy": 0,
+            "vac_kpa": 0.0
+          }
+        },
+        "PPW1": {
+          "part": "WC1_Static",
+          "source": "synthetic:vac-gripper",
+          "cycle_s": 2.0,
+          "busy": 1,
+          "vac_kpa": 64.3,
+          "tags": {
+            "cycle_s": 2.0,
+            "busy": 1,
+            "vac_kpa": 64.3
+          }
+        },
+        "PPH1": {
+          "part": "WC2_Static",
+          "source": "synthetic:vac-gripper",
+          "cycle_s": 2.0,
+          "busy": 1,
+          "vac_kpa": 69.7,
+          "tags": {
+            "cycle_s": 2.0,
+            "busy": 1,
+            "vac_kpa": 69.7
+          }
+        },
+        "CB1": {
+          "part": "CB_Static",
+          "source": "synthetic:vac-gripper",
+          "cycle_s": 2.0,
+          "busy": 0,
+          "vac_kpa": 0.0,
+          "tags": {
+            "cycle_s": 2.0,
+            "busy": 0,
+            "vac_kpa": 0.0
+          }
+        },
+        "RPP1": {
+          "part": "URjoint1",
+          "source": "synthetic:ur5e-factsheet",
+          "bus_w": 213.0,
+          "joint1_a": 2.36,
+          "tags": {
+            "bus_w": 213.0,
+            "joint1_a": 2.36
+          }
+        },
+        "RT1": {
+          "part": "R_Table",
+          "source": "synthetic:indexer",
+          "cycle_s": 2.0,
+          "busy": 1,
+          "index_rpm": 9,
+          "tags": {
+            "cycle_s": 2.0,
+            "busy": 1,
+            "index_rpm": 9
+          }
+        },
+        "B1": {
+          "part": "belt",
+          "source": "synthetic:dorner-gearmotor",
+          "belt_m_s": 0.146,
+          "motor_a": 1.15,
+          "tags": {
+            "belt_m_s": 0.146,
+            "motor_a": 1.15
+          }
+        },
+        "B2": {
+          "part": "belt",
+          "source": "synthetic:dorner-gearmotor",
+          "belt_m_s": 0.16,
+          "motor_a": 1.25,
+          "tags": {
+            "belt_m_s": 0.16,
+            "motor_a": 1.25
+          }
+        },
+        "B3": {
+          "part": "belt",
+          "source": "synthetic:dorner-gearmotor",
+          "belt_m_s": 0.162,
+          "motor_a": 1.2,
+          "tags": {
+            "belt_m_s": 0.162,
+            "motor_a": 1.2
+          }
+        },
+        "B4": {
+          "part": "belt",
+          "source": "synthetic:dorner-gearmotor",
+          "belt_m_s": 0.156,
+          "motor_a": 1.23,
+          "tags": {
+            "belt_m_s": 0.156,
+            "motor_a": 1.23
+          }
+        },
+        "C1": {
+          "part": "Cs_Camera",
+          "source": "synthetic:aoi-lux",
+          "cycle_s": 2.0,
+          "busy": 0,
+          "lux": 903,
+          "tags": {
+            "cycle_s": 2.0,
+            "busy": 0,
+            "lux": 903
+          }
+        },
+        "MTR07-CAD": {
+          "part": "1LE1003-1EB23-4JA4",
+          "source": "synthetic:siemens-1le1003",
+          "current_a": 3.0,
+          "winding_c": 74.3,
+          "rpm": 1483,
+          "tags": {
+            "current_a": 3.0,
+            "winding_c": 74.3,
+            "rpm": 1483
+          }
+        }
       }
     },
     {
       "i": 12,
       "ts": "2026-09-12T13:58:02.000-04:00",
       "rpp1": {
-        "rms": 0.293,
+        "rms": 0.289,
         "rpm": 1797,
         "bpfi": {
-          "detected": true,
-          "hz": 161.5,
-          "strength": "envelope"
+          "detected": false,
+          "hz": null,
+          "strength": null
         },
         "bpfo": {
-          "detected": true,
-          "hz": 102.0,
-          "strength": "envelope"
+          "detected": false,
+          "hz": null,
+          "strength": null
         },
-        "fault": "inner_race",
+        "fault": null,
         "engine": "envelope",
         "source": "cwru:105.mat:X105_DE_time",
         "window": "2.00..4.00",
         "file": "105.mat",
         "channel": "X105_DE_time",
-        "fs_hz": 12000
+        "fs_hz": 12000,
+        "bus_w": 79.2,
+        "joint1_a": 0.398
       },
       "t1": {
         "cycle_s": 2.0,
         "busy": 0,
-        "job_id": 61,
+        "job_id": 81,
+        "torque_nm": 0.0,
+        "spindle_rpm": 0,
         "source": "vlft:process",
         "part": "T_Machine_Static"
+      },
+      "assets": {
+        "T1": {
+          "part": "T_Machine_Static",
+          "source": "vlft:process",
+          "cycle_s": 2.0,
+          "busy": 0,
+          "job_id": 81,
+          "torque_nm": 0.0,
+          "spindle_rpm": 0,
+          "tags": {
+            "cycle_s": 2.0,
+            "busy": 0,
+            "job_id": 81,
+            "torque_nm": 0.0,
+            "spindle_rpm": 0
+          }
+        },
+        "PI1": {
+          "part": "PI_Machine_Static",
+          "source": "synthetic:vlft-pi",
+          "cycle_s": 2.0,
+          "busy": 0,
+          "insert_force_n": 0.0,
+          "bowl_on": 0,
+          "tags": {
+            "cycle_s": 2.0,
+            "busy": 0,
+            "insert_force_n": 0.0,
+            "bowl_on": 0
+          }
+        },
+        "PI2": {
+          "part": "PI_Machine_Static",
+          "source": "synthetic:vlft-pi",
+          "cycle_s": 2.0,
+          "busy": 1,
+          "insert_force_n": 182.0,
+          "bowl_on": 1,
+          "tags": {
+            "cycle_s": 2.0,
+            "busy": 1,
+            "insert_force_n": 182.0,
+            "bowl_on": 1
+          }
+        },
+        "PI3": {
+          "part": "PI_Machine_Static",
+          "source": "synthetic:vlft-pi",
+          "cycle_s": 2.0,
+          "busy": 0,
+          "insert_force_n": 0.0,
+          "bowl_on": 0,
+          "tags": {
+            "cycle_s": 2.0,
+            "busy": 0,
+            "insert_force_n": 0.0,
+            "bowl_on": 0
+          }
+        },
+        "PI4": {
+          "part": "PI_Machine_Static",
+          "source": "synthetic:vlft-pi",
+          "cycle_s": 2.0,
+          "busy": 0,
+          "insert_force_n": 0.0,
+          "bowl_on": 0,
+          "tags": {
+            "cycle_s": 2.0,
+            "busy": 0,
+            "insert_force_n": 0.0,
+            "bowl_on": 0
+          }
+        },
+        "R1": {
+          "part": "R_Machine_Static",
+          "source": "synthetic:baltec-en20",
+          "cycle_s": 2.0,
+          "busy": 0,
+          "set_force_n": 0.0,
+          "air_bar": 5.76,
+          "tags": {
+            "cycle_s": 2.0,
+            "busy": 0,
+            "set_force_n": 0.0,
+            "air_bar": 5.76
+          }
+        },
+        "R2": {
+          "part": "R_Machine_Static",
+          "source": "synthetic:baltec-en20",
+          "cycle_s": 2.0,
+          "busy": 1,
+          "set_force_n": 2910.0,
+          "air_bar": 6.05,
+          "tags": {
+            "cycle_s": 2.0,
+            "busy": 1,
+            "set_force_n": 2910.0,
+            "air_bar": 6.05
+          }
+        },
+        "R3": {
+          "part": "R_Machine_Static",
+          "source": "synthetic:baltec-en20",
+          "cycle_s": 2.0,
+          "busy": 0,
+          "set_force_n": 0.0,
+          "air_bar": 5.7,
+          "tags": {
+            "cycle_s": 2.0,
+            "busy": 0,
+            "set_force_n": 0.0,
+            "air_bar": 5.7
+          }
+        },
+        "R4": {
+          "part": "R_Machine_Static",
+          "source": "synthetic:baltec-en20",
+          "cycle_s": 2.0,
+          "busy": 0,
+          "set_force_n": 0.0,
+          "air_bar": 5.75,
+          "tags": {
+            "cycle_s": 2.0,
+            "busy": 0,
+            "set_force_n": 0.0,
+            "air_bar": 5.75
+          }
+        },
+        "PP1": {
+          "part": "PP_Static",
+          "source": "synthetic:vac-gripper",
+          "cycle_s": 2.0,
+          "busy": 0,
+          "vac_kpa": 0.0,
+          "tags": {
+            "cycle_s": 2.0,
+            "busy": 0,
+            "vac_kpa": 0.0
+          }
+        },
+        "PP2": {
+          "part": "PP_Static",
+          "source": "synthetic:vac-gripper",
+          "cycle_s": 2.0,
+          "busy": 1,
+          "vac_kpa": 67.5,
+          "tags": {
+            "cycle_s": 2.0,
+            "busy": 1,
+            "vac_kpa": 67.5
+          }
+        },
+        "PP3": {
+          "part": "PP_Static",
+          "source": "synthetic:vac-gripper",
+          "cycle_s": 2.0,
+          "busy": 1,
+          "vac_kpa": 68.4,
+          "tags": {
+            "cycle_s": 2.0,
+            "busy": 1,
+            "vac_kpa": 68.4
+          }
+        },
+        "PP4": {
+          "part": "PP_Static",
+          "source": "synthetic:vac-gripper",
+          "cycle_s": 2.0,
+          "busy": 0,
+          "vac_kpa": 0.0,
+          "tags": {
+            "cycle_s": 2.0,
+            "busy": 0,
+            "vac_kpa": 0.0
+          }
+        },
+        "PP5": {
+          "part": "PP_Static",
+          "source": "synthetic:vac-gripper",
+          "cycle_s": 2.0,
+          "busy": 0,
+          "vac_kpa": 0.0,
+          "tags": {
+            "cycle_s": 2.0,
+            "busy": 0,
+            "vac_kpa": 0.0
+          }
+        },
+        "PPW1": {
+          "part": "WC1_Static",
+          "source": "synthetic:vac-gripper",
+          "cycle_s": 2.0,
+          "busy": 0,
+          "vac_kpa": 0.0,
+          "tags": {
+            "cycle_s": 2.0,
+            "busy": 0,
+            "vac_kpa": 0.0
+          }
+        },
+        "PPH1": {
+          "part": "WC2_Static",
+          "source": "synthetic:vac-gripper",
+          "cycle_s": 2.0,
+          "busy": 0,
+          "vac_kpa": 0.0,
+          "tags": {
+            "cycle_s": 2.0,
+            "busy": 0,
+            "vac_kpa": 0.0
+          }
+        },
+        "CB1": {
+          "part": "CB_Static",
+          "source": "synthetic:vac-gripper",
+          "cycle_s": 2.0,
+          "busy": 1,
+          "vac_kpa": 76.6,
+          "tags": {
+            "cycle_s": 2.0,
+            "busy": 1,
+            "vac_kpa": 76.6
+          }
+        },
+        "RPP1": {
+          "part": "URjoint1",
+          "source": "synthetic:ur5e-factsheet",
+          "bus_w": 79.2,
+          "joint1_a": 0.398,
+          "tags": {
+            "bus_w": 79.2,
+            "joint1_a": 0.398
+          }
+        },
+        "RT1": {
+          "part": "R_Table",
+          "source": "synthetic:indexer",
+          "cycle_s": 2.0,
+          "busy": 0,
+          "index_rpm": 0,
+          "tags": {
+            "cycle_s": 2.0,
+            "busy": 0,
+            "index_rpm": 0
+          }
+        },
+        "B1": {
+          "part": "belt",
+          "source": "synthetic:dorner-gearmotor",
+          "belt_m_s": 0.149,
+          "motor_a": 1.3,
+          "tags": {
+            "belt_m_s": 0.149,
+            "motor_a": 1.3
+          }
+        },
+        "B2": {
+          "part": "belt",
+          "source": "synthetic:dorner-gearmotor",
+          "belt_m_s": 0.153,
+          "motor_a": 1.18,
+          "tags": {
+            "belt_m_s": 0.153,
+            "motor_a": 1.18
+          }
+        },
+        "B3": {
+          "part": "belt",
+          "source": "synthetic:dorner-gearmotor",
+          "belt_m_s": 0.161,
+          "motor_a": 1.29,
+          "tags": {
+            "belt_m_s": 0.161,
+            "motor_a": 1.29
+          }
+        },
+        "B4": {
+          "part": "belt",
+          "source": "synthetic:dorner-gearmotor",
+          "belt_m_s": 0.152,
+          "motor_a": 1.25,
+          "tags": {
+            "belt_m_s": 0.152,
+            "motor_a": 1.25
+          }
+        },
+        "C1": {
+          "part": "Cs_Camera",
+          "source": "synthetic:aoi-lux",
+          "cycle_s": 2.0,
+          "busy": 1,
+          "lux": 1098,
+          "tags": {
+            "cycle_s": 2.0,
+            "busy": 1,
+            "lux": 1098
+          }
+        },
+        "MTR07-CAD": {
+          "part": "1LE1003-1EB23-4JA4",
+          "source": "synthetic:siemens-1le1003",
+          "current_a": 3.11,
+          "winding_c": 90.8,
+          "rpm": 1505,
+          "tags": {
+            "current_a": 3.11,
+            "winding_c": 90.8,
+            "rpm": 1505
+          }
+        }
       }
     },
     {
       "i": 13,
       "ts": "2026-09-12T13:58:03.000-04:00",
       "rpp1": {
-        "rms": 0.291,
+        "rms": 0.289,
         "rpm": 1797,
         "bpfi": {
-          "detected": true,
-          "hz": 161.5,
-          "strength": "envelope"
+          "detected": false,
+          "hz": null,
+          "strength": null
         },
         "bpfo": {
-          "detected": true,
-          "hz": 102.0,
-          "strength": "envelope"
+          "detected": false,
+          "hz": null,
+          "strength": null
         },
-        "fault": "inner_race",
+        "fault": null,
         "engine": "envelope",
         "source": "cwru:105.mat:X105_DE_time",
         "window": "3.00..5.00",
         "file": "105.mat",
         "channel": "X105_DE_time",
-        "fs_hz": 12000
+        "fs_hz": 12000,
+        "bus_w": 80.9,
+        "joint1_a": 0.395
       },
       "t1": {
         "cycle_s": 2.0,
         "busy": 0,
-        "job_id": 61,
+        "job_id": 81,
+        "torque_nm": 0.0,
+        "spindle_rpm": 0,
         "source": "vlft:process",
         "part": "T_Machine_Static"
+      },
+      "assets": {
+        "T1": {
+          "part": "T_Machine_Static",
+          "source": "vlft:process",
+          "cycle_s": 2.0,
+          "busy": 0,
+          "job_id": 81,
+          "torque_nm": 0.0,
+          "spindle_rpm": 0,
+          "tags": {
+            "cycle_s": 2.0,
+            "busy": 0,
+            "job_id": 81,
+            "torque_nm": 0.0,
+            "spindle_rpm": 0
+          }
+        },
+        "PI1": {
+          "part": "PI_Machine_Static",
+          "source": "synthetic:vlft-pi",
+          "cycle_s": 2.0,
+          "busy": 0,
+          "insert_force_n": 0.0,
+          "bowl_on": 0,
+          "tags": {
+            "cycle_s": 2.0,
+            "busy": 0,
+            "insert_force_n": 0.0,
+            "bowl_on": 0
+          }
+        },
+        "PI2": {
+          "part": "PI_Machine_Static",
+          "source": "synthetic:vlft-pi",
+          "cycle_s": 2.0,
+          "busy": 1,
+          "insert_force_n": 324.0,
+          "bowl_on": 1,
+          "tags": {
+            "cycle_s": 2.0,
+            "busy": 1,
+            "insert_force_n": 324.0,
+            "bowl_on": 1
+          }
+        },
+        "PI3": {
+          "part": "PI_Machine_Static",
+          "source": "synthetic:vlft-pi",
+          "cycle_s": 2.0,
+          "busy": 0,
+          "insert_force_n": 0.0,
+          "bowl_on": 0,
+          "tags": {
+            "cycle_s": 2.0,
+            "busy": 0,
+            "insert_force_n": 0.0,
+            "bowl_on": 0
+          }
+        },
+        "PI4": {
+          "part": "PI_Machine_Static",
+          "source": "synthetic:vlft-pi",
+          "cycle_s": 2.0,
+          "busy": 0,
+          "insert_force_n": 0.0,
+          "bowl_on": 0,
+          "tags": {
+            "cycle_s": 2.0,
+            "busy": 0,
+            "insert_force_n": 0.0,
+            "bowl_on": 0
+          }
+        },
+        "R1": {
+          "part": "R_Machine_Static",
+          "source": "synthetic:baltec-en20",
+          "cycle_s": 2.0,
+          "busy": 0,
+          "set_force_n": 0.0,
+          "air_bar": 5.86,
+          "tags": {
+            "cycle_s": 2.0,
+            "busy": 0,
+            "set_force_n": 0.0,
+            "air_bar": 5.86
+          }
+        },
+        "R2": {
+          "part": "R_Machine_Static",
+          "source": "synthetic:baltec-en20",
+          "cycle_s": 2.0,
+          "busy": 1,
+          "set_force_n": 2100.0,
+          "air_bar": 5.56,
+          "tags": {
+            "cycle_s": 2.0,
+            "busy": 1,
+            "set_force_n": 2100.0,
+            "air_bar": 5.56
+          }
+        },
+        "R3": {
+          "part": "R_Machine_Static",
+          "source": "synthetic:baltec-en20",
+          "cycle_s": 2.0,
+          "busy": 0,
+          "set_force_n": 0.0,
+          "air_bar": 5.79,
+          "tags": {
+            "cycle_s": 2.0,
+            "busy": 0,
+            "set_force_n": 0.0,
+            "air_bar": 5.79
+          }
+        },
+        "R4": {
+          "part": "R_Machine_Static",
+          "source": "synthetic:baltec-en20",
+          "cycle_s": 2.0,
+          "busy": 0,
+          "set_force_n": 0.0,
+          "air_bar": 5.79,
+          "tags": {
+            "cycle_s": 2.0,
+            "busy": 0,
+            "set_force_n": 0.0,
+            "air_bar": 5.79
+          }
+        },
+        "PP1": {
+          "part": "PP_Static",
+          "source": "synthetic:vac-gripper",
+          "cycle_s": 2.0,
+          "busy": 0,
+          "vac_kpa": 0.0,
+          "tags": {
+            "cycle_s": 2.0,
+            "busy": 0,
+            "vac_kpa": 0.0
+          }
+        },
+        "PP2": {
+          "part": "PP_Static",
+          "source": "synthetic:vac-gripper",
+          "cycle_s": 2.0,
+          "busy": 1,
+          "vac_kpa": 63.4,
+          "tags": {
+            "cycle_s": 2.0,
+            "busy": 1,
+            "vac_kpa": 63.4
+          }
+        },
+        "PP3": {
+          "part": "PP_Static",
+          "source": "synthetic:vac-gripper",
+          "cycle_s": 2.0,
+          "busy": 1,
+          "vac_kpa": 65.3,
+          "tags": {
+            "cycle_s": 2.0,
+            "busy": 1,
+            "vac_kpa": 65.3
+          }
+        },
+        "PP4": {
+          "part": "PP_Static",
+          "source": "synthetic:vac-gripper",
+          "cycle_s": 2.0,
+          "busy": 0,
+          "vac_kpa": 0.0,
+          "tags": {
+            "cycle_s": 2.0,
+            "busy": 0,
+            "vac_kpa": 0.0
+          }
+        },
+        "PP5": {
+          "part": "PP_Static",
+          "source": "synthetic:vac-gripper",
+          "cycle_s": 2.0,
+          "busy": 0,
+          "vac_kpa": 0.0,
+          "tags": {
+            "cycle_s": 2.0,
+            "busy": 0,
+            "vac_kpa": 0.0
+          }
+        },
+        "PPW1": {
+          "part": "WC1_Static",
+          "source": "synthetic:vac-gripper",
+          "cycle_s": 2.0,
+          "busy": 0,
+          "vac_kpa": 0.0,
+          "tags": {
+            "cycle_s": 2.0,
+            "busy": 0,
+            "vac_kpa": 0.0
+          }
+        },
+        "PPH1": {
+          "part": "WC2_Static",
+          "source": "synthetic:vac-gripper",
+          "cycle_s": 2.0,
+          "busy": 0,
+          "vac_kpa": 0.0,
+          "tags": {
+            "cycle_s": 2.0,
+            "busy": 0,
+            "vac_kpa": 0.0
+          }
+        },
+        "CB1": {
+          "part": "CB_Static",
+          "source": "synthetic:vac-gripper",
+          "cycle_s": 2.0,
+          "busy": 1,
+          "vac_kpa": 67.1,
+          "tags": {
+            "cycle_s": 2.0,
+            "busy": 1,
+            "vac_kpa": 67.1
+          }
+        },
+        "RPP1": {
+          "part": "URjoint1",
+          "source": "synthetic:ur5e-factsheet",
+          "bus_w": 80.9,
+          "joint1_a": 0.395,
+          "tags": {
+            "bus_w": 80.9,
+            "joint1_a": 0.395
+          }
+        },
+        "RT1": {
+          "part": "R_Table",
+          "source": "synthetic:indexer",
+          "cycle_s": 2.0,
+          "busy": 0,
+          "index_rpm": 0,
+          "tags": {
+            "cycle_s": 2.0,
+            "busy": 0,
+            "index_rpm": 0
+          }
+        },
+        "B1": {
+          "part": "belt",
+          "source": "synthetic:dorner-gearmotor",
+          "belt_m_s": 0.151,
+          "motor_a": 1.15,
+          "tags": {
+            "belt_m_s": 0.151,
+            "motor_a": 1.15
+          }
+        },
+        "B2": {
+          "part": "belt",
+          "source": "synthetic:dorner-gearmotor",
+          "belt_m_s": 0.154,
+          "motor_a": 1.13,
+          "tags": {
+            "belt_m_s": 0.154,
+            "motor_a": 1.13
+          }
+        },
+        "B3": {
+          "part": "belt",
+          "source": "synthetic:dorner-gearmotor",
+          "belt_m_s": 0.152,
+          "motor_a": 1.15,
+          "tags": {
+            "belt_m_s": 0.152,
+            "motor_a": 1.15
+          }
+        },
+        "B4": {
+          "part": "belt",
+          "source": "synthetic:dorner-gearmotor",
+          "belt_m_s": 0.158,
+          "motor_a": 1.25,
+          "tags": {
+            "belt_m_s": 0.158,
+            "motor_a": 1.25
+          }
+        },
+        "C1": {
+          "part": "Cs_Camera",
+          "source": "synthetic:aoi-lux",
+          "cycle_s": 2.0,
+          "busy": 1,
+          "lux": 1321,
+          "tags": {
+            "cycle_s": 2.0,
+            "busy": 1,
+            "lux": 1321
+          }
+        },
+        "MTR07-CAD": {
+          "part": "1LE1003-1EB23-4JA4",
+          "source": "synthetic:siemens-1le1003",
+          "current_a": 3.09,
+          "winding_c": 88.1,
+          "rpm": 1465,
+          "tags": {
+            "current_a": 3.09,
+            "winding_c": 88.1,
+            "rpm": 1465
+          }
+        }
       }
     },
     {
       "i": 14,
       "ts": "2026-09-12T13:58:04.000-04:00",
       "rpp1": {
-        "rms": 0.291,
+        "rms": 0.289,
         "rpm": 1797,
         "bpfi": {
-          "detected": true,
-          "hz": 161.5,
-          "strength": "envelope"
+          "detected": false,
+          "hz": null,
+          "strength": null
         },
         "bpfo": {
-          "detected": true,
-          "hz": 102.0,
-          "strength": "envelope"
+          "detected": false,
+          "hz": null,
+          "strength": null
         },
-        "fault": "inner_race",
+        "fault": null,
         "engine": "envelope",
         "source": "cwru:105.mat:X105_DE_time",
         "window": "4.00..6.00",
         "file": "105.mat",
         "channel": "X105_DE_time",
-        "fs_hz": 12000
+        "fs_hz": 12000,
+        "bus_w": 79.5,
+        "joint1_a": 0.404
       },
       "t1": {
         "cycle_s": 2.0,
         "busy": 0,
-        "job_id": 61,
+        "job_id": 81,
+        "torque_nm": 0.0,
+        "spindle_rpm": 0,
         "source": "vlft:process",
         "part": "T_Machine_Static"
+      },
+      "assets": {
+        "T1": {
+          "part": "T_Machine_Static",
+          "source": "vlft:process",
+          "cycle_s": 2.0,
+          "busy": 0,
+          "job_id": 81,
+          "torque_nm": 0.0,
+          "spindle_rpm": 0,
+          "tags": {
+            "cycle_s": 2.0,
+            "busy": 0,
+            "job_id": 81,
+            "torque_nm": 0.0,
+            "spindle_rpm": 0
+          }
+        },
+        "PI1": {
+          "part": "PI_Machine_Static",
+          "source": "synthetic:vlft-pi",
+          "cycle_s": 2.0,
+          "busy": 1,
+          "insert_force_n": 355.0,
+          "bowl_on": 1,
+          "tags": {
+            "cycle_s": 2.0,
+            "busy": 1,
+            "insert_force_n": 355.0,
+            "bowl_on": 1
+          }
+        },
+        "PI2": {
+          "part": "PI_Machine_Static",
+          "source": "synthetic:vlft-pi",
+          "cycle_s": 2.0,
+          "busy": 0,
+          "insert_force_n": 0.0,
+          "bowl_on": 0,
+          "tags": {
+            "cycle_s": 2.0,
+            "busy": 0,
+            "insert_force_n": 0.0,
+            "bowl_on": 0
+          }
+        },
+        "PI3": {
+          "part": "PI_Machine_Static",
+          "source": "synthetic:vlft-pi",
+          "cycle_s": 2.0,
+          "busy": 0,
+          "insert_force_n": 0.0,
+          "bowl_on": 0,
+          "tags": {
+            "cycle_s": 2.0,
+            "busy": 0,
+            "insert_force_n": 0.0,
+            "bowl_on": 0
+          }
+        },
+        "PI4": {
+          "part": "PI_Machine_Static",
+          "source": "synthetic:vlft-pi",
+          "cycle_s": 2.0,
+          "busy": 1,
+          "insert_force_n": 314.0,
+          "bowl_on": 1,
+          "tags": {
+            "cycle_s": 2.0,
+            "busy": 1,
+            "insert_force_n": 314.0,
+            "bowl_on": 1
+          }
+        },
+        "R1": {
+          "part": "R_Machine_Static",
+          "source": "synthetic:baltec-en20",
+          "cycle_s": 2.0,
+          "busy": 1,
+          "set_force_n": 3440.0,
+          "air_bar": 5.85,
+          "tags": {
+            "cycle_s": 2.0,
+            "busy": 1,
+            "set_force_n": 3440.0,
+            "air_bar": 5.85
+          }
+        },
+        "R2": {
+          "part": "R_Machine_Static",
+          "source": "synthetic:baltec-en20",
+          "cycle_s": 2.0,
+          "busy": 0,
+          "set_force_n": 0.0,
+          "air_bar": 5.92,
+          "tags": {
+            "cycle_s": 2.0,
+            "busy": 0,
+            "set_force_n": 0.0,
+            "air_bar": 5.92
+          }
+        },
+        "R3": {
+          "part": "R_Machine_Static",
+          "source": "synthetic:baltec-en20",
+          "cycle_s": 2.0,
+          "busy": 0,
+          "set_force_n": 0.0,
+          "air_bar": 5.88,
+          "tags": {
+            "cycle_s": 2.0,
+            "busy": 0,
+            "set_force_n": 0.0,
+            "air_bar": 5.88
+          }
+        },
+        "R4": {
+          "part": "R_Machine_Static",
+          "source": "synthetic:baltec-en20",
+          "cycle_s": 2.0,
+          "busy": 1,
+          "set_force_n": 3680.0,
+          "air_bar": 5.73,
+          "tags": {
+            "cycle_s": 2.0,
+            "busy": 1,
+            "set_force_n": 3680.0,
+            "air_bar": 5.73
+          }
+        },
+        "PP1": {
+          "part": "PP_Static",
+          "source": "synthetic:vac-gripper",
+          "cycle_s": 2.0,
+          "busy": 1,
+          "vac_kpa": 77.7,
+          "tags": {
+            "cycle_s": 2.0,
+            "busy": 1,
+            "vac_kpa": 77.7
+          }
+        },
+        "PP2": {
+          "part": "PP_Static",
+          "source": "synthetic:vac-gripper",
+          "cycle_s": 2.0,
+          "busy": 0,
+          "vac_kpa": 0.0,
+          "tags": {
+            "cycle_s": 2.0,
+            "busy": 0,
+            "vac_kpa": 0.0
+          }
+        },
+        "PP3": {
+          "part": "PP_Static",
+          "source": "synthetic:vac-gripper",
+          "cycle_s": 2.0,
+          "busy": 0,
+          "vac_kpa": 0.0,
+          "tags": {
+            "cycle_s": 2.0,
+            "busy": 0,
+            "vac_kpa": 0.0
+          }
+        },
+        "PP4": {
+          "part": "PP_Static",
+          "source": "synthetic:vac-gripper",
+          "cycle_s": 2.0,
+          "busy": 0,
+          "vac_kpa": 0.0,
+          "tags": {
+            "cycle_s": 2.0,
+            "busy": 0,
+            "vac_kpa": 0.0
+          }
+        },
+        "PP5": {
+          "part": "PP_Static",
+          "source": "synthetic:vac-gripper",
+          "cycle_s": 2.0,
+          "busy": 1,
+          "vac_kpa": 76.7,
+          "tags": {
+            "cycle_s": 2.0,
+            "busy": 1,
+            "vac_kpa": 76.7
+          }
+        },
+        "PPW1": {
+          "part": "WC1_Static",
+          "source": "synthetic:vac-gripper",
+          "cycle_s": 2.0,
+          "busy": 0,
+          "vac_kpa": 0.0,
+          "tags": {
+            "cycle_s": 2.0,
+            "busy": 0,
+            "vac_kpa": 0.0
+          }
+        },
+        "PPH1": {
+          "part": "WC2_Static",
+          "source": "synthetic:vac-gripper",
+          "cycle_s": 2.0,
+          "busy": 0,
+          "vac_kpa": 0.0,
+          "tags": {
+            "cycle_s": 2.0,
+            "busy": 0,
+            "vac_kpa": 0.0
+          }
+        },
+        "CB1": {
+          "part": "CB_Static",
+          "source": "synthetic:vac-gripper",
+          "cycle_s": 2.0,
+          "busy": 0,
+          "vac_kpa": 0.0,
+          "tags": {
+            "cycle_s": 2.0,
+            "busy": 0,
+            "vac_kpa": 0.0
+          }
+        },
+        "RPP1": {
+          "part": "URjoint1",
+          "source": "synthetic:ur5e-factsheet",
+          "bus_w": 79.5,
+          "joint1_a": 0.404,
+          "tags": {
+            "bus_w": 79.5,
+            "joint1_a": 0.404
+          }
+        },
+        "RT1": {
+          "part": "R_Table",
+          "source": "synthetic:indexer",
+          "cycle_s": 2.0,
+          "busy": 0,
+          "index_rpm": 0,
+          "tags": {
+            "cycle_s": 2.0,
+            "busy": 0,
+            "index_rpm": 0
+          }
+        },
+        "B1": {
+          "part": "belt",
+          "source": "synthetic:dorner-gearmotor",
+          "belt_m_s": 0.149,
+          "motor_a": 1.16,
+          "tags": {
+            "belt_m_s": 0.149,
+            "motor_a": 1.16
+          }
+        },
+        "B2": {
+          "part": "belt",
+          "source": "synthetic:dorner-gearmotor",
+          "belt_m_s": 0.159,
+          "motor_a": 1.18,
+          "tags": {
+            "belt_m_s": 0.159,
+            "motor_a": 1.18
+          }
+        },
+        "B3": {
+          "part": "belt",
+          "source": "synthetic:dorner-gearmotor",
+          "belt_m_s": 0.156,
+          "motor_a": 1.26,
+          "tags": {
+            "belt_m_s": 0.156,
+            "motor_a": 1.26
+          }
+        },
+        "B4": {
+          "part": "belt",
+          "source": "synthetic:dorner-gearmotor",
+          "belt_m_s": 0.155,
+          "motor_a": 1.27,
+          "tags": {
+            "belt_m_s": 0.155,
+            "motor_a": 1.27
+          }
+        },
+        "C1": {
+          "part": "Cs_Camera",
+          "source": "synthetic:aoi-lux",
+          "cycle_s": 2.0,
+          "busy": 0,
+          "lux": 914,
+          "tags": {
+            "cycle_s": 2.0,
+            "busy": 0,
+            "lux": 914
+          }
+        },
+        "MTR07-CAD": {
+          "part": "1LE1003-1EB23-4JA4",
+          "source": "synthetic:siemens-1le1003",
+          "current_a": 3.1,
+          "winding_c": 85.4,
+          "rpm": 1512,
+          "tags": {
+            "current_a": 3.1,
+            "winding_c": 85.4,
+            "rpm": 1512
+          }
+        }
       }
     },
     {
       "i": 15,
       "ts": "2026-09-12T13:58:05.000-04:00",
       "rpp1": {
-        "rms": 0.292,
+        "rms": 0.289,
         "rpm": 1797,
         "bpfi": {
-          "detected": true,
-          "hz": 161.5,
-          "strength": "envelope"
+          "detected": false,
+          "hz": null,
+          "strength": null
         },
         "bpfo": {
-          "detected": true,
-          "hz": 102.0,
-          "strength": "envelope"
+          "detected": false,
+          "hz": null,
+          "strength": null
         },
-        "fault": "inner_race",
+        "fault": null,
         "engine": "envelope",
         "source": "cwru:105.mat:X105_DE_time",
         "window": "5.00..7.00",
         "file": "105.mat",
         "channel": "X105_DE_time",
-        "fs_hz": 12000
+        "fs_hz": 12000,
+        "bus_w": 79.3,
+        "joint1_a": 0.4
       },
       "t1": {
         "cycle_s": 2.0,
         "busy": 0,
-        "job_id": 61,
+        "job_id": 81,
+        "torque_nm": 0.0,
+        "spindle_rpm": 0,
         "source": "vlft:process",
         "part": "T_Machine_Static"
+      },
+      "assets": {
+        "T1": {
+          "part": "T_Machine_Static",
+          "source": "vlft:process",
+          "cycle_s": 2.0,
+          "busy": 0,
+          "job_id": 81,
+          "torque_nm": 0.0,
+          "spindle_rpm": 0,
+          "tags": {
+            "cycle_s": 2.0,
+            "busy": 0,
+            "job_id": 81,
+            "torque_nm": 0.0,
+            "spindle_rpm": 0
+          }
+        },
+        "PI1": {
+          "part": "PI_Machine_Static",
+          "source": "synthetic:vlft-pi",
+          "cycle_s": 2.0,
+          "busy": 1,
+          "insert_force_n": 227.0,
+          "bowl_on": 1,
+          "tags": {
+            "cycle_s": 2.0,
+            "busy": 1,
+            "insert_force_n": 227.0,
+            "bowl_on": 1
+          }
+        },
+        "PI2": {
+          "part": "PI_Machine_Static",
+          "source": "synthetic:vlft-pi",
+          "cycle_s": 2.0,
+          "busy": 0,
+          "insert_force_n": 0.0,
+          "bowl_on": 0,
+          "tags": {
+            "cycle_s": 2.0,
+            "busy": 0,
+            "insert_force_n": 0.0,
+            "bowl_on": 0
+          }
+        },
+        "PI3": {
+          "part": "PI_Machine_Static",
+          "source": "synthetic:vlft-pi",
+          "cycle_s": 2.0,
+          "busy": 0,
+          "insert_force_n": 0.0,
+          "bowl_on": 0,
+          "tags": {
+            "cycle_s": 2.0,
+            "busy": 0,
+            "insert_force_n": 0.0,
+            "bowl_on": 0
+          }
+        },
+        "PI4": {
+          "part": "PI_Machine_Static",
+          "source": "synthetic:vlft-pi",
+          "cycle_s": 2.0,
+          "busy": 1,
+          "insert_force_n": 179.0,
+          "bowl_on": 1,
+          "tags": {
+            "cycle_s": 2.0,
+            "busy": 1,
+            "insert_force_n": 179.0,
+            "bowl_on": 1
+          }
+        },
+        "R1": {
+          "part": "R_Machine_Static",
+          "source": "synthetic:baltec-en20",
+          "cycle_s": 2.0,
+          "busy": 1,
+          "set_force_n": 1680.0,
+          "air_bar": 5.71,
+          "tags": {
+            "cycle_s": 2.0,
+            "busy": 1,
+            "set_force_n": 1680.0,
+            "air_bar": 5.71
+          }
+        },
+        "R2": {
+          "part": "R_Machine_Static",
+          "source": "synthetic:baltec-en20",
+          "cycle_s": 2.0,
+          "busy": 0,
+          "set_force_n": 0.0,
+          "air_bar": 5.79,
+          "tags": {
+            "cycle_s": 2.0,
+            "busy": 0,
+            "set_force_n": 0.0,
+            "air_bar": 5.79
+          }
+        },
+        "R3": {
+          "part": "R_Machine_Static",
+          "source": "synthetic:baltec-en20",
+          "cycle_s": 2.0,
+          "busy": 0,
+          "set_force_n": 0.0,
+          "air_bar": 5.78,
+          "tags": {
+            "cycle_s": 2.0,
+            "busy": 0,
+            "set_force_n": 0.0,
+            "air_bar": 5.78
+          }
+        },
+        "R4": {
+          "part": "R_Machine_Static",
+          "source": "synthetic:baltec-en20",
+          "cycle_s": 2.0,
+          "busy": 1,
+          "set_force_n": 2260.0,
+          "air_bar": 5.98,
+          "tags": {
+            "cycle_s": 2.0,
+            "busy": 1,
+            "set_force_n": 2260.0,
+            "air_bar": 5.98
+          }
+        },
+        "PP1": {
+          "part": "PP_Static",
+          "source": "synthetic:vac-gripper",
+          "cycle_s": 2.0,
+          "busy": 1,
+          "vac_kpa": 65.3,
+          "tags": {
+            "cycle_s": 2.0,
+            "busy": 1,
+            "vac_kpa": 65.3
+          }
+        },
+        "PP2": {
+          "part": "PP_Static",
+          "source": "synthetic:vac-gripper",
+          "cycle_s": 2.0,
+          "busy": 0,
+          "vac_kpa": 0.0,
+          "tags": {
+            "cycle_s": 2.0,
+            "busy": 0,
+            "vac_kpa": 0.0
+          }
+        },
+        "PP3": {
+          "part": "PP_Static",
+          "source": "synthetic:vac-gripper",
+          "cycle_s": 2.0,
+          "busy": 0,
+          "vac_kpa": 0.0,
+          "tags": {
+            "cycle_s": 2.0,
+            "busy": 0,
+            "vac_kpa": 0.0
+          }
+        },
+        "PP4": {
+          "part": "PP_Static",
+          "source": "synthetic:vac-gripper",
+          "cycle_s": 2.0,
+          "busy": 0,
+          "vac_kpa": 0.0,
+          "tags": {
+            "cycle_s": 2.0,
+            "busy": 0,
+            "vac_kpa": 0.0
+          }
+        },
+        "PP5": {
+          "part": "PP_Static",
+          "source": "synthetic:vac-gripper",
+          "cycle_s": 2.0,
+          "busy": 1,
+          "vac_kpa": 74.4,
+          "tags": {
+            "cycle_s": 2.0,
+            "busy": 1,
+            "vac_kpa": 74.4
+          }
+        },
+        "PPW1": {
+          "part": "WC1_Static",
+          "source": "synthetic:vac-gripper",
+          "cycle_s": 2.0,
+          "busy": 0,
+          "vac_kpa": 0.0,
+          "tags": {
+            "cycle_s": 2.0,
+            "busy": 0,
+            "vac_kpa": 0.0
+          }
+        },
+        "PPH1": {
+          "part": "WC2_Static",
+          "source": "synthetic:vac-gripper",
+          "cycle_s": 2.0,
+          "busy": 0,
+          "vac_kpa": 0.0,
+          "tags": {
+            "cycle_s": 2.0,
+            "busy": 0,
+            "vac_kpa": 0.0
+          }
+        },
+        "CB1": {
+          "part": "CB_Static",
+          "source": "synthetic:vac-gripper",
+          "cycle_s": 2.0,
+          "busy": 0,
+          "vac_kpa": 0.0,
+          "tags": {
+            "cycle_s": 2.0,
+            "busy": 0,
+            "vac_kpa": 0.0
+          }
+        },
+        "RPP1": {
+          "part": "URjoint1",
+          "source": "synthetic:ur5e-factsheet",
+          "bus_w": 79.3,
+          "joint1_a": 0.4,
+          "tags": {
+            "bus_w": 79.3,
+            "joint1_a": 0.4
+          }
+        },
+        "RT1": {
+          "part": "R_Table",
+          "source": "synthetic:indexer",
+          "cycle_s": 2.0,
+          "busy": 0,
+          "index_rpm": 0,
+          "tags": {
+            "cycle_s": 2.0,
+            "busy": 0,
+            "index_rpm": 0
+          }
+        },
+        "B1": {
+          "part": "belt",
+          "source": "synthetic:dorner-gearmotor",
+          "belt_m_s": 0.148,
+          "motor_a": 1.19,
+          "tags": {
+            "belt_m_s": 0.148,
+            "motor_a": 1.19
+          }
+        },
+        "B2": {
+          "part": "belt",
+          "source": "synthetic:dorner-gearmotor",
+          "belt_m_s": 0.16,
+          "motor_a": 1.16,
+          "tags": {
+            "belt_m_s": 0.16,
+            "motor_a": 1.16
+          }
+        },
+        "B3": {
+          "part": "belt",
+          "source": "synthetic:dorner-gearmotor",
+          "belt_m_s": 0.163,
+          "motor_a": 1.19,
+          "tags": {
+            "belt_m_s": 0.163,
+            "motor_a": 1.19
+          }
+        },
+        "B4": {
+          "part": "belt",
+          "source": "synthetic:dorner-gearmotor",
+          "belt_m_s": 0.146,
+          "motor_a": 1.21,
+          "tags": {
+            "belt_m_s": 0.146,
+            "motor_a": 1.21
+          }
+        },
+        "C1": {
+          "part": "Cs_Camera",
+          "source": "synthetic:aoi-lux",
+          "cycle_s": 2.0,
+          "busy": 0,
+          "lux": 907,
+          "tags": {
+            "cycle_s": 2.0,
+            "busy": 0,
+            "lux": 907
+          }
+        },
+        "MTR07-CAD": {
+          "part": "1LE1003-1EB23-4JA4",
+          "source": "synthetic:siemens-1le1003",
+          "current_a": 3.21,
+          "winding_c": 85.1,
+          "rpm": 1475,
+          "tags": {
+            "current_a": 3.21,
+            "winding_c": 85.1,
+            "rpm": 1475
+          }
+        }
       }
     },
     {
       "i": 16,
       "ts": "2026-09-12T13:58:06.000-04:00",
       "rpp1": {
-        "rms": 0.293,
+        "rms": 0.289,
         "rpm": 1797,
         "bpfi": {
-          "detected": true,
-          "hz": 161.5,
-          "strength": "envelope"
+          "detected": false,
+          "hz": null,
+          "strength": null
         },
         "bpfo": {
-          "detected": true,
-          "hz": 102.0,
-          "strength": "envelope"
+          "detected": false,
+          "hz": null,
+          "strength": null
         },
-        "fault": "inner_race",
+        "fault": null,
         "engine": "envelope",
         "source": "cwru:105.mat:X105_DE_time",
         "window": "6.00..8.00",
         "file": "105.mat",
         "channel": "X105_DE_time",
-        "fs_hz": 12000
+        "fs_hz": 12000,
+        "bus_w": 230.0,
+        "joint1_a": 1.88
       },
       "t1": {
         "cycle_s": 2.0,
-        "busy": 0,
-        "job_id": 61,
+        "busy": 1,
+        "job_id": 82,
+        "torque_nm": 1.54,
+        "spindle_rpm": 851,
         "source": "vlft:process",
         "part": "T_Machine_Static"
+      },
+      "assets": {
+        "T1": {
+          "part": "T_Machine_Static",
+          "source": "vlft:process",
+          "cycle_s": 2.0,
+          "busy": 1,
+          "job_id": 82,
+          "torque_nm": 1.54,
+          "spindle_rpm": 851,
+          "tags": {
+            "cycle_s": 2.0,
+            "busy": 1,
+            "job_id": 82,
+            "torque_nm": 1.54,
+            "spindle_rpm": 851
+          }
+        },
+        "PI1": {
+          "part": "PI_Machine_Static",
+          "source": "synthetic:vlft-pi",
+          "cycle_s": 2.0,
+          "busy": 0,
+          "insert_force_n": 0.0,
+          "bowl_on": 0,
+          "tags": {
+            "cycle_s": 2.0,
+            "busy": 0,
+            "insert_force_n": 0.0,
+            "bowl_on": 0
+          }
+        },
+        "PI2": {
+          "part": "PI_Machine_Static",
+          "source": "synthetic:vlft-pi",
+          "cycle_s": 2.0,
+          "busy": 0,
+          "insert_force_n": 0.0,
+          "bowl_on": 0,
+          "tags": {
+            "cycle_s": 2.0,
+            "busy": 0,
+            "insert_force_n": 0.0,
+            "bowl_on": 0
+          }
+        },
+        "PI3": {
+          "part": "PI_Machine_Static",
+          "source": "synthetic:vlft-pi",
+          "cycle_s": 2.0,
+          "busy": 1,
+          "insert_force_n": 247.0,
+          "bowl_on": 1,
+          "tags": {
+            "cycle_s": 2.0,
+            "busy": 1,
+            "insert_force_n": 247.0,
+            "bowl_on": 1
+          }
+        },
+        "PI4": {
+          "part": "PI_Machine_Static",
+          "source": "synthetic:vlft-pi",
+          "cycle_s": 2.0,
+          "busy": 0,
+          "insert_force_n": 0.0,
+          "bowl_on": 0,
+          "tags": {
+            "cycle_s": 2.0,
+            "busy": 0,
+            "insert_force_n": 0.0,
+            "bowl_on": 0
+          }
+        },
+        "R1": {
+          "part": "R_Machine_Static",
+          "source": "synthetic:baltec-en20",
+          "cycle_s": 2.0,
+          "busy": 0,
+          "set_force_n": 0.0,
+          "air_bar": 5.81,
+          "tags": {
+            "cycle_s": 2.0,
+            "busy": 0,
+            "set_force_n": 0.0,
+            "air_bar": 5.81
+          }
+        },
+        "R2": {
+          "part": "R_Machine_Static",
+          "source": "synthetic:baltec-en20",
+          "cycle_s": 2.0,
+          "busy": 0,
+          "set_force_n": 0.0,
+          "air_bar": 5.73,
+          "tags": {
+            "cycle_s": 2.0,
+            "busy": 0,
+            "set_force_n": 0.0,
+            "air_bar": 5.73
+          }
+        },
+        "R3": {
+          "part": "R_Machine_Static",
+          "source": "synthetic:baltec-en20",
+          "cycle_s": 2.0,
+          "busy": 1,
+          "set_force_n": 2980.0,
+          "air_bar": 6.08,
+          "tags": {
+            "cycle_s": 2.0,
+            "busy": 1,
+            "set_force_n": 2980.0,
+            "air_bar": 6.08
+          }
+        },
+        "R4": {
+          "part": "R_Machine_Static",
+          "source": "synthetic:baltec-en20",
+          "cycle_s": 2.0,
+          "busy": 0,
+          "set_force_n": 0.0,
+          "air_bar": 5.71,
+          "tags": {
+            "cycle_s": 2.0,
+            "busy": 0,
+            "set_force_n": 0.0,
+            "air_bar": 5.71
+          }
+        },
+        "PP1": {
+          "part": "PP_Static",
+          "source": "synthetic:vac-gripper",
+          "cycle_s": 2.0,
+          "busy": 0,
+          "vac_kpa": 0.0,
+          "tags": {
+            "cycle_s": 2.0,
+            "busy": 0,
+            "vac_kpa": 0.0
+          }
+        },
+        "PP2": {
+          "part": "PP_Static",
+          "source": "synthetic:vac-gripper",
+          "cycle_s": 2.0,
+          "busy": 0,
+          "vac_kpa": 0.0,
+          "tags": {
+            "cycle_s": 2.0,
+            "busy": 0,
+            "vac_kpa": 0.0
+          }
+        },
+        "PP3": {
+          "part": "PP_Static",
+          "source": "synthetic:vac-gripper",
+          "cycle_s": 2.0,
+          "busy": 0,
+          "vac_kpa": 0.0,
+          "tags": {
+            "cycle_s": 2.0,
+            "busy": 0,
+            "vac_kpa": 0.0
+          }
+        },
+        "PP4": {
+          "part": "PP_Static",
+          "source": "synthetic:vac-gripper",
+          "cycle_s": 2.0,
+          "busy": 1,
+          "vac_kpa": 64.6,
+          "tags": {
+            "cycle_s": 2.0,
+            "busy": 1,
+            "vac_kpa": 64.6
+          }
+        },
+        "PP5": {
+          "part": "PP_Static",
+          "source": "synthetic:vac-gripper",
+          "cycle_s": 2.0,
+          "busy": 0,
+          "vac_kpa": 0.0,
+          "tags": {
+            "cycle_s": 2.0,
+            "busy": 0,
+            "vac_kpa": 0.0
+          }
+        },
+        "PPW1": {
+          "part": "WC1_Static",
+          "source": "synthetic:vac-gripper",
+          "cycle_s": 2.0,
+          "busy": 1,
+          "vac_kpa": 63.9,
+          "tags": {
+            "cycle_s": 2.0,
+            "busy": 1,
+            "vac_kpa": 63.9
+          }
+        },
+        "PPH1": {
+          "part": "WC2_Static",
+          "source": "synthetic:vac-gripper",
+          "cycle_s": 2.0,
+          "busy": 1,
+          "vac_kpa": 74.5,
+          "tags": {
+            "cycle_s": 2.0,
+            "busy": 1,
+            "vac_kpa": 74.5
+          }
+        },
+        "CB1": {
+          "part": "CB_Static",
+          "source": "synthetic:vac-gripper",
+          "cycle_s": 2.0,
+          "busy": 0,
+          "vac_kpa": 0.0,
+          "tags": {
+            "cycle_s": 2.0,
+            "busy": 0,
+            "vac_kpa": 0.0
+          }
+        },
+        "RPP1": {
+          "part": "URjoint1",
+          "source": "synthetic:ur5e-factsheet",
+          "bus_w": 230.0,
+          "joint1_a": 1.88,
+          "tags": {
+            "bus_w": 230.0,
+            "joint1_a": 1.88
+          }
+        },
+        "RT1": {
+          "part": "R_Table",
+          "source": "synthetic:indexer",
+          "cycle_s": 2.0,
+          "busy": 1,
+          "index_rpm": 12,
+          "tags": {
+            "cycle_s": 2.0,
+            "busy": 1,
+            "index_rpm": 12
+          }
+        },
+        "B1": {
+          "part": "belt",
+          "source": "synthetic:dorner-gearmotor",
+          "belt_m_s": 0.146,
+          "motor_a": 1.23,
+          "tags": {
+            "belt_m_s": 0.146,
+            "motor_a": 1.23
+          }
+        },
+        "B2": {
+          "part": "belt",
+          "source": "synthetic:dorner-gearmotor",
+          "belt_m_s": 0.155,
+          "motor_a": 1.15,
+          "tags": {
+            "belt_m_s": 0.155,
+            "motor_a": 1.15
+          }
+        },
+        "B3": {
+          "part": "belt",
+          "source": "synthetic:dorner-gearmotor",
+          "belt_m_s": 0.164,
+          "motor_a": 1.25,
+          "tags": {
+            "belt_m_s": 0.164,
+            "motor_a": 1.25
+          }
+        },
+        "B4": {
+          "part": "belt",
+          "source": "synthetic:dorner-gearmotor",
+          "belt_m_s": 0.147,
+          "motor_a": 1.18,
+          "tags": {
+            "belt_m_s": 0.147,
+            "motor_a": 1.18
+          }
+        },
+        "C1": {
+          "part": "Cs_Camera",
+          "source": "synthetic:aoi-lux",
+          "cycle_s": 2.0,
+          "busy": 0,
+          "lux": 882,
+          "tags": {
+            "cycle_s": 2.0,
+            "busy": 0,
+            "lux": 882
+          }
+        },
+        "MTR07-CAD": {
+          "part": "1LE1003-1EB23-4JA4",
+          "source": "synthetic:siemens-1le1003",
+          "current_a": 3.25,
+          "winding_c": 84.7,
+          "rpm": 1491,
+          "tags": {
+            "current_a": 3.25,
+            "winding_c": 84.7,
+            "rpm": 1491
+          }
+        }
       }
     },
     {
       "i": 17,
       "ts": "2026-09-12T13:58:07.000-04:00",
       "rpp1": {
-        "rms": 0.291,
+        "rms": 0.289,
         "rpm": 1797,
         "bpfi": {
-          "detected": true,
-          "hz": 161.5,
-          "strength": "envelope"
+          "detected": false,
+          "hz": null,
+          "strength": null
         },
         "bpfo": {
-          "detected": true,
-          "hz": 102.0,
-          "strength": "envelope"
+          "detected": false,
+          "hz": null,
+          "strength": null
         },
-        "fault": "inner_race",
+        "fault": null,
         "engine": "envelope",
         "source": "cwru:105.mat:X105_DE_time",
         "window": "7.00..9.00",
         "file": "105.mat",
         "channel": "X105_DE_time",
-        "fs_hz": 12000
+        "fs_hz": 12000,
+        "bus_w": 202.0,
+        "joint1_a": 3.12
       },
       "t1": {
         "cycle_s": 2.0,
-        "busy": 0,
-        "job_id": 61,
+        "busy": 1,
+        "job_id": 82,
+        "torque_nm": 1.55,
+        "spindle_rpm": 668,
         "source": "vlft:process",
         "part": "T_Machine_Static"
+      },
+      "assets": {
+        "T1": {
+          "part": "T_Machine_Static",
+          "source": "vlft:process",
+          "cycle_s": 2.0,
+          "busy": 1,
+          "job_id": 82,
+          "torque_nm": 1.55,
+          "spindle_rpm": 668,
+          "tags": {
+            "cycle_s": 2.0,
+            "busy": 1,
+            "job_id": 82,
+            "torque_nm": 1.55,
+            "spindle_rpm": 668
+          }
+        },
+        "PI1": {
+          "part": "PI_Machine_Static",
+          "source": "synthetic:vlft-pi",
+          "cycle_s": 2.0,
+          "busy": 0,
+          "insert_force_n": 0.0,
+          "bowl_on": 0,
+          "tags": {
+            "cycle_s": 2.0,
+            "busy": 0,
+            "insert_force_n": 0.0,
+            "bowl_on": 0
+          }
+        },
+        "PI2": {
+          "part": "PI_Machine_Static",
+          "source": "synthetic:vlft-pi",
+          "cycle_s": 2.0,
+          "busy": 0,
+          "insert_force_n": 0.0,
+          "bowl_on": 0,
+          "tags": {
+            "cycle_s": 2.0,
+            "busy": 0,
+            "insert_force_n": 0.0,
+            "bowl_on": 0
+          }
+        },
+        "PI3": {
+          "part": "PI_Machine_Static",
+          "source": "synthetic:vlft-pi",
+          "cycle_s": 2.0,
+          "busy": 1,
+          "insert_force_n": 394.0,
+          "bowl_on": 1,
+          "tags": {
+            "cycle_s": 2.0,
+            "busy": 1,
+            "insert_force_n": 394.0,
+            "bowl_on": 1
+          }
+        },
+        "PI4": {
+          "part": "PI_Machine_Static",
+          "source": "synthetic:vlft-pi",
+          "cycle_s": 2.0,
+          "busy": 0,
+          "insert_force_n": 0.0,
+          "bowl_on": 0,
+          "tags": {
+            "cycle_s": 2.0,
+            "busy": 0,
+            "insert_force_n": 0.0,
+            "bowl_on": 0
+          }
+        },
+        "R1": {
+          "part": "R_Machine_Static",
+          "source": "synthetic:baltec-en20",
+          "cycle_s": 2.0,
+          "busy": 0,
+          "set_force_n": 0.0,
+          "air_bar": 5.78,
+          "tags": {
+            "cycle_s": 2.0,
+            "busy": 0,
+            "set_force_n": 0.0,
+            "air_bar": 5.78
+          }
+        },
+        "R2": {
+          "part": "R_Machine_Static",
+          "source": "synthetic:baltec-en20",
+          "cycle_s": 2.0,
+          "busy": 0,
+          "set_force_n": 0.0,
+          "air_bar": 5.79,
+          "tags": {
+            "cycle_s": 2.0,
+            "busy": 0,
+            "set_force_n": 0.0,
+            "air_bar": 5.79
+          }
+        },
+        "R3": {
+          "part": "R_Machine_Static",
+          "source": "synthetic:baltec-en20",
+          "cycle_s": 2.0,
+          "busy": 1,
+          "set_force_n": 2890.0,
+          "air_bar": 5.86,
+          "tags": {
+            "cycle_s": 2.0,
+            "busy": 1,
+            "set_force_n": 2890.0,
+            "air_bar": 5.86
+          }
+        },
+        "R4": {
+          "part": "R_Machine_Static",
+          "source": "synthetic:baltec-en20",
+          "cycle_s": 2.0,
+          "busy": 0,
+          "set_force_n": 0.0,
+          "air_bar": 5.91,
+          "tags": {
+            "cycle_s": 2.0,
+            "busy": 0,
+            "set_force_n": 0.0,
+            "air_bar": 5.91
+          }
+        },
+        "PP1": {
+          "part": "PP_Static",
+          "source": "synthetic:vac-gripper",
+          "cycle_s": 2.0,
+          "busy": 0,
+          "vac_kpa": 0.0,
+          "tags": {
+            "cycle_s": 2.0,
+            "busy": 0,
+            "vac_kpa": 0.0
+          }
+        },
+        "PP2": {
+          "part": "PP_Static",
+          "source": "synthetic:vac-gripper",
+          "cycle_s": 2.0,
+          "busy": 0,
+          "vac_kpa": 0.0,
+          "tags": {
+            "cycle_s": 2.0,
+            "busy": 0,
+            "vac_kpa": 0.0
+          }
+        },
+        "PP3": {
+          "part": "PP_Static",
+          "source": "synthetic:vac-gripper",
+          "cycle_s": 2.0,
+          "busy": 0,
+          "vac_kpa": 0.0,
+          "tags": {
+            "cycle_s": 2.0,
+            "busy": 0,
+            "vac_kpa": 0.0
+          }
+        },
+        "PP4": {
+          "part": "PP_Static",
+          "source": "synthetic:vac-gripper",
+          "cycle_s": 2.0,
+          "busy": 1,
+          "vac_kpa": 78.2,
+          "tags": {
+            "cycle_s": 2.0,
+            "busy": 1,
+            "vac_kpa": 78.2
+          }
+        },
+        "PP5": {
+          "part": "PP_Static",
+          "source": "synthetic:vac-gripper",
+          "cycle_s": 2.0,
+          "busy": 0,
+          "vac_kpa": 0.0,
+          "tags": {
+            "cycle_s": 2.0,
+            "busy": 0,
+            "vac_kpa": 0.0
+          }
+        },
+        "PPW1": {
+          "part": "WC1_Static",
+          "source": "synthetic:vac-gripper",
+          "cycle_s": 2.0,
+          "busy": 1,
+          "vac_kpa": 64.2,
+          "tags": {
+            "cycle_s": 2.0,
+            "busy": 1,
+            "vac_kpa": 64.2
+          }
+        },
+        "PPH1": {
+          "part": "WC2_Static",
+          "source": "synthetic:vac-gripper",
+          "cycle_s": 2.0,
+          "busy": 1,
+          "vac_kpa": 73.4,
+          "tags": {
+            "cycle_s": 2.0,
+            "busy": 1,
+            "vac_kpa": 73.4
+          }
+        },
+        "CB1": {
+          "part": "CB_Static",
+          "source": "synthetic:vac-gripper",
+          "cycle_s": 2.0,
+          "busy": 0,
+          "vac_kpa": 0.0,
+          "tags": {
+            "cycle_s": 2.0,
+            "busy": 0,
+            "vac_kpa": 0.0
+          }
+        },
+        "RPP1": {
+          "part": "URjoint1",
+          "source": "synthetic:ur5e-factsheet",
+          "bus_w": 202.0,
+          "joint1_a": 3.12,
+          "tags": {
+            "bus_w": 202.0,
+            "joint1_a": 3.12
+          }
+        },
+        "RT1": {
+          "part": "R_Table",
+          "source": "synthetic:indexer",
+          "cycle_s": 2.0,
+          "busy": 1,
+          "index_rpm": 10,
+          "tags": {
+            "cycle_s": 2.0,
+            "busy": 1,
+            "index_rpm": 10
+          }
+        },
+        "B1": {
+          "part": "belt",
+          "source": "synthetic:dorner-gearmotor",
+          "belt_m_s": 0.147,
+          "motor_a": 1.19,
+          "tags": {
+            "belt_m_s": 0.147,
+            "motor_a": 1.19
+          }
+        },
+        "B2": {
+          "part": "belt",
+          "source": "synthetic:dorner-gearmotor",
+          "belt_m_s": 0.147,
+          "motor_a": 1.18,
+          "tags": {
+            "belt_m_s": 0.147,
+            "motor_a": 1.18
+          }
+        },
+        "B3": {
+          "part": "belt",
+          "source": "synthetic:dorner-gearmotor",
+          "belt_m_s": 0.156,
+          "motor_a": 1.18,
+          "tags": {
+            "belt_m_s": 0.156,
+            "motor_a": 1.18
+          }
+        },
+        "B4": {
+          "part": "belt",
+          "source": "synthetic:dorner-gearmotor",
+          "belt_m_s": 0.158,
+          "motor_a": 1.24,
+          "tags": {
+            "belt_m_s": 0.158,
+            "motor_a": 1.24
+          }
+        },
+        "C1": {
+          "part": "Cs_Camera",
+          "source": "synthetic:aoi-lux",
+          "cycle_s": 2.0,
+          "busy": 0,
+          "lux": 903,
+          "tags": {
+            "cycle_s": 2.0,
+            "busy": 0,
+            "lux": 903
+          }
+        },
+        "MTR07-CAD": {
+          "part": "1LE1003-1EB23-4JA4",
+          "source": "synthetic:siemens-1le1003",
+          "current_a": 3.14,
+          "winding_c": 80.9,
+          "rpm": 1505,
+          "tags": {
+            "current_a": 3.14,
+            "winding_c": 80.9,
+            "rpm": 1505
+          }
+        }
       }
     },
     {
       "i": 18,
       "ts": "2026-09-12T13:58:08.000-04:00",
       "rpp1": {
-        "rms": 0.291,
+        "rms": 0.289,
         "rpm": 1797,
         "bpfi": {
-          "detected": true,
-          "hz": 161.5,
-          "strength": "envelope"
+          "detected": false,
+          "hz": null,
+          "strength": null
         },
         "bpfo": {
-          "detected": true,
-          "hz": 102.0,
-          "strength": "envelope"
+          "detected": false,
+          "hz": null,
+          "strength": null
         },
-        "fault": "inner_race",
+        "fault": null,
         "engine": "envelope",
         "source": "cwru:105.mat:X105_DE_time",
         "window": "8.00..10.00",
         "file": "105.mat",
         "channel": "X105_DE_time",
-        "fs_hz": 12000
+        "fs_hz": 12000,
+        "bus_w": 81.4,
+        "joint1_a": 0.394
       },
       "t1": {
         "cycle_s": 2.0,
-        "busy": 1,
-        "job_id": 62,
+        "busy": 0,
+        "job_id": 82,
+        "torque_nm": 0.0,
+        "spindle_rpm": 0,
         "source": "vlft:process",
         "part": "T_Machine_Static"
+      },
+      "assets": {
+        "T1": {
+          "part": "T_Machine_Static",
+          "source": "vlft:process",
+          "cycle_s": 2.0,
+          "busy": 0,
+          "job_id": 82,
+          "torque_nm": 0.0,
+          "spindle_rpm": 0,
+          "tags": {
+            "cycle_s": 2.0,
+            "busy": 0,
+            "job_id": 82,
+            "torque_nm": 0.0,
+            "spindle_rpm": 0
+          }
+        },
+        "PI1": {
+          "part": "PI_Machine_Static",
+          "source": "synthetic:vlft-pi",
+          "cycle_s": 2.0,
+          "busy": 0,
+          "insert_force_n": 0.0,
+          "bowl_on": 0,
+          "tags": {
+            "cycle_s": 2.0,
+            "busy": 0,
+            "insert_force_n": 0.0,
+            "bowl_on": 0
+          }
+        },
+        "PI2": {
+          "part": "PI_Machine_Static",
+          "source": "synthetic:vlft-pi",
+          "cycle_s": 2.0,
+          "busy": 1,
+          "insert_force_n": 172.0,
+          "bowl_on": 1,
+          "tags": {
+            "cycle_s": 2.0,
+            "busy": 1,
+            "insert_force_n": 172.0,
+            "bowl_on": 1
+          }
+        },
+        "PI3": {
+          "part": "PI_Machine_Static",
+          "source": "synthetic:vlft-pi",
+          "cycle_s": 2.0,
+          "busy": 0,
+          "insert_force_n": 0.0,
+          "bowl_on": 0,
+          "tags": {
+            "cycle_s": 2.0,
+            "busy": 0,
+            "insert_force_n": 0.0,
+            "bowl_on": 0
+          }
+        },
+        "PI4": {
+          "part": "PI_Machine_Static",
+          "source": "synthetic:vlft-pi",
+          "cycle_s": 2.0,
+          "busy": 0,
+          "insert_force_n": 0.0,
+          "bowl_on": 0,
+          "tags": {
+            "cycle_s": 2.0,
+            "busy": 0,
+            "insert_force_n": 0.0,
+            "bowl_on": 0
+          }
+        },
+        "R1": {
+          "part": "R_Machine_Static",
+          "source": "synthetic:baltec-en20",
+          "cycle_s": 2.0,
+          "busy": 0,
+          "set_force_n": 0.0,
+          "air_bar": 5.81,
+          "tags": {
+            "cycle_s": 2.0,
+            "busy": 0,
+            "set_force_n": 0.0,
+            "air_bar": 5.81
+          }
+        },
+        "R2": {
+          "part": "R_Machine_Static",
+          "source": "synthetic:baltec-en20",
+          "cycle_s": 2.0,
+          "busy": 1,
+          "set_force_n": 1900.0,
+          "air_bar": 5.74,
+          "tags": {
+            "cycle_s": 2.0,
+            "busy": 1,
+            "set_force_n": 1900.0,
+            "air_bar": 5.74
+          }
+        },
+        "R3": {
+          "part": "R_Machine_Static",
+          "source": "synthetic:baltec-en20",
+          "cycle_s": 2.0,
+          "busy": 0,
+          "set_force_n": 0.0,
+          "air_bar": 5.87,
+          "tags": {
+            "cycle_s": 2.0,
+            "busy": 0,
+            "set_force_n": 0.0,
+            "air_bar": 5.87
+          }
+        },
+        "R4": {
+          "part": "R_Machine_Static",
+          "source": "synthetic:baltec-en20",
+          "cycle_s": 2.0,
+          "busy": 0,
+          "set_force_n": 0.0,
+          "air_bar": 5.82,
+          "tags": {
+            "cycle_s": 2.0,
+            "busy": 0,
+            "set_force_n": 0.0,
+            "air_bar": 5.82
+          }
+        },
+        "PP1": {
+          "part": "PP_Static",
+          "source": "synthetic:vac-gripper",
+          "cycle_s": 2.0,
+          "busy": 0,
+          "vac_kpa": 0.0,
+          "tags": {
+            "cycle_s": 2.0,
+            "busy": 0,
+            "vac_kpa": 0.0
+          }
+        },
+        "PP2": {
+          "part": "PP_Static",
+          "source": "synthetic:vac-gripper",
+          "cycle_s": 2.0,
+          "busy": 1,
+          "vac_kpa": 73.2,
+          "tags": {
+            "cycle_s": 2.0,
+            "busy": 1,
+            "vac_kpa": 73.2
+          }
+        },
+        "PP3": {
+          "part": "PP_Static",
+          "source": "synthetic:vac-gripper",
+          "cycle_s": 2.0,
+          "busy": 1,
+          "vac_kpa": 61.1,
+          "tags": {
+            "cycle_s": 2.0,
+            "busy": 1,
+            "vac_kpa": 61.1
+          }
+        },
+        "PP4": {
+          "part": "PP_Static",
+          "source": "synthetic:vac-gripper",
+          "cycle_s": 2.0,
+          "busy": 0,
+          "vac_kpa": 0.0,
+          "tags": {
+            "cycle_s": 2.0,
+            "busy": 0,
+            "vac_kpa": 0.0
+          }
+        },
+        "PP5": {
+          "part": "PP_Static",
+          "source": "synthetic:vac-gripper",
+          "cycle_s": 2.0,
+          "busy": 0,
+          "vac_kpa": 0.0,
+          "tags": {
+            "cycle_s": 2.0,
+            "busy": 0,
+            "vac_kpa": 0.0
+          }
+        },
+        "PPW1": {
+          "part": "WC1_Static",
+          "source": "synthetic:vac-gripper",
+          "cycle_s": 2.0,
+          "busy": 0,
+          "vac_kpa": 0.0,
+          "tags": {
+            "cycle_s": 2.0,
+            "busy": 0,
+            "vac_kpa": 0.0
+          }
+        },
+        "PPH1": {
+          "part": "WC2_Static",
+          "source": "synthetic:vac-gripper",
+          "cycle_s": 2.0,
+          "busy": 0,
+          "vac_kpa": 0.0,
+          "tags": {
+            "cycle_s": 2.0,
+            "busy": 0,
+            "vac_kpa": 0.0
+          }
+        },
+        "CB1": {
+          "part": "CB_Static",
+          "source": "synthetic:vac-gripper",
+          "cycle_s": 2.0,
+          "busy": 1,
+          "vac_kpa": 70.9,
+          "tags": {
+            "cycle_s": 2.0,
+            "busy": 1,
+            "vac_kpa": 70.9
+          }
+        },
+        "RPP1": {
+          "part": "URjoint1",
+          "source": "synthetic:ur5e-factsheet",
+          "bus_w": 81.4,
+          "joint1_a": 0.394,
+          "tags": {
+            "bus_w": 81.4,
+            "joint1_a": 0.394
+          }
+        },
+        "RT1": {
+          "part": "R_Table",
+          "source": "synthetic:indexer",
+          "cycle_s": 2.0,
+          "busy": 0,
+          "index_rpm": 0,
+          "tags": {
+            "cycle_s": 2.0,
+            "busy": 0,
+            "index_rpm": 0
+          }
+        },
+        "B1": {
+          "part": "belt",
+          "source": "synthetic:dorner-gearmotor",
+          "belt_m_s": 0.16,
+          "motor_a": 1.24,
+          "tags": {
+            "belt_m_s": 0.16,
+            "motor_a": 1.24
+          }
+        },
+        "B2": {
+          "part": "belt",
+          "source": "synthetic:dorner-gearmotor",
+          "belt_m_s": 0.159,
+          "motor_a": 1.25,
+          "tags": {
+            "belt_m_s": 0.159,
+            "motor_a": 1.25
+          }
+        },
+        "B3": {
+          "part": "belt",
+          "source": "synthetic:dorner-gearmotor",
+          "belt_m_s": 0.153,
+          "motor_a": 1.26,
+          "tags": {
+            "belt_m_s": 0.153,
+            "motor_a": 1.26
+          }
+        },
+        "B4": {
+          "part": "belt",
+          "source": "synthetic:dorner-gearmotor",
+          "belt_m_s": 0.147,
+          "motor_a": 1.23,
+          "tags": {
+            "belt_m_s": 0.147,
+            "motor_a": 1.23
+          }
+        },
+        "C1": {
+          "part": "Cs_Camera",
+          "source": "synthetic:aoi-lux",
+          "cycle_s": 2.0,
+          "busy": 1,
+          "lux": 924,
+          "tags": {
+            "cycle_s": 2.0,
+            "busy": 1,
+            "lux": 924
+          }
+        },
+        "MTR07-CAD": {
+          "part": "1LE1003-1EB23-4JA4",
+          "source": "synthetic:siemens-1le1003",
+          "current_a": 3.23,
+          "winding_c": 89.8,
+          "rpm": 1487,
+          "tags": {
+            "current_a": 3.23,
+            "winding_c": 89.8,
+            "rpm": 1487
+          }
+        }
       }
     },
     {
       "i": 19,
       "ts": "2026-09-12T13:58:09.000-04:00",
       "rpp1": {
-        "rms": 0.292,
+        "rms": 0.289,
         "rpm": 1797,
         "bpfi": {
-          "detected": true,
-          "hz": 161.5,
-          "strength": "envelope"
+          "detected": false,
+          "hz": null,
+          "strength": null
         },
         "bpfo": {
-          "detected": true,
-          "hz": 102.0,
-          "strength": "envelope"
+          "detected": false,
+          "hz": null,
+          "strength": null
         },
-        "fault": "inner_race",
+        "fault": null,
         "engine": "envelope",
         "source": "cwru:105.mat:X105_DE_time",
         "window": "0.87..2.87",
         "file": "105.mat",
         "channel": "X105_DE_time",
-        "fs_hz": 12000
+        "fs_hz": 12000,
+        "bus_w": 81.5,
+        "joint1_a": 0.408
       },
       "t1": {
         "cycle_s": 2.0,
-        "busy": 1,
-        "job_id": 62,
+        "busy": 0,
+        "job_id": 82,
+        "torque_nm": 0.0,
+        "spindle_rpm": 0,
         "source": "vlft:process",
         "part": "T_Machine_Static"
+      },
+      "assets": {
+        "T1": {
+          "part": "T_Machine_Static",
+          "source": "vlft:process",
+          "cycle_s": 2.0,
+          "busy": 0,
+          "job_id": 82,
+          "torque_nm": 0.0,
+          "spindle_rpm": 0,
+          "tags": {
+            "cycle_s": 2.0,
+            "busy": 0,
+            "job_id": 82,
+            "torque_nm": 0.0,
+            "spindle_rpm": 0
+          }
+        },
+        "PI1": {
+          "part": "PI_Machine_Static",
+          "source": "synthetic:vlft-pi",
+          "cycle_s": 2.0,
+          "busy": 0,
+          "insert_force_n": 0.0,
+          "bowl_on": 0,
+          "tags": {
+            "cycle_s": 2.0,
+            "busy": 0,
+            "insert_force_n": 0.0,
+            "bowl_on": 0
+          }
+        },
+        "PI2": {
+          "part": "PI_Machine_Static",
+          "source": "synthetic:vlft-pi",
+          "cycle_s": 2.0,
+          "busy": 1,
+          "insert_force_n": 276.0,
+          "bowl_on": 1,
+          "tags": {
+            "cycle_s": 2.0,
+            "busy": 1,
+            "insert_force_n": 276.0,
+            "bowl_on": 1
+          }
+        },
+        "PI3": {
+          "part": "PI_Machine_Static",
+          "source": "synthetic:vlft-pi",
+          "cycle_s": 2.0,
+          "busy": 0,
+          "insert_force_n": 0.0,
+          "bowl_on": 0,
+          "tags": {
+            "cycle_s": 2.0,
+            "busy": 0,
+            "insert_force_n": 0.0,
+            "bowl_on": 0
+          }
+        },
+        "PI4": {
+          "part": "PI_Machine_Static",
+          "source": "synthetic:vlft-pi",
+          "cycle_s": 2.0,
+          "busy": 0,
+          "insert_force_n": 0.0,
+          "bowl_on": 0,
+          "tags": {
+            "cycle_s": 2.0,
+            "busy": 0,
+            "insert_force_n": 0.0,
+            "bowl_on": 0
+          }
+        },
+        "R1": {
+          "part": "R_Machine_Static",
+          "source": "synthetic:baltec-en20",
+          "cycle_s": 2.0,
+          "busy": 0,
+          "set_force_n": 0.0,
+          "air_bar": 5.75,
+          "tags": {
+            "cycle_s": 2.0,
+            "busy": 0,
+            "set_force_n": 0.0,
+            "air_bar": 5.75
+          }
+        },
+        "R2": {
+          "part": "R_Machine_Static",
+          "source": "synthetic:baltec-en20",
+          "cycle_s": 2.0,
+          "busy": 1,
+          "set_force_n": 3890.0,
+          "air_bar": 5.57,
+          "tags": {
+            "cycle_s": 2.0,
+            "busy": 1,
+            "set_force_n": 3890.0,
+            "air_bar": 5.57
+          }
+        },
+        "R3": {
+          "part": "R_Machine_Static",
+          "source": "synthetic:baltec-en20",
+          "cycle_s": 2.0,
+          "busy": 0,
+          "set_force_n": 0.0,
+          "air_bar": 5.89,
+          "tags": {
+            "cycle_s": 2.0,
+            "busy": 0,
+            "set_force_n": 0.0,
+            "air_bar": 5.89
+          }
+        },
+        "R4": {
+          "part": "R_Machine_Static",
+          "source": "synthetic:baltec-en20",
+          "cycle_s": 2.0,
+          "busy": 0,
+          "set_force_n": 0.0,
+          "air_bar": 5.84,
+          "tags": {
+            "cycle_s": 2.0,
+            "busy": 0,
+            "set_force_n": 0.0,
+            "air_bar": 5.84
+          }
+        },
+        "PP1": {
+          "part": "PP_Static",
+          "source": "synthetic:vac-gripper",
+          "cycle_s": 2.0,
+          "busy": 0,
+          "vac_kpa": 0.0,
+          "tags": {
+            "cycle_s": 2.0,
+            "busy": 0,
+            "vac_kpa": 0.0
+          }
+        },
+        "PP2": {
+          "part": "PP_Static",
+          "source": "synthetic:vac-gripper",
+          "cycle_s": 2.0,
+          "busy": 1,
+          "vac_kpa": 70.9,
+          "tags": {
+            "cycle_s": 2.0,
+            "busy": 1,
+            "vac_kpa": 70.9
+          }
+        },
+        "PP3": {
+          "part": "PP_Static",
+          "source": "synthetic:vac-gripper",
+          "cycle_s": 2.0,
+          "busy": 1,
+          "vac_kpa": 70.4,
+          "tags": {
+            "cycle_s": 2.0,
+            "busy": 1,
+            "vac_kpa": 70.4
+          }
+        },
+        "PP4": {
+          "part": "PP_Static",
+          "source": "synthetic:vac-gripper",
+          "cycle_s": 2.0,
+          "busy": 0,
+          "vac_kpa": 0.0,
+          "tags": {
+            "cycle_s": 2.0,
+            "busy": 0,
+            "vac_kpa": 0.0
+          }
+        },
+        "PP5": {
+          "part": "PP_Static",
+          "source": "synthetic:vac-gripper",
+          "cycle_s": 2.0,
+          "busy": 0,
+          "vac_kpa": 0.0,
+          "tags": {
+            "cycle_s": 2.0,
+            "busy": 0,
+            "vac_kpa": 0.0
+          }
+        },
+        "PPW1": {
+          "part": "WC1_Static",
+          "source": "synthetic:vac-gripper",
+          "cycle_s": 2.0,
+          "busy": 0,
+          "vac_kpa": 0.0,
+          "tags": {
+            "cycle_s": 2.0,
+            "busy": 0,
+            "vac_kpa": 0.0
+          }
+        },
+        "PPH1": {
+          "part": "WC2_Static",
+          "source": "synthetic:vac-gripper",
+          "cycle_s": 2.0,
+          "busy": 0,
+          "vac_kpa": 0.0,
+          "tags": {
+            "cycle_s": 2.0,
+            "busy": 0,
+            "vac_kpa": 0.0
+          }
+        },
+        "CB1": {
+          "part": "CB_Static",
+          "source": "synthetic:vac-gripper",
+          "cycle_s": 2.0,
+          "busy": 1,
+          "vac_kpa": 78.3,
+          "tags": {
+            "cycle_s": 2.0,
+            "busy": 1,
+            "vac_kpa": 78.3
+          }
+        },
+        "RPP1": {
+          "part": "URjoint1",
+          "source": "synthetic:ur5e-factsheet",
+          "bus_w": 81.5,
+          "joint1_a": 0.408,
+          "tags": {
+            "bus_w": 81.5,
+            "joint1_a": 0.408
+          }
+        },
+        "RT1": {
+          "part": "R_Table",
+          "source": "synthetic:indexer",
+          "cycle_s": 2.0,
+          "busy": 0,
+          "index_rpm": 0,
+          "tags": {
+            "cycle_s": 2.0,
+            "busy": 0,
+            "index_rpm": 0
+          }
+        },
+        "B1": {
+          "part": "belt",
+          "source": "synthetic:dorner-gearmotor",
+          "belt_m_s": 0.163,
+          "motor_a": 1.19,
+          "tags": {
+            "belt_m_s": 0.163,
+            "motor_a": 1.19
+          }
+        },
+        "B2": {
+          "part": "belt",
+          "source": "synthetic:dorner-gearmotor",
+          "belt_m_s": 0.146,
+          "motor_a": 1.2,
+          "tags": {
+            "belt_m_s": 0.146,
+            "motor_a": 1.2
+          }
+        },
+        "B3": {
+          "part": "belt",
+          "source": "synthetic:dorner-gearmotor",
+          "belt_m_s": 0.156,
+          "motor_a": 1.24,
+          "tags": {
+            "belt_m_s": 0.156,
+            "motor_a": 1.24
+          }
+        },
+        "B4": {
+          "part": "belt",
+          "source": "synthetic:dorner-gearmotor",
+          "belt_m_s": 0.146,
+          "motor_a": 1.16,
+          "tags": {
+            "belt_m_s": 0.146,
+            "motor_a": 1.16
+          }
+        },
+        "C1": {
+          "part": "Cs_Camera",
+          "source": "synthetic:aoi-lux",
+          "cycle_s": 2.0,
+          "busy": 1,
+          "lux": 986,
+          "tags": {
+            "cycle_s": 2.0,
+            "busy": 1,
+            "lux": 986
+          }
+        },
+        "MTR07-CAD": {
+          "part": "1LE1003-1EB23-4JA4",
+          "source": "synthetic:siemens-1le1003",
+          "current_a": 3.19,
+          "winding_c": 77.1,
+          "rpm": 1506,
+          "tags": {
+            "current_a": 3.19,
+            "winding_c": 77.1,
+            "rpm": 1506
+          }
+        }
       }
     }
   ],
@@ -687,7 +7237,7 @@
     "flag": "BPFI",
     "fault": "inner_race",
     "rms_g": 0.289,
-    "bpxx_hz": 161.5,
+    "bpxx_hz": null,
     "rpm": 1797,
     "source": "cwru:105.mat:X105_DE_time",
     "window": "0.00..2.00",

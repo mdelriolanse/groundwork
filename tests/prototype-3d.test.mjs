@@ -15,17 +15,14 @@ test("incident detail embeds an accessible Three.js inspection panel with load s
     "incident detail must expose a semantically labelled 3D inspection panel",
   );
 
-  const frame = incidentDetail.match(/<iframe\b[^>]*>/i)?.[0];
-  assert.ok(frame, "3D inspection panel must embed the existing twin");
-  const src = frame.match(/\bsrc=["']([^"']+)["']/i)?.[1] ?? "";
-  assert.match(src, /\/twin\//, "embedded view must use the existing twin route");
-  assert.match(src, /item\.asset/, "twin route must receive the selected incident asset");
-  assert.match(src, /item\.component/, "twin route must receive the selected incident component");
-  assert.match(frame, /\btitle=["'][^"']+["']/i, "embedded twin needs an accessible title");
+  assert.match(incidentDetail, /data-part-mount/, "3D inspection panel must mount the shared part twin");
+  assert.match(prototype, /partRequest[\s\S]{0,400}\/incidents\//, "incident routes must request the part twin");
+  assert.match(prototype, /view:\s*["']part["']/, "part twin must load in part mode");
+  assert.match(prototype, /twinOrigin.*\/twin\//, "part frame must use the twin origin route");
 
   assert.match(prototype, /<[^>]+\brole=["']status["'][^>]+\baria-live=["'](?:polite|assertive)["'][^>]*>/i, "twin state must be announced accessibly");
-  assert.match(prototype, /loading[^\n]{0,80}3D|3D[^\n]{0,80}loading/i, "loading state must be visible");
-  assert.match(prototype, /(?:failed|unable|unavailable)[^\n]{0,80}3D|3D[^\n]{0,80}(?:failed|unable|unavailable)/i, "failure state must be visible");
+  assert.match(prototype, /loading[^\n]{0,80}3D|3D[^\n]{0,80}loading|Loading…/i, "loading state must be visible");
+  assert.match(prototype, /(?:failed|unable|unavailable)[^\n]{0,80}(?:3D|geometry)|(?:3D|geometry)[^\n]{0,80}(?:failed|unable|unavailable)/i, "failure state must be visible");
 });
 
 
@@ -149,7 +146,7 @@ test("3D inspection expansion and mapped issue controls are accessible by mouse 
   const escapedTargetAction = targetAction.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
   assert.match(
     prototype,
-    new RegExp(`action\\s*===\\s*["']${escapedTargetAction}["'][\\s\\S]{0,1400}__twin(?:\\?\\.|\\.)lightPart\\s*\\(\\s*[^,]*(?:inspectionAsset|asset)[^,]*,\\s*[^)]*(?:inspectionComponent|component|part)`),
+    new RegExp(`action\\s*===\\s*["']${escapedTargetAction}["'][\\s\\S]{0,1400}(?:twin:light|postMessage).*part`),
     "activating the named-location button must tell the embedded real twin to light the mapped named component",
   );
   assert.doesNotMatch(
@@ -161,21 +158,18 @@ test("3D inspection expansion and mapped issue controls are accessible by mouse 
 
 test("cross-origin twin embed uses app port and a validated focus/light/ready message bridge", () => {
   assert.ok(incidentStart >= 0 && incidentEnd > incidentStart, "incident-detail inspection source must be discoverable");
-  const inspection = incidentDetail;
-  const frame = inspection.match(/<iframe\b[^>]*>/i)?.[0] ?? "";
-  const src = frame.match(/\bsrc=["']([^"']+)["']/i)?.[1] ?? "";
 
   assert.ok(
     /(?:location\.protocol[\s\S]{0,160})?location\.hostname[\s\S]{0,160}(?::|port\s*=\s*["'])8765|8765[\s\S]{0,160}location\.hostname/.test(prototype),
     "twin URL must preserve the current hostname and use the live app port 8765",
   );
-  assert.match(src, /(?:8765|\$\{[^}]*(?:twin|viewer)[^}]*\})[\s\S]*\/twin\//i, "iframe must use the cross-origin twin URL");
-  assert.doesNotMatch(src, /(?:127\.0\.0\.1|localhost)/i, "iframe hostname must not be hard-coded");
+  assert.match(prototype, /\$\{twinOrigin\}\/twin\/\?/, "part frame must use the cross-origin twin URL");
+  assert.doesNotMatch(prototype, /frame\.src\s*=\s*["'][^"']*(?:127\.0\.0\.1|localhost)/i, "iframe hostname must not be hard-coded");
   assert.match(prototype, /fetch\s*\(\s*["'`]\/api\/board(?:[?"'`])/, "same-origin board API integration must remain relative");
 
   assert.doesNotMatch(prototype, /contentWindow\s*(?:\?\.|\.)\s*__twin/, "parent must not access cross-origin iframe properties");
   assert.match(prototype, /addEventListener\s*\(\s*["']message["']/, "parent must receive twin messages");
-  assert.match(prototype, /\.source\s*!==?\s*twinFrame\.contentWindow/, "parent must reject messages from other windows");
+  assert.match(prototype, /partFrameWindow\(\)|floorFrameWindow\(\)/, "parent must scope messages to known twin frames");
   assert.match(prototype, /\.origin\s*!==?\s*[A-Za-z_$][\w$]*(?:Origin|ORIGIN)/, "parent must reject messages from other origins");
   assert.match(prototype, /["']twin:ready["']/, "parent must recognize an explicit twin-ready message");
   assert.doesNotMatch(
@@ -184,8 +178,8 @@ test("cross-origin twin embed uses app port and a validated focus/light/ready me
     "iframe load alone must not claim that the twin is ready",
   );
 
-  assert.match(prototype, /["']twin:focus["']/, "parent must send focus through the message protocol");
   assert.match(prototype, /["']twin:light["']/, "parent must send light through the message protocol");
+  assert.match(prototype, /["']twin:issues["']/, "parent must send issues through the message protocol");
   assert.match(prototype, /postMessage\s*\(/, "parent must send commands with postMessage");
   assert.match(twin, /addEventListener\s*\(\s*["']message["']/, "twin must receive parent commands");
   assert.match(twin, /\.source\s*!==?\s*(?:window\.)?parent/, "twin must reject commands from other windows");
@@ -237,21 +231,54 @@ test("prototype board fetch uses twin origin and board CORS only trusts same-hos
       "unrelated, non-read-only, and originless clients must not receive a CORS grant",
     );
   }
+
+  const detectAllowed = headersFor({
+    method: "POST",
+    pathname: "/api/detect",
+    host: "spark.local:8765",
+    origin: allowedOrigin,
+  });
+  assert.equal(detectAllowed["access-control-allow-origin"], allowedOrigin, "same-host prototype may POST detect");
+  assert.equal(
+    headersFor({ method: "POST", pathname: "/api/detect", host: "spark.local:8765", origin: "http://attacker.example:4173" })["access-control-allow-origin"],
+    undefined,
+  );
+});
+
+test("parent posts twin:issues from board and twin keeps issues across part:clear", () => {
+  assert.match(prototype, /["']twin:issues["']/, "parent must send sqlite issues through the message protocol");
+  assert.match(prototype, /postDetectOnce|\/api\/detect/, "tape must write the detect bus once at flag_at");
+  assert.match(twin, /["']twin:issues["']/, "twin must listen for twin:issues");
+  assert.match(twin, /issueCriticalMat|issueWarningMat|issueMat/, "twin must have a distinct issue material");
+  assert.match(twin, /sensorMat/, "sensor-bound parts get a distinct neutral material");
+  assert.match(twin, /sensorPartNode|rec\?\.part/, "sensor paint comes from asset-map part");
+  assert.match(twin, /setIssues|issueNodes/, "twin must track issue nodes separately from selection");
+  const clearIdx = twin.indexOf('type === "twin:part:clear"');
+  assert.ok(clearIdx >= 0, "twin must handle twin:part:clear");
+  const clearBlock = twin.slice(clearIdx, clearIdx + 120);
+  assert.match(clearBlock, /highlightPart\s*\(\s*null\s*\)/, "part:clear clears selection");
+  assert.doesNotMatch(clearBlock, /issueNodes\s*=\s*\[\]|setIssues\s*\(/, "part:clear must not wipe issue nodes");
+  const aqIdx = twin.indexOf("function applyQueryComponent");
+  assert.ok(aqIdx >= 0, "applyQueryComponent must exist");
+  const aqEnd = twin.indexOf("\nfunction ", aqIdx + 1);
+  const aqBlock = twin.slice(aqIdx, aqEnd > aqIdx ? aqEnd : aqIdx + 400);
+  assert.match(aqBlock, /lightPart\s*\(/, "boot ?component= selects via lightPart");
+  assert.doesNotMatch(aqBlock, /setIssues\s*\(/, "boot ?component= must not invent an issue");
 });
 
 test("3D inspection iframe targets the twin HTML document route with asset and component query", () => {
-  assert.ok(incidentStart >= 0 && incidentEnd > incidentStart, "incident-detail inspection source must be discoverable");
-  const inspection = incidentDetail;
-  const frame = inspection.match(/<iframe\b[^>]*>/i)?.[0] ?? "";
-  const src = frame.match(/\bsrc=["']([^"']+)["']/i)?.[1] ?? "";
-
+  assert.match(prototype, /function partRequest/, "part request helper must exist");
   assert.match(
-    src,
-    /^\$\{twinOrigin\}\/twin\/index\.html\?/,
-    "iframe must load the real twin HTML document instead of the 404 directory route",
+    prototype,
+    /new URLSearchParams\(\{\s*view:\s*["']part["'],\s*asset:\s*wanted/,
+    "part frame must load twin part mode with the selected asset",
   );
-  assert.match(src, /[?&]asset=\$\{encodeURIComponent\(/, "twin document route must retain the selected asset query");
-  assert.match(src, /[?&]component=\$\{encodeURIComponent\(/, "twin document route must retain the selected component query");
+  assert.match(
+    prototype,
+    /wantComponent[\s\S]{0,120}q\.set\(\s*["']component["']/,
+    "part frame must retain the selected component query when present",
+  );
+  assert.match(prototype, /\$\{twinOrigin\}\/twin\/\?\$\{q\}/, "part frame must use the twin document route");
 });
 
 
@@ -279,18 +306,20 @@ test("3D inspection rejects stale board geometry for a different incident target
     "a stale board target must render the honest unavailable state without an issue marker",
   );
 
-  const readyStart = prototype.indexOf("function handleTwinMessage");
-  const readyEnd = prototype.indexOf("function icon", readyStart);
-  const readyHandler = prototype.slice(readyStart, readyEnd);
-  const readyGuard = readyHandler.match(/if\s*\(\s*twinFrame\.dataset\.issueMarker\s*===\s*["']true["']\s*\)\s*\{([\s\S]*?)\}/)?.[1] ?? "";
-  assert.match(readyGuard, /__twin\.lightPart\s*\(/, "unavailable geometry must not send the ready-time highlight command");
+  assert.match(inspection, /issue-marker/, "mapped geometry exposes an issue-marker control");
+  assert.match(
+    inspection,
+    /mappedGeometry\s*\?\s*`[^`]*issue-marker[^`]*`\s*:\s*`[^`]*(?:location unavailable|no mapped geometry)/i,
+    "unavailable geometry must not render the issue-marker control",
+  );
 
   const actionStart = prototype.indexOf('if (action === "focus-inspection-target")');
   const actionEnd = prototype.indexOf('if (action === "view-floor")', actionStart);
   const targetAction = prototype.slice(actionStart, actionEnd);
   assert.match(
     targetAction,
-    /issueMarker\s*===\s*["']true["'][\s\S]*?__twin\.lightPart\s*\(/,
-    "unavailable geometry must not dispatch a forged target action",
+    /req\?\.asset\s*&&\s*req\.component/,
+    "focus-inspection-target must require a mapped asset and component",
   );
+  assert.match(targetAction, /twin:light|postPartIssues/, "mapped focus must light/issue the named part");
 });

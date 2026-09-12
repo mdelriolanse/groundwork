@@ -211,18 +211,29 @@ def diagnose_window(samples, fs: float, rpm: float, signal_id: str) -> dict:
     return {"engine": "envelope", "bpfi": bpfi, "bpfo": bpfo, "fault": fault}
 
 
-def load_l1_by_ts() -> dict[str, dict]:
-    by: dict[str, dict] = {}
+def coerce_tag(tag: str, raw: str):
+    if tag in ("busy", "bowl_on", "job_id"):
+        return int(float(raw))
+    if tag in ("spindle_rpm", "index_rpm", "rpm", "lux"):
+        return int(float(raw))
+    return float(raw)
+
+
+def load_l1_by_ts() -> dict[str, dict[str, dict]]:
+    """ts → asset_id → {part, source, tags…}."""
+    by: dict[str, dict[str, dict]] = {}
     with (SLICE / "l1" / "historian.csv").open(encoding="utf-8", newline="") as fh:
         for row in csv.DictReader(fh):
-            slot = by.setdefault(row["ts"], {"source": row["source"]})
-            tag = row["tag"]
-            if tag == "cycle_s":
-                slot[tag] = float(row["value"])
-            elif tag == "busy":
-                slot[tag] = int(float(row["value"]))
-            elif tag == "job_id":
-                slot[tag] = int(float(row["value"]))
+            assets = by.setdefault(row["ts"], {})
+            slot = assets.setdefault(
+                row["asset_id"],
+                {"part": row["part"], "source": row["source"], "tags": {}},
+            )
+            slot["part"] = row["part"] or slot["part"]
+            slot["source"] = row["source"] or slot["source"]
+            slot["tags"][row["tag"]] = coerce_tag(row["tag"], row["value"])
+            # promote common tags to top-level for UI convenience
+            slot[row["tag"]] = slot["tags"][row["tag"]]
     return by
 
 
@@ -260,10 +271,6 @@ def main() -> None:
     l1 = load_l1_by_ts()
     l2 = json.loads((SLICE / "l2" / "dirty.jsonl").read_text(encoding="utf-8"))
     amap = json.loads(ASSET_MAP.read_text(encoding="utf-8"))
-    names = {
-        "RPP1": "UR pick-and-place",
-        "T1": "Tightener",
-    }
     fleet = []
     rpp1_aliases = {"RPP1"}
     for asset in amap["assets"]:
@@ -272,10 +279,10 @@ def main() -> None:
                 "asset_id": asset["asset_id"],
                 "role": asset["role"],
                 "part": asset["part"],
-                "name": names.get(asset["asset_id"], asset["asset_id"]),
+                "name": asset.get("name") or asset["asset_id"],
                 "source": asset["source"],
                 "aliases": asset.get("aliases") or [],
-                "supported": asset["role"] == "hero",
+                "supported": True,
                 "glb": asset.get("glb"),
             }
         )
@@ -288,7 +295,8 @@ def main() -> None:
     for i, rec in enumerate(l0):
         mat = CWRU / rec["file"]
         key = rec["file"]
-        process = l1.get(rec["ts"]) or {"cycle_s": None, "busy": None, "job_id": None, "source": "vlft:process"}
+        assets_at = l1.get(rec["ts"]) or {}
+        t1 = assets_at.get("T1") or {"cycle_s": None, "busy": None, "job_id": None, "source": "vlft:process", "part": "T_Machine_Static", "tags": {}}
         if per_file and key in file_cache:
             feat = dict(file_cache[key])
         elif not mat.is_file():
@@ -305,6 +313,15 @@ def main() -> None:
             feat["rms"] = sig3(rms_of(samples))
             if per_file:
                 file_cache[key] = dict(feat)
+        # flatten assets for feed: drop nested tags key duplication is ok for UI
+        assets_out = {}
+        for aid, slot in assets_at.items():
+            assets_out[aid] = {
+                "part": slot.get("part"),
+                "source": slot.get("source"),
+                **{k: v for k, v in slot.items() if k not in ("part", "source", "tags")},
+                "tags": slot.get("tags") or {},
+            }
         hops.append(
             {
                 "i": i,
@@ -321,14 +338,19 @@ def main() -> None:
                     "file": rec["file"],
                     "channel": rec["channel"],
                     "fs_hz": rec["fs_hz"],
+                    "bus_w": (assets_at.get("RPP1") or {}).get("bus_w"),
+                    "joint1_a": (assets_at.get("RPP1") or {}).get("joint1_a"),
                 },
                 "t1": {
-                    "cycle_s": process.get("cycle_s"),
-                    "busy": process.get("busy"),
-                    "job_id": process.get("job_id"),
-                    "source": process.get("source", "vlft:process"),
-                    "part": "T_Machine_Static",
+                    "cycle_s": t1.get("cycle_s"),
+                    "busy": t1.get("busy"),
+                    "job_id": t1.get("job_id"),
+                    "torque_nm": t1.get("torque_nm"),
+                    "spindle_rpm": t1.get("spindle_rpm"),
+                    "source": t1.get("source", "vlft:process"),
+                    "part": t1.get("part", "T_Machine_Static"),
                 },
+                "assets": assets_out,
             }
         )
 
@@ -357,7 +379,7 @@ def main() -> None:
             "window_s": manifest["window_s"],
             "flag_at": manifest["flag_at"],
             "flag_hop": manifest["flag_hop"],
-            "honesty": "L1 scalars from CWRU windows. No 12 kHz on the board. T1 is vlft:process.",
+            "honesty": "L1 scalars from CWRU windows for RPP1. Fleet process/electrical tags are synthetic cites. No 12 kHz on the board. Only RPP1 is diagnosed.",
         },
         "cell": {
             "name": "VFLab · hinge assembly",
@@ -372,7 +394,8 @@ def main() -> None:
     OUT.parent.mkdir(parents=True, exist_ok=True)
     OUT.write_text(json.dumps(feed, indent=2) + "\n", encoding="utf-8")
     engines = sorted({h["rpp1"]["engine"] for h in hops})
-    print(f"wrote {OUT} ({len(hops)} hops, engines={engines})")
+    n_assets = len(fleet)
+    print(f"wrote {OUT} ({len(hops)} hops, {n_assets} fleet, engines={engines})")
 
 
 if __name__ == "__main__":

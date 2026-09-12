@@ -38,6 +38,8 @@ def main():
     for token in BANNED:
         assert token not in bundle, f"seeded fixture still present: {token}"
     assert "feed.json" in bundle, "app does not load feed.json"
+    assert "function assistable" in bundle, "missing L1-tag assist gate"
+    assert "L1 process tags" in bundle, "process-tag assist answers missing"
     assert "@media (max-width: 1280px)" in bundle, "missing overlay breakpoint"
     assert "prefers-reduced-motion" in bundle, "missing reduced-motion handling"
     assert "overflow-x: hidden" in bundle, "missing page overflow guard"
@@ -58,11 +60,14 @@ def main():
     assert len(feed["hops"]) == 20, f"expected 20 hops, got {len(feed['hops'])}"
     assert feed["manifest"]["flag_hop"] == 10
     ids = {row["asset_id"] for row in feed["fleet"]}
-    assert ids == {"RPP1", "T1"}, ids
+    assert "RPP1" in ids and "T1" in ids, ids
+    assert len(ids) >= 25, f"expected full fleet, got {len(ids)}: {sorted(ids)}"
+    assert all("assets" in hop for hop in feed["hops"]), "hops missing assets map"
+    assert "torque_nm" in (feed["hops"][0].get("t1") or {}), "T1 missing researched torque tag"
     existing = [ROOT / "screenshots" / name for name in SHOTS if (ROOT / "screenshots" / name).exists()]
     for path in existing:
         assert png_size(path) == (1440, 900), f"{path.name}: expected 1440x900, got {png_size(path)}"
-    print(f"PASS: feed 20 hops, no seeded ids; {len(existing)}/{len(SHOTS)} screenshots verified")
+    print(f"PASS: feed 20 hops, fleet {len(ids)}; {len(existing)}/{len(SHOTS)} screenshots verified")
 
 
 if __name__ == "__main__":
