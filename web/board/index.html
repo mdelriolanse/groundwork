@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Plant floor · RPP1</title>
+  <link rel="stylesheet" href="/board/styles.css">
+  <script type="importmap">{"imports":{"three":"/twin/vendor/three.module.js","three/addons/":"/twin/vendor/addons/"}}</script>
+</head>
+<body>
+  <header class="mast">
+    <div><strong>VFLab</strong><span> · hinge assembly</span></div>
+    <div class="mast-proof"><span id="containment" class="mark">CONTAINED</span><span>inference.local</span><time id="clock">--:--:--</time></div>
+  </header>
+  <main class="board">
+    <aside class="paper" aria-label="Maintenance dossier">
+      <section class="dossier" id="dossier" aria-live="polite"></section>
+      <section class="question" id="question-block" hidden>
+        <label for="question"><span class="eyebrow">ASK THIS WORK ORDER</span></label>
+        <form id="question-form"><textarea id="question" maxlength="500" rows="2" placeholder="What should the technician verify before replacement?"></textarea><button type="submit">Ask local agent</button></form>
+        <div id="answer"></div>
+      </section>
+      <section class="ledger"><div class="section-head"><span class="eyebrow">AGENT RUN</span><span id="run-state">IDLE</span></div><ol id="ledger"></ol></section>
+      <section class="roster"><span class="eyebrow">CELL ROSTER</span><div id="roster"></div></section>
+    </aside>
+    <section class="twin-field" aria-label="Assembly cell 3D view"><canvas id="c"></canvas><div class="twin-caption"><span class="eyebrow">ASSET FOCUS</span><strong id="focus-name">RPP1 · URjoint1</strong></div></section>
+  </main>
+  <footer class="tape"><span>FPR <strong id="fpr">0 / 4</strong></span><span id="deny-line">egress · deny</span><button id="deny" type="button">Attempt telemetry POST</button></footer>
+  <script type="module" src="/board/board.js"></script>
+  <script type="module" src="/twin/viewer.js"></script>
+</body>
+</html>

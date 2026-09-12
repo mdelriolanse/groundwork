@@ -1,0 +1,407 @@
+{
+  "source": "VLFT VFLab (CC BY-NC 4.0)",
+  "cite": "https://github.com/difactory/repository",
+  "unit_applied": 0.01,
+  "z_up": false,
+  "placements": [
+    {
+      "asset_id": "WAREHOUSE",
+      "file": "Warehouse.glb",
+      "position": [
+        0.0,
+        0.0,
+        -0.0
+      ],
+      "rotation": [
+        0.0,
+        -0.0,
+        0.0
+      ],
+      "kind": "scenery"
+    },
+    {
+      "asset_id": "RT1",
+      "file": "Rotating_Table_Station.glb",
+      "position": [
+        -0.40571,
+        0.0,
+        4.48448
+      ],
+      "rotation": [
+        0.0,
+        -0.0,
+        0.0
+      ],
+      "kind": "station",
+      "model": "RotatingTableBuffer20"
+    },
+    {
+      "asset_id": "PPW1",
+      "file": "Wing_Conveyor_1_Station.glb",
+      "position": [
+        0.51702,
+        0.0,
+        4.818960000000001
+      ],
+      "rotation": [
+        0.0,
+        -3.141592653589793,
+        0.0
+      ],
+      "kind": "station",
+      "model": "WingConveyor1_Station"
+    },
+    {
+      "asset_id": "PPH1",
+      "file": "Wing_Conveyor_2_Station.glb",
+      "position": [
+        -0.07150000000000001,
+        0.0,
+        3.61895
+      ],
+      "rotation": [
+        -0.0,
+        -1.5707963267948966,
+        0.0
+      ],
+      "kind": "station",
+      "model": "WingConveyor2_Station"
+    },
+    {
+      "asset_id": "T1",
+      "file": "Tightener_Station.glb",
+      "position": [
+        -0.7432000000000001,
+        0.0,
+        5.1251999999999995
+      ],
+      "rotation": [
+        0.0,
+        1.5707963267948966,
+        0.0
+      ],
+      "kind": "station",
+      "model": "Tightener_Station"
+    },
+    {
+      "asset_id": "RPP1",
+      "file": "UR_Pick_and_Place_Station.glb",
+      "position": [
+        0.2,
+        0.0,
+        3.5
+      ],
+      "rotation": [
+        0.0,
+        -0.0,
+        0.0
+      ],
+      "kind": "station",
+      "model": "URPickAndPlace_Station"
+    },
+    {
+      "asset_id": "B1",
+      "file": "Conveyor_Main.glb",
+      "position": [
+        0.2,
+        0.0,
+        2.5
+      ],
+      "rotation": [
+        0.0,
+        -0.0,
+        0.0
+      ],
+      "kind": "station",
+      "model": "ConveyorBuffer5"
+    },
+    {
+      "asset_id": "PI1",
+      "file": "Pin_Insertion_Station.glb",
+      "position": [
+        0.2,
+        0.0,
+        0.5
+      ],
+      "rotation": [
+        0.0,
+        -0.0,
+        0.0
+      ],
+      "kind": "station",
+      "model": "PinInsertion_Station"
+    },
+    {
+      "asset_id": "PP1",
+      "file": "Pick_and_Place_Station.glb",
+      "position": [
+        0.2,
+        0.0,
+        1.5
+      ],
+      "rotation": [
+        0.0,
+        -0.0,
+        0.0
+      ],
+      "kind": "station",
+      "model": "PickAndPlace_Station"
+    },
+    {
+      "asset_id": "R1",
+      "file": "Riveting_Station.glb",
+      "position": [
+        0.2,
+        0.0,
+        -0.5
+      ],
+      "rotation": [
+        0.0,
+        -0.0,
+        0.0
+      ],
+      "kind": "station",
+      "model": "Riveting_Station"
+    },
+    {
+      "asset_id": "B2",
+      "file": "Conveyor_Main.glb",
+      "position": [
+        0.2,
+        0.0,
+        -1.5
+      ],
+      "rotation": [
+        0.0,
+        -0.0,
+        0.0
+      ],
+      "kind": "station",
+      "model": "ConveyorBuffer5"
+    },
+    {
+      "asset_id": "PP3",
+      "file": "Pick_and_Place_Station.glb",
+      "position": [
+        0.2,
+        0.0,
+        -3.5
+      ],
+      "rotation": [
+        0.0,
+        -0.0,
+        0.0
+      ],
+      "kind": "station",
+      "model": "PickAndPlace_Station"
+    },
+    {
+      "asset_id": "R2",
+      "file": "Riveting_Station.glb",
+      "position": [
+        0.2,
+        0.0,
+        -5.5
+      ],
+      "rotation": [
+        0.0,
+        -0.0,
+        0.0
+      ],
+      "kind": "station",
+      "model": "Riveting_Station"
+    },
+    {
+      "asset_id": "PI2",
+      "file": "Pin_Insertion_Station.glb",
+      "position": [
+        0.2,
+        0.0,
+        -4.5
+      ],
+      "rotation": [
+        0.0,
+        -0.0,
+        0.0
+      ],
+      "kind": "station",
+      "model": "PinInsertion_Station"
+    },
+    {
+      "asset_id": "PP2",
+      "file": "Pick_and_Place_Station.glb",
+      "position": [
+        0.2,
+        0.0,
+        -2.5
+      ],
+      "rotation": [
+        0.0,
+        -0.0,
+        0.0
+      ],
+      "kind": "station",
+      "model": "PickAndPlace_Station"
+    },
+    {
+      "asset_id": "B3",
+      "file": "Conveyor_Main.glb",
+      "position": [
+        0.2,
+        0.0,
+        -6.5
+      ],
+      "rotation": [
+        0.0,
+        -0.0,
+        0.0
+      ],
+      "kind": "station",
+      "model": "ConveyorBuffer5"
+    },
+    {
+      "asset_id": "B4",
+      "file": "Conveyor_Main.glb",
+      "position": [
+        0.2,
+        0.0,
+        -10.5
+      ],
+      "rotation": [
+        0.0,
+        -0.0,
+        0.0
+      ],
+      "kind": "station",
+      "model": "ConveyorBuffer5"
+    },
+    {
+      "asset_id": "PI3",
+      "file": "Pin_Insertion_Station.glb",
+      "position": [
+        0.2,
+        0.0,
+        -8.5
+      ],
+      "rotation": [
+        0.0,
+        -0.0,
+        0.0
+      ],
+      "kind": "station",
+      "model": "PinInsertion_Station"
+    },
+    {
+      "asset_id": "PP5",
+      "file": "Pick_and_Place_Station_Box.glb",
+      "position": [
+        0.2,
+        0.0,
+        -11.5
+      ],
+      "rotation": [
+        0.0,
+        -0.0,
+        0.0
+      ],
+      "kind": "station",
+      "model": "PickAndPlace2_Station"
+    },
+    {
+      "asset_id": "R3",
+      "file": "Riveting_Station.glb",
+      "position": [
+        0.2,
+        0.0,
+        -9.5
+      ],
+      "rotation": [
+        0.0,
+        -0.0,
+        0.0
+      ],
+      "kind": "station",
+      "model": "Riveting_Station"
+    },
+    {
+      "asset_id": "PP4",
+      "file": "Pick_and_Place_Station.glb",
+      "position": [
+        0.2,
+        0.0,
+        -7.5
+      ],
+      "rotation": [
+        0.0,
+        -0.0,
+        0.0
+      ],
+      "kind": "station",
+      "model": "PickAndPlace_Station"
+    },
+    {
+      "asset_id": "R4",
+      "file": "Riveting_Station.glb",
+      "position": [
+        0.2,
+        0.0,
+        -13.5
+      ],
+      "rotation": [
+        0.0,
+        -0.0,
+        0.0
+      ],
+      "kind": "station",
+      "model": "Riveting_Station"
+    },
+    {
+      "asset_id": "C1",
+      "file": "Inspection_Camera_Station.glb",
+      "position": [
+        0.2,
+        0.0,
+        -14.5
+      ],
+      "rotation": [
+        0.0,
+        -0.0,
+        0.0
+      ],
+      "kind": "station",
+      "model": "InspectionCamera_Station"
+    },
+    {
+      "asset_id": "CB1",
+      "file": "Collection_Box_Station.glb",
+      "position": [
+        0.2,
+        0.0,
+        -15.5
+      ],
+      "rotation": [
+        0.0,
+        -0.0,
+        0.0
+      ],
+      "kind": "station",
+      "model": "CollectionBox_Station"
+    },
+    {
+      "asset_id": "PI4",
+      "file": "Pin_Insertion_Station.glb",
+      "position": [
+        0.2,
+        0.0,
+        -12.5
+      ],
+      "rotation": [
+        0.0,
+        -0.0,
+        0.0
+      ],
+      "kind": "station",
+      "model": "PinInsertion_Station"
+    }
+  ]
+}

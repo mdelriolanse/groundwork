@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>VFLab cell — plant-floor twin</title>
+  <style>
+    html, body { margin: 0; height: 100%; background: #111; color: #eee; font: 13px/1.4 ui-sans-serif, system-ui, sans-serif; }
+    #c { display: block; width: 100%; height: 100%; }
+    #hud {
+      position: absolute; top: 12px; left: 12px; min-width: 260px;
+      background: rgba(0,0,0,.72); padding: 10px 12px; border: 1px solid #333;
+    }
+    #hud h1 { margin: 0 0 6px; font-size: 13px; font-weight: 600; }
+    #hud dt { color: #9aa; }
+    #hud dd { margin: 0 0 4px; }
+    #hud .hero { color: #f5c14a; }
+  </style>
+  <script type="importmap">
+  {
+    "imports": {
+      "three": "./vendor/three.module.js",
+      "three/addons/": "./vendor/addons/"
+    }
+  }
+  </script>
+</head>
+<body>
+  <canvas id="c"></canvas>
+  <aside id="hud">
+    <h1>VFLab assembly cell</h1>
+    <dl>
+      <dt>asset_id</dt><dd id="asset">—</dd>
+      <dt>part</dt><dd id="part">—</dd>
+      <dt>source</dt><dd id="source">—</dd>
+    </dl>
+  </aside>
+  <script type="module" src="./viewer.js"></script>
+</body>
+</html>

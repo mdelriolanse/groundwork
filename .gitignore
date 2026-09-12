@@ -23,3 +23,6 @@ models/
 
 .DS_Store
 *.swp
+runtime/
+data/*.db
+data/*.db-*

@@ -1,0 +1,12 @@
+{
+  "maintenance-analysis": {
+    "agentId": "maintenance",
+    "sessionKey": "agent:maintenance:rpp1-auto",
+    "mode": "automatic"
+  },
+  "maintenance-question": {
+    "agentId": "maintenance",
+    "sessionKey": "agent:maintenance:rpp1-followup",
+    "mode": "question"
+  }
+}

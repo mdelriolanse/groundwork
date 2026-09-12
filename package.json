@@ -1,0 +1,11 @@
+{
+  "name": "plant-floor-agent",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "start": "/home/dell/.local/bin/node app/server.mjs",
+    "replay": "/home/dell/.local/bin/node scripts/replay-hero.mjs",
+    "index-corpus": "/home/dell/.local/bin/node scripts/index-corpus.mjs",
+    "test": "/home/dell/.local/bin/node --test tests/*.test.mjs"
+  }
+}

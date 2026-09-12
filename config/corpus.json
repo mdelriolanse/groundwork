@@ -1,0 +1,40 @@
+{
+  "schema": 1,
+  "documents": [
+    {
+      "id": "skf-bearing-damage-analysis",
+      "kind": "manual",
+      "file": "skf-bearing-damage-analysis.pdf",
+      "runtimePath": "runtime/corpus/manuals/skf-bearing-damage-analysis.pdf",
+      "pagesPath": "runtime/corpus/manuals/skf-bearing-damage-analysis.pages.json",
+      "assets": [
+        "RPP1"
+      ],
+      "retriever": "pmmcp",
+      "allowed": true,
+      "retrievalAliases": [
+        "skf-bearing-damage-analysis-p214.txt"
+      ]
+    },
+    {
+      "id": "cmms-history",
+      "kind": "history",
+      "file": "work-orders.csv",
+      "runtimePath": "runtime/corpus/history/work-orders.csv",
+      "assets": [
+        "RPP1"
+      ],
+      "aliases": [
+        "MTR-07"
+      ],
+      "retriever": "csv",
+      "allowed": true
+    }
+  ],
+  "pins": {
+    "inner_race": {
+      "doc": "skf-bearing-damage-analysis.pdf",
+      "page": 214
+    }
+  }
+}

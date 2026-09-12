@@ -1,0 +1,29 @@
+{
+  "schema": 1,
+  "twin": "vflab",
+  "hero": "RPP1",
+  "cite": "https://github.com/difactory/repository",
+  "license": "CC BY-NC 4.0",
+  "assets": [
+    {
+      "asset_id": "RPP1",
+      "aliases": ["MTR-07"],
+      "role": "hero",
+      "part": "URjoint1",
+      "source": "cwru:105.mat",
+      "tape": ["97.mat", "105.mat"],
+      "glb": "UR_Pick_and_Place_Station.glb",
+      "click_nodes": ["RPP1", "URjoint1", "URPPs_Robot", "URbase"]
+    },
+    {
+      "asset_id": "T1",
+      "aliases": [],
+      "role": "sibling",
+      "part": "T_Machine_Static",
+      "source": "synthetic:healthy",
+      "tape": [],
+      "glb": "Tightener_Station.glb",
+      "click_nodes": ["T1", "T_Machine_Static", "T_Machine_Floating_Y"]
+    }
+  ]
+}

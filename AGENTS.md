@@ -2,6 +2,8 @@
 
 Read this file first. Then walk the links. Do not re-litigate locked decisions. Do not rebuild the DSP layer.
 
+**Host:** run everything on the GB10 (`ssh spark` / Remote-SSH `spark`, user `dell`). Not the laptop. See `../AGENTS.md`.
+
 **Product (one sentence):** An always-on industrial predictive-maintenance agent that lives inside a plant's air-gapped OT network, watches vibration from rotating equipment, diagnoses faults with deterministic DSP, drafts a cited work order from manuals + CMMS history, and **proves via OpenShell** that nothing left the building.
 
 **Event:** Dell × NVIDIA AI Hackathon, Cornell. Sat 12 Sep 2026, eHub Collegetown. Loaner: Dell Pro Max with GB10. Build window **09:50–18:30** (~8h45m). Demo **video** due at code freeze. Teams 3–4. Rubric: technical execution, usefulness, **local-first** (scored, not a checkbox), pitch.

@@ -1,0 +1,14 @@
+[Unit]
+Description=Plant-floor agent assistance board
+After=network.target
+
+[Service]
+Type=simple
+WorkingDirectory=/home/dell/plant-floor-agent
+ExecStart=/home/dell/.local/bin/node /home/dell/plant-floor-agent/app/server.mjs
+Restart=on-failure
+RestartSec=2
+Environment=NODE_NO_WARNINGS=1
+
+[Install]
+WantedBy=default.target

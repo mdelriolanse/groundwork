@@ -1,0 +1,3 @@
+agents:
+  - id: maintenance
+    description: RPP1 bearing-analysis and cited maintenance-guidance agent
