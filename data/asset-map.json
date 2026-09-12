@@ -13,17 +13,17 @@
       "source": "cwru:105.mat",
       "tape": ["97.mat", "105.mat"],
       "glb": "UR_Pick_and_Place_Station.glb",
-      "click_nodes": ["RPP1", "URjoint1", "URPPs_Robot", "URbase"]
+      "click_nodes": ["URjoint1", "URPPs_Robot", "URbase"]
     },
     {
       "asset_id": "T1",
       "aliases": [],
       "role": "sibling",
       "part": "T_Machine_Static",
-      "source": "synthetic:healthy",
-      "tape": [],
+      "source": "vlft:process",
+      "tape": ["process.json"],
       "glb": "Tightener_Station.glb",
-      "click_nodes": ["T1", "T_Machine_Static", "T_Machine_Floating_Y"]
+      "click_nodes": ["T_Machine_Static", "T_Machine_Floating_Y"]
     }
   ]
 }
