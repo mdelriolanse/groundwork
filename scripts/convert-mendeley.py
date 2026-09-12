@@ -43,20 +43,29 @@ def parse_name(stem: str) -> dict:
     return {"load_nm": int(d["load"]), "fault": d["fault"], "severity": d["severity"]}
 
 
-def load_signal_struct(path: Path) -> tuple[float, np.ndarray, str]:
-    """Return (fs_hz, data[N,channels], unit_label) from one Mendeley .mat file."""
+def load_signal_struct(path: Path) -> tuple[float, np.ndarray, str, float]:
+    """Return (fs_hz, data[N,channels], unit_label, unit_factor) from one Mendeley .mat file.
+
+    The file stores raw values in MKS (m/s^2 for acceleration - see quantity_terms:
+    LENGTH^1 * TIME^-2) and carries its own unit_transformation.factor to convert to
+    the displayed unit label (here 'g'). The label alone is not the stored scale -
+    the factor must be applied, or values are 9.80665x too large.
+    """
     m = sio.loadmat(str(path), simplify_cells=True)
     sig = m["Signal"]
     fs = 1.0 / sig["x_values"]["increment"]
     data = np.asarray(sig["y_values"]["values"], dtype=np.float64)
-    unit = sig["y_values"]["quantity"]["label"]
-    return fs, data, unit
+    quantity = sig["y_values"]["quantity"]
+    unit = quantity["label"]
+    factor = float(quantity["unit_transformation"]["factor"])
+    return fs, data, unit, factor
 
 
 def convert_one(src: Path, out_dir: Path, channels: list[int]) -> list[dict]:
-    fs, data, unit = load_signal_struct(src)
+    fs, data, unit, factor = load_signal_struct(src)
     if unit != SIGNAL_UNIT:
         raise SystemExit(f"{src.name}: unexpected unit {unit!r}, expected {SIGNAL_UNIT!r}")
+    data = data * factor  # raw MKS (m/s^2) -> true g, per the file's own conversion factor
     n_total, n_channels = data.shape
     meta_common = parse_name(src.stem)
     records = []

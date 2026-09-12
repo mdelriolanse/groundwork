@@ -15,7 +15,7 @@ export class RunManager extends EventEmitter {
       const pin=this.rag.pin(flag.fault,flag.asset_id); this.publish(runId,"retrieve","Verified manual page pin",pin);
       const history=this.rag.history(flag.asset_id,flag.fault); this.publish(runId,"retrieve",`Matched ${history.length} CMMS row`,history.map((x)=>x.wo_id));
       const cfg=this.agents["maintenance-analysis"];
-      const result=await this.gateway.run({sessionKey:`agent:maintenance:auto-${flag.id}`,message:analysisPrompt(flag,pin,history),idempotencyKey:`plant-floor-flag-${flag.id}`,onEvent:(e)=>this.publish(runId,e.kind,e.label,e.detail)});
+      const result=await this.gateway.run({sessionKey:`agent:maintenance:auto-${flag.id}-${runId}`,message:analysisPrompt(flag,pin,history),idempotencyKey:`plant-floor-flag-${flag.id}-${runId}`,onEvent:(e)=>this.publish(runId,e.kind,e.label,e.detail)});
       for (const tool of toolCallsFromHistory(result.history)) this.publish(runId,"tool",tool.name,tool.args);
       const raw=parseAgentJson(result.text);
       raw.citations=[{type:"signal",source:"cwru:105.mat",window:flag.window},pin,{type:"history",wo_id:"WO-1410"}];

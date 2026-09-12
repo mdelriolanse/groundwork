@@ -16,6 +16,15 @@ export function createRag(root = process.cwd()) {
   for (const doc of manifest.documents) { docs.set(doc.file,doc); for (const alias of doc.retrievalAliases||[]) docs.set(alias,doc); }
 
   function docPath(doc) { return path.resolve(root, doc.runtimePath); }
+  // "<prefix>:<file>" -> runtime/corpus/<prefix>/<file>, e.g. "cwru:105.mat" or "mendeley:0Nm_BPFI_10__ch0.mat".
+  function signalPath(source) {
+    const s = String(source || "");
+    const i = s.indexOf(":");
+    if (i < 0) return null;
+    const prefix = s.slice(0, i);
+    const file = path.basename(s.slice(i + 1));
+    return path.join(root, "runtime/corpus", prefix, file);
+  }
   function pagesFor(doc) {
     if (!doc.pagesPath) return [];
     const p = path.resolve(root, doc.pagesPath);
@@ -68,9 +77,8 @@ export function createRag(root = process.cwd()) {
         return true;
       }
       if (cite.type === "signal") {
-        const file = path.basename(cite.source || "");
-        const p = path.join(root, "runtime/corpus/cwru", file.replace(/^cwru:/, ""));
-        if (!fs.existsSync(p)) throw new Error("signal citation missing");
+        const p = signalPath(cite.source);
+        if (!p || !fs.existsSync(p)) throw new Error("signal citation missing");
         return true;
       }
       throw new Error("unsupported citation type");
@@ -80,7 +88,7 @@ export function createRag(root = process.cwd()) {
       if (cite.type === "history") {
         const doc = manifest.documents.find((d) => d.kind === "history"); return doc ? docPath(doc) : null;
       }
-      if (cite.type === "signal") return path.join(root, "runtime/corpus/cwru", path.basename(cite.source).replace(/^cwru:/, ""));
+      if (cite.type === "signal") return signalPath(cite.source);
       return null;
     }
   };

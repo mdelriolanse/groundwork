@@ -4,7 +4,7 @@
     {
       "asset_id": "MTR07-CAD",
       "part": "1LE1003-1EB23-4JA4",
-      "fault": "outer_race",
+      "fault": "inner_race",
       "priority": "high",
       "status": "acknowledged",
       "detected_at": "2026-09-12T18:00:27+00:00",
@@ -13,45 +13,41 @@
         "2026-09-12T18:00:27+00:00",
         "2026-09-12T18:10:27+00:00"
       ],
-      "source": "cwru:130.mat:X130_DE_time",
+      "source": "mendeley:0Nm_BPFI_10__ch0.mat",
       "window": "0.00..2.00",
-      "rpm": 1797,
-      "rms": 0.662,
+      "rpm": 3010,
+      "rms": 1.352,
       "flag_status": "processed",
       "work_order": {
-        "wo_id": "WO-MTR07-OR",
+        "wo_id": "WO-MTR07-IR",
         "asset_id": "MTR07-CAD",
         "opened": "2026-09-12T18:00:27+00:00",
-        "fault": "outer_race",
+        "fault": "inner_race",
         "severity": "iso_context_only",
         "evidence": {
-          "source": "cwru:130.mat",
+          "source": "mendeley:0Nm_BPFI_10__ch0.mat",
           "window": "0.00..2.00",
-          "rpm": 1797,
+          "rpm": 3010,
           "features": [
-            "CWRU OR007 label on 130.mat; measured RMS 0.662 g",
-            "Envelope BPFO peak near 107.5 Hz (SKF 6205 catalog)",
-            "Siemens 1LE1003 1.5 kW << 15 kW ISO 20816 floor \u2014 context only"
+            "Mendeley dataset ground-truth BPFI (inner race, 0.3mm fault) label on 0Nm_BPFI_10.mat channel 0; measured RMS 1.352 g vs 0.102 g healthy baseline (0Nm_Normal.mat) - 13x elevation",
+            "Bearing housing operating speed 3010 rpm (2.07x gearbox step-up from 1770 rpm motor shaft, per source paper p.14)",
+            "Siemens 1LE1003 kW rating vs 15 kW ISO 20816 floor: unconfirmed, needs verification before claiming context-only severity"
           ],
           "part": "1LE1003-1EB23-4JA4"
         },
         "citations": [
           {
             "type": "signal",
-            "source": "cwru:130.mat",
+            "source": "mendeley:0Nm_BPFI_10__ch0.mat",
             "window": "0.00..2.00"
           },
           {
             "type": "manual",
             "doc": "skf-bearing-damage-analysis.pdf",
-            "page": 12
-          },
-          {
-            "type": "history",
-            "wo_id": "WO-1041"
+            "page": 214
           }
         ],
-        "action": "Inspect DE 6205 outer race; schedule bearing replace",
+        "action": "Inspect inner race; schedule bearing replace",
         "parts": [
           "6205-2RS"
         ],
@@ -74,6 +70,59 @@
       "rms": null,
       "flag_status": "processed",
       "work_order": null
+    },
+    {
+      "asset_id": "PP5",
+      "part": "AC motor",
+      "fault": "inner_race",
+      "priority": "high",
+      "status": "acknowledged",
+      "detected_at": "2026-09-12T18:05:27+00:00",
+      "acknowledged_at": "2026-09-12T18:25:27+00:00",
+      "detections": [
+        "2026-09-12T18:05:27+00:00",
+        "2026-09-12T18:15:27+00:00"
+      ],
+      "source": "mendeley:0Nm_BPFI_10__ch0.mat",
+      "window": "0.00..2.00",
+      "rpm": 3010,
+      "rms": 1.352,
+      "flag_status": "processed",
+      "work_order": {
+        "wo_id": "WO-PP5-IR",
+        "asset_id": "PP5",
+        "opened": "2026-09-12T18:05:27+00:00",
+        "fault": "inner_race",
+        "severity": "iso_context_only",
+        "evidence": {
+          "source": "mendeley:0Nm_BPFI_10__ch0.mat",
+          "window": "0.00..2.00",
+          "rpm": 3010,
+          "features": [
+            "Mendeley dataset ground-truth BPFI (inner race, 0.3mm fault) label on 0Nm_BPFI_10.mat channel 0; measured RMS 1.352 g vs 0.102 g healthy baseline (0Nm_Normal.mat) - 13x elevation",
+            "Bearing housing operating speed 3010 rpm (2.07x gearbox step-up from 1770 rpm motor shaft, per source paper p.14)",
+            "Same Mendeley recording also cited on MTR07-CAD; PP5 AC motor (Body-14 in the station GLB) is a second binding to the same real data, not a separate measurement"
+          ],
+          "part": "AC motor"
+        },
+        "citations": [
+          {
+            "type": "signal",
+            "source": "mendeley:0Nm_BPFI_10__ch0.mat",
+            "window": "0.00..2.00"
+          },
+          {
+            "type": "manual",
+            "doc": "skf-bearing-damage-analysis.pdf",
+            "page": 214
+          }
+        ],
+        "action": "Inspect inner race; schedule bearing replace",
+        "parts": [
+          "6205-2RS"
+        ],
+        "priority": "high"
+      }
     }
   ]
 }

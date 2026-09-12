@@ -8,7 +8,9 @@
       "runtimePath": "runtime/corpus/manuals/skf-bearing-damage-analysis.pdf",
       "pagesPath": "runtime/corpus/manuals/skf-bearing-damage-analysis.pages.json",
       "assets": [
-        "RPP1"
+        "RPP1",
+        "MTR07-CAD",
+        "PP5"
       ],
       "retriever": "pmmcp",
       "allowed": true,

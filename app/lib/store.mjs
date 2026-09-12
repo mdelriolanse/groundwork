@@ -8,6 +8,8 @@ export function createStore(filename = path.resolve("data/plant-floor.db")) {
   db.exec(`
     PRAGMA journal_mode=WAL;
     CREATE TABLE IF NOT EXISTS historian(asset_id TEXT, tag TEXT, ts TEXT, value REAL, unit TEXT, source TEXT);
+    CREATE INDEX IF NOT EXISTS historian_asset_tag_ts ON historian(asset_id, tag, ts);
+    CREATE INDEX IF NOT EXISTS historian_asset_ts ON historian(asset_id, ts);
     CREATE TABLE IF NOT EXISTS flags(id INTEGER PRIMARY KEY, asset_id TEXT, part TEXT, fault TEXT, source TEXT, window TEXT, rpm REAL, rms REAL, status TEXT DEFAULT 'pending', ts TEXT);
     CREATE TABLE IF NOT EXISTS work_orders(wo_id TEXT PRIMARY KEY, asset_id TEXT, fault TEXT, status TEXT, opened TEXT, json TEXT);
     CREATE UNIQUE INDEX IF NOT EXISTS one_open_fault ON work_orders(asset_id, fault) WHERE status='open';
@@ -41,7 +43,7 @@ export function createStore(filename = path.resolve("data/plant-floor.db")) {
   if (!incidentCols.includes("part")) db.exec("ALTER TABLE incidents ADD COLUMN part TEXT");
   if (!incidentCols.includes("priority")) db.exec("ALTER TABLE incidents ADD COLUMN priority TEXT DEFAULT 'high'");
 
-  const PART_FALLBACK = { RPP1: "URjoint1", T1: "T_Machine_Static", "MTR07-CAD": "1LE1003-1EB23-4JA4" };
+  const PART_FALLBACK = { RPP1: "URjoint1", T1: "T_Machine_Static", "MTR07-CAD": "1LE1003-1EB23-4JA4", PP5: "AC motor" };
   const PRIORITY_RANK = { critical: 0, high: 1, medium: 2, low: 3 };
   const titleCase = (s) => (s || "").replaceAll("_", " ").replace(/\b\w/g, (c) => c.toUpperCase());
   const statusLabel = { new: "New", acknowledged: "Acknowledged", in_progress: "In progress", resolved: "Resolved" };
@@ -140,6 +142,13 @@ export function createStore(filename = path.resolve("data/plant-floor.db")) {
           ins.run("T1","cycle_s",now(),2.0,"s","vlft:process");
           ins.run("T1","busy",now(),0,"bool","vlft:process");
         }
+        // Not in the L1 tape (that's VLFT process data) - MTR07-CAD's own healthy baseline, real RMS
+        // computed from the converted Mendeley 0Nm_Normal recording (scripts/convert-mendeley.py).
+        ins.run("MTR07-CAD","rms",now(),0.102329,"g","mendeley:0Nm_Normal__ch0.mat");
+        ins.run("MTR07-CAD","rpm",now(),3010,"rpm","mendeley:0Nm_Normal__ch0.mat");
+        // PP5's AC motor (Body-14 in the station GLB) - same real Mendeley recording, second binding.
+        ins.run("PP5","rms",now(),0.102329,"g","mendeley:0Nm_Normal__ch0.mat");
+        ins.run("PP5","rpm",now(),3010,"rpm","mendeley:0Nm_Normal__ch0.mat");
       }
       // Containment is never seeded. app/lib/openshell.mjs fills it from the gateway's own audit log; until then it is UNPROVEN.
       if (!db.prepare("SELECT 1 FROM state WHERE key='containment'").get()) setState("containment",{state:"UNPROVEN",last_deny:null,denies:[],deny_count:0,policy:null,inference:"inference.local",errors:["not yet read from openshell"]});
@@ -238,28 +247,12 @@ export function createStore(filename = path.resolve("data/plant-floor.db")) {
       const latest = this.latestHop();
       const rms = this.historianSeries("RPP1", "rms", limit);
       const processAssets = {};
-      const mapPaths = [
-        path.resolve("data/asset-map.json"),
-        path.resolve(path.dirname(filename), "../asset-map.json"),
-      ];
-      const mapPath = mapPaths.find((p) => fs.existsSync(p));
-      let assetIds = ["T1", "MTR07-CAD"];
-      if (mapPath) {
-        try {
-          assetIds = (JSON.parse(fs.readFileSync(mapPath, "utf8")).assets || []).map((a) => a.asset_id).filter((id) => id !== "RPP1");
-        } catch {}
-      }
-      for (const assetId of assetIds.slice(0, 24)) {
-        const tags = {};
-        const rows = db.prepare("SELECT tag,value,unit,source,ts FROM historian WHERE asset_id=? AND ts=(SELECT MAX(ts) FROM historian WHERE asset_id=?)").all(assetId, assetId);
-        if (!rows.length) continue;
-        let source = rows[0].source;
-        let part = resolvePart(assetId, null);
-        for (const row of rows) {
-          tags[row.tag] = row.tag === "busy" || row.tag === "bowl_on" ? Number(row.value) : row.value;
-          source = row.source || source;
+      const fromHop = latest?.assets && typeof latest.assets === "object" ? latest.assets : null;
+      if (fromHop) {
+        for (const [assetId, slot] of Object.entries(fromHop)) {
+          if (assetId === "RPP1" || !slot) continue;
+          processAssets[assetId] = slot;
         }
-        processAssets[assetId] = { part, source, tags, busy: tags.busy, ...tags };
       }
       return {
         live: Boolean(latest),

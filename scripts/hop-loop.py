@@ -340,9 +340,9 @@ def one_hop(conn: sqlite3.Connection, hop_i: int, last_fault: str | None) -> str
                 "ts": ts,
             }
         )
-        print(f"hop {hop_i} DETECT {fault} {source} rms={rms} window={window}")
+        print(f"hop {hop_i} DETECT {fault} {source} rms={rms} window={window}", flush=True)
     else:
-        print(f"hop {hop_i} {entry['file']} fault={fault or 'none'} rms={rms} inj={injected}")
+        print(f"hop {hop_i} {entry['file']} fault={fault or 'none'} rms={rms} inj={injected}", flush=True)
 
     return fault
 
@@ -350,7 +350,7 @@ def one_hop(conn: sqlite3.Connection, hop_i: int, last_fault: str | None) -> str
 def main() -> None:
     if not DB.parent.is_dir():
         DB.parent.mkdir(parents=True, exist_ok=True)
-    print(f"hop-loop db={DB} board={BOARD} cwru={CWRU}")
+    print(f"hop-loop db={DB} board={BOARD} cwru={CWRU}", flush=True)
     hop_i = 0
     last_fault = None
     while True:

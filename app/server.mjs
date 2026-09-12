@@ -7,10 +7,11 @@ import { createRag } from "./lib/rag.mjs";
 import { GatewayClient, gatewayCredential } from "./lib/gateway-client.mjs";
 import { loadAgents } from "./lib/agents.mjs";
 import { RunManager } from "./lib/runs.mjs";
+import { askAssist } from "./lib/assist.mjs";
 import { containmentEvidence, attemptExfil } from "./lib/openshell.mjs";
 import { boardCorsHeaders } from "./lib/board-cors.mjs";
 
-const ALLOWED_CORS = new Set(["/api/board", "/api/detect", "/api/incidents", "/api/hops/latest", "/api/demo/inject"]);
+const ALLOWED_CORS = new Set(["/api/board", "/api/detect", "/api/incidents", "/api/hops/latest", "/api/demo/inject", "/api/questions"]);
 const ROOT=path.resolve(path.dirname(fileURLToPath(import.meta.url)),"..");
 const PORT=Number(process.env.PORT||8765), HOST=process.env.HOST||"0.0.0.0";
 const store=createStore(path.join(ROOT,"data/plant-floor.db")); store.seed();
@@ -70,7 +71,7 @@ const server=http.createServer(async(req,res)=>{
       if(!cors["Access-Control-Allow-Origin"])return json(res,403,{error:"cors denied"});
       res.writeHead(204,cors);return res.end();
     }
-    if(req.method==="GET"&&url.pathname==="/api/health") return json(res,200,{ok:true,gateway:Boolean(gateway),agent:"maintenance",model:"gpt-oss-20b",inference:"inference.local",hop_override:store.hopOverride(),latest_hop:Boolean(store.latestHop())});
+    if(req.method==="GET"&&url.pathname==="/api/health") return json(res,200,{ok:true,gateway:Boolean(gateway),agent:"maintenance",model:"Qwen3.6-35B-A3B",inference:"http://127.0.0.1:8000",hop_override:store.hopOverride(),latest_hop:Boolean(store.latestHop())});
     if(req.method==="GET"&&url.pathname==="/api/board") {const asset=url.searchParams.get("asset")||"RPP1";const part=asset==="RPP1"?"URjoint1":asset==="MTR07-CAD"?"1LE1003-1EB23-4JA4":asset==="T1"?"T_Machine_Static":null;const cors=boardCorsHeaders({method:req.method,pathname:url.pathname,host:req.headers.host,origin:req.headers.origin});return json(res,200,store.board({asset_id:asset,part,kind:"asset"}),cors);}
     if(req.method==="GET"&&url.pathname==="/api/incidents") {
       const cors=boardCorsHeaders({method:req.method,pathname:url.pathname,host:req.headers.host,origin:req.headers.origin});
@@ -115,7 +116,17 @@ const server=http.createServer(async(req,res)=>{
       for(const e of store.events(runId,after))res.write(`id: ${e.seq}\ndata: ${JSON.stringify(e)}\n\n`);
       const send=(e)=>res.write(`id: ${e.seq}\ndata: ${JSON.stringify(e)}\n\n`);runs?.on(`run:${runId}`,send);const ping=setInterval(()=>res.write(": ping\n\n"),15000);req.on("close",()=>{clearInterval(ping);runs?.off(`run:${runId}`,send);});return;
     }
-    if(req.method==="POST"&&url.pathname==="/api/questions") {if(!runs)return json(res,503,{error:"agent unavailable"});const input=await body(req);const result=await runs.ask(input.question);return json(res,200,result);}
+    if(req.method==="POST"&&url.pathname==="/api/questions") {
+      const cors=boardCorsHeaders({method:req.method,pathname:url.pathname,host:req.headers.host,origin:req.headers.origin});
+      const input=await body(req);
+      try {
+        const result=await askAssist({store,question:input.question,asset_id:input.asset_id});
+        return json(res,200,result,cors);
+      } catch(error) {
+        const status=/unsupported|required|3-500|characters/.test(error.message)?400:/timeout|unavailable|inference/.test(error.message)?503:422;
+        return json(res,status,{error:error.message},cors);
+      }
+    }
     if(req.method==="GET"&&url.pathname==="/api/containment") {const fresh=url.searchParams.get("refresh")==="1";return json(res,200,fresh?await refreshContainment():store.containment());}
     if(req.method==="POST"&&url.pathname==="/api/containment/attempt") {
       const result=await denyAttempt();
@@ -125,7 +136,7 @@ const server=http.createServer(async(req,res)=>{
     }
     if(req.method==="GET"&&url.pathname.startsWith("/api/artifacts/manual/")) {const file=safeBase(url.pathname.split("/").pop());const cite={type:"manual",doc:file,page:Number(url.searchParams.get("page"))};rag.validateCitation(cite,"RPP1");res.writeHead(200,{"content-type":"application/pdf","content-disposition":`inline; filename="${file}"`});return fs.createReadStream(rag.artifact(cite)).pipe(res);}
     if(req.method==="GET"&&url.pathname.startsWith("/api/artifacts/history/")) {const id=safeBase(url.pathname.split("/").pop());const row=rag.history("RPP1").find(x=>x.wo_id===id);if(!row)return json(res,404,{error:"history row missing"});return json(res,200,row);}
-    if(req.method==="GET"&&url.pathname.startsWith("/api/artifacts/signal/")) {const file=safeBase(url.pathname.split("/").pop());const cite={type:"signal",source:`cwru:${file}`};rag.validateCitation(cite,"RPP1");res.writeHead(200,{"content-type":"application/octet-stream","content-disposition":`attachment; filename="${file}"`});return fs.createReadStream(rag.artifact(cite)).pipe(res);}
+    if(req.method==="GET"&&url.pathname.startsWith("/api/artifacts/signal/")) {const segs=url.pathname.slice("/api/artifacts/signal/".length).split("/");const prefix=safeBase(segs[0]);const file=safeBase(segs[1]||"");const cite={type:"signal",source:`${prefix}:${file}`};rag.validateCitation(cite,"RPP1");res.writeHead(200,{"content-type":"application/octet-stream","content-disposition":`attachment; filename="${file}"`});return fs.createReadStream(rag.artifact(cite)).pipe(res);}
     let file;
     if(url.pathname==="/")file=path.join(ROOT,"web/board/index.html");
     else if(url.pathname.startsWith("/board/"))file=path.join(ROOT,"web/board",url.pathname.slice(7));
