@@ -10,6 +10,7 @@ import { RunManager } from "./lib/runs.mjs";
 import { containmentEvidence, attemptExfil } from "./lib/openshell.mjs";
 import { boardCorsHeaders } from "./lib/board-cors.mjs";
 
+const ALLOWED_CORS = new Set(["/api/board", "/api/detect", "/api/incidents", "/api/hops/latest", "/api/demo/inject"]);
 const ROOT=path.resolve(path.dirname(fileURLToPath(import.meta.url)),"..");
 const PORT=Number(process.env.PORT||8765), HOST=process.env.HOST||"0.0.0.0";
 const store=createStore(path.join(ROOT,"data/plant-floor.db")); store.seed();
@@ -45,11 +46,69 @@ async function denyAttempt(){
 const CONTAINMENT_REFRESH_MS=Number(process.env.CONTAINMENT_REFRESH_MS||30000);
 refreshContainment(); setInterval(refreshContainment,CONTAINMENT_REFRESH_MS).unref();
 
+const INJECT_CATALOG = {
+  clear: { file: "97.mat", channel: "X097_DE_time", fs_hz: 48000, rpm: 1797, expected_fault: null },
+  ir: { file: "105.mat", channel: "X105_DE_time", fs_hz: 12000, rpm: 1797, expected_fault: "inner_race" },
+  or: { file: "130.mat", channel: "X130_DE_time", fs_hz: 12000, rpm: 1797, expected_fault: "outer_race" },
+  ball: { file: "118.mat", channel: "X118_DE_time", fs_hz: 12000, rpm: 1797, expected_fault: "ball" },
+};
+const INJECT_ALIASES = { "97": "clear", "105": "ir", "118": "ball", "130": "or", "cwru:97.mat": "clear", "cwru:105.mat": "ir", "cwru:118.mat": "ball", "cwru:130.mat": "or" };
+
+function resolveInject(source) {
+  const raw = String(source || "ir").trim().toLowerCase();
+  const key = INJECT_ALIASES[raw] || (raw.endsWith(".mat") ? INJECT_ALIASES[`cwru:${raw}`] : raw) || raw;
+  const entry = INJECT_CATALOG[key];
+  if (!entry) throw new Error(`unknown inject source ${source}; allow ir|or|ball|clear`);
+  return { key, ...entry };
+}
+
 const server=http.createServer(async(req,res)=>{
   const url=new URL(req.url,`http://${req.headers.host||"localhost"}`);
   try {
-    if(req.method==="GET"&&url.pathname==="/api/health") return json(res,200,{ok:true,gateway:Boolean(gateway),agent:"maintenance",model:"gpt-oss-20b",inference:"inference.local"});
-    if(req.method==="GET"&&url.pathname==="/api/board") {const asset=url.searchParams.get("asset")||"RPP1";const cors=boardCorsHeaders({method:req.method,pathname:url.pathname,host:req.headers.host,origin:req.headers.origin});return json(res,200,store.board({asset_id:asset,part:asset==="RPP1"?"URjoint1":"T_Machine_Static",kind:"asset"}),cors);}
+    if(req.method==="OPTIONS"&&ALLOWED_CORS.has(url.pathname)) {
+      const cors=boardCorsHeaders({method:req.method,pathname:url.pathname,host:req.headers.host,origin:req.headers.origin});
+      if(!cors["Access-Control-Allow-Origin"])return json(res,403,{error:"cors denied"});
+      res.writeHead(204,cors);return res.end();
+    }
+    if(req.method==="GET"&&url.pathname==="/api/health") return json(res,200,{ok:true,gateway:Boolean(gateway),agent:"maintenance",model:"gpt-oss-20b",inference:"inference.local",hop_override:store.hopOverride(),latest_hop:Boolean(store.latestHop())});
+    if(req.method==="GET"&&url.pathname==="/api/board") {const asset=url.searchParams.get("asset")||"RPP1";const part=asset==="RPP1"?"URjoint1":asset==="MTR07-CAD"?"1LE1003-1EB23-4JA4":asset==="T1"?"T_Machine_Static":null;const cors=boardCorsHeaders({method:req.method,pathname:url.pathname,host:req.headers.host,origin:req.headers.origin});return json(res,200,store.board({asset_id:asset,part,kind:"asset"}),cors);}
+    if(req.method==="GET"&&url.pathname==="/api/incidents") {
+      const cors=boardCorsHeaders({method:req.method,pathname:url.pathname,host:req.headers.host,origin:req.headers.origin});
+      return json(res,200,{incidents:store.listIncidents({status:url.searchParams.get("status")||undefined})},cors);
+    }
+    if(req.method==="GET"&&url.pathname==="/api/hops/latest") {
+      const cors=boardCorsHeaders({method:req.method,pathname:url.pathname,host:req.headers.host,origin:req.headers.origin});
+      const limit=Math.min(60, Math.max(1, Number(url.searchParams.get("limit")||20)));
+      return json(res,200,store.hopsLatest(limit),cors);
+    }
+    if(req.method==="POST"&&url.pathname==="/api/demo/inject") {
+      const cors=boardCorsHeaders({method:req.method,pathname:url.pathname,host:req.headers.host,origin:req.headers.origin});
+      const input=await body(req);
+      const hops=Math.min(300, Math.max(1, Number(input.hops||30)));
+      const resolved=resolveInject(input.source||input.key||"ir");
+      if(resolved.key==="clear"){
+        store.setHopOverride(null);
+        return json(res,200,{cleared:true,hop_override:null},cors);
+      }
+      const override={
+        file:resolved.file,
+        channel:resolved.channel,
+        fs_hz:resolved.fs_hz,
+        rpm:resolved.rpm,
+        expected_fault:resolved.expected_fault,
+        hops_remaining:hops,
+        injected_at:new Date().toISOString(),
+        source:`cwru:${resolved.file}`,
+      };
+      store.setHopOverride(override);
+      return json(res,200,{ok:true,hop_override:override},cors);
+    }
+    if(req.method==="POST"&&url.pathname==="/api/detect") {
+      const cors=boardCorsHeaders({method:req.method,pathname:url.pathname,host:req.headers.host,origin:req.headers.origin});
+      const input=await body(req);
+      const result=store.detect(input);
+      return json(res,result.inserted?201:200,result,cors);
+    }
     if(req.method==="GET"&&url.pathname==="/api/events") {
       const runId=url.searchParams.get("run"),after=Number(url.searchParams.get("after")||0);if(!runId)return json(res,400,{error:"run required"});
       res.writeHead(200,{"content-type":"text/event-stream","cache-control":"no-store","connection":"keep-alive"});

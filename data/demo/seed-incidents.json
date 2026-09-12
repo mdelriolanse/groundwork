@@ -1,0 +1,79 @@
+{
+  "honesty": "Seeded before stage. OR uses measured RMS on cwru:130.mat window 0..2 (CWRU OR007). T1 is process-only, no PMMCP. Flags marked processed so L2 does not re-draft. Live IR on RPP1 is not seeded.",
+  "incidents": [
+    {
+      "asset_id": "MTR07-CAD",
+      "part": "1LE1003-1EB23-4JA4",
+      "fault": "outer_race",
+      "priority": "high",
+      "status": "acknowledged",
+      "detected_at": "2026-09-12T18:00:27+00:00",
+      "acknowledged_at": "2026-09-12T18:20:27+00:00",
+      "detections": [
+        "2026-09-12T18:00:27+00:00",
+        "2026-09-12T18:10:27+00:00"
+      ],
+      "source": "cwru:130.mat:X130_DE_time",
+      "window": "0.00..2.00",
+      "rpm": 1797,
+      "rms": 0.662,
+      "flag_status": "processed",
+      "work_order": {
+        "wo_id": "WO-MTR07-OR",
+        "asset_id": "MTR07-CAD",
+        "opened": "2026-09-12T18:00:27+00:00",
+        "fault": "outer_race",
+        "severity": "iso_context_only",
+        "evidence": {
+          "source": "cwru:130.mat",
+          "window": "0.00..2.00",
+          "rpm": 1797,
+          "features": [
+            "CWRU OR007 label on 130.mat; measured RMS 0.662 g",
+            "Envelope BPFO peak near 107.5 Hz (SKF 6205 catalog)",
+            "Siemens 1LE1003 1.5 kW << 15 kW ISO 20816 floor \u2014 context only"
+          ],
+          "part": "1LE1003-1EB23-4JA4"
+        },
+        "citations": [
+          {
+            "type": "signal",
+            "source": "cwru:130.mat",
+            "window": "0.00..2.00"
+          },
+          {
+            "type": "manual",
+            "doc": "skf-bearing-damage-analysis.pdf",
+            "page": 12
+          },
+          {
+            "type": "history",
+            "wo_id": "WO-1041"
+          }
+        ],
+        "action": "Inspect DE 6205 outer race; schedule bearing replace",
+        "parts": [
+          "6205-2RS"
+        ],
+        "priority": "high"
+      }
+    },
+    {
+      "asset_id": "T1",
+      "part": "T_Machine_Static",
+      "fault": "process_drop",
+      "priority": "medium",
+      "status": "new",
+      "detected_at": "2026-09-12T19:35:27+00:00",
+      "detections": [
+        "2026-09-12T19:35:27+00:00"
+      ],
+      "source": "vlft:process",
+      "window": null,
+      "rpm": null,
+      "rms": null,
+      "flag_status": "processed",
+      "work_order": null
+    }
+  ]
+}
