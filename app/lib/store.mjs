@@ -15,6 +15,25 @@ export function createStore(filename = path.resolve("data/plant-floor.db")) {
     CREATE TABLE IF NOT EXISTS agent_events(run_id TEXT, seq INTEGER, ts TEXT, kind TEXT, label TEXT, detail TEXT, PRIMARY KEY(run_id, seq));
     CREATE TABLE IF NOT EXISTS answers(id TEXT PRIMARY KEY, run_id TEXT, asset_id TEXT, question TEXT, json TEXT, created TEXT);
     CREATE TABLE IF NOT EXISTS state(key TEXT PRIMARY KEY, value TEXT);
+    CREATE TABLE IF NOT EXISTS incidents(
+      incident_id INTEGER PRIMARY KEY AUTOINCREMENT,
+      asset_id TEXT NOT NULL,
+      fault TEXT NOT NULL,
+      status TEXT NOT NULL,
+      previous_incident_id INTEGER REFERENCES incidents(incident_id)
+    );
+    CREATE UNIQUE INDEX IF NOT EXISTS one_active_incident ON incidents(asset_id, fault) WHERE status != 'resolved';
+    CREATE TABLE IF NOT EXISTS incident_detections(
+      detection_id INTEGER PRIMARY KEY AUTOINCREMENT,
+      incident_id INTEGER NOT NULL REFERENCES incidents(incident_id),
+      detected_at TEXT NOT NULL
+    );
+    CREATE TABLE IF NOT EXISTS incident_status_history(
+      transition_id INTEGER PRIMARY KEY AUTOINCREMENT,
+      incident_id INTEGER NOT NULL REFERENCES incidents(incident_id),
+      status TEXT NOT NULL,
+      transitioned_at TEXT NOT NULL
+    );
   `);
   const now = () => new Date().toISOString();
   const getState = (key, fallback) => {
@@ -22,6 +41,13 @@ export function createStore(filename = path.resolve("data/plant-floor.db")) {
     return row ? JSON.parse(row.value) : fallback;
   };
   const setState = (key, value) => db.prepare("INSERT INTO state(key,value) VALUES(?,?) ON CONFLICT(key) DO UPDATE SET value=excluded.value").run(key, JSON.stringify(value));
+  const getIncident = (incidentId) => {
+    const incident = db.prepare("SELECT incident_id,asset_id,fault,status,previous_incident_id FROM incidents WHERE incident_id=?").get(incidentId);
+    if (!incident) return null;
+    const detections = db.prepare("SELECT detected_at FROM incident_detections WHERE incident_id=? ORDER BY detection_id").all(incidentId);
+    const status_history = db.prepare("SELECT status,transitioned_at FROM incident_status_history WHERE incident_id=? ORDER BY transition_id").all(incidentId);
+    return {...incident,detections,status_history};
+  };
   return {
     db,
     close: () => db.close(),
@@ -33,8 +59,42 @@ export function createStore(filename = path.resolve("data/plant-floor.db")) {
         ins.run("T1","rms",now(),0.041,"g","synthetic:healthy");
         ins.run("T1","rpm",now(),1450,"rpm","synthetic:healthy");
       }
-      if (!db.prepare("SELECT 1 FROM state WHERE key='containment'").get()) setState("containment",{state:"CONTAINED",last_deny:"DENY telemetry POST",inference:"inference.local"});
+      // Containment is never seeded. app/lib/openshell.mjs fills it from the gateway's own audit log; until then it is UNPROVEN.
+      if (!db.prepare("SELECT 1 FROM state WHERE key='containment'").get()) setState("containment",{state:"UNPROVEN",last_deny:null,denies:[],deny_count:0,policy:null,inference:"inference.local",errors:["not yet read from openshell"]});
       if (!db.prepare("SELECT 1 FROM state WHERE key='fpr'").get()) setState("fpr",{n_false:0,n_normal:4});
+    },
+    incident(incidentId) { return getIncident(incidentId); },
+    recordIncidentDetection(data) {
+      const detectedAt=data.detected_at||now();
+      db.exec("BEGIN IMMEDIATE");
+      try {
+        let incident=db.prepare("SELECT incident_id FROM incidents WHERE asset_id=? AND fault=? AND status!='resolved' ORDER BY incident_id DESC LIMIT 1").get(data.asset_id,data.fault);
+        if (!incident) {
+          const previous=db.prepare("SELECT incident_id FROM incidents WHERE asset_id=? AND fault=? AND status='resolved' ORDER BY incident_id DESC LIMIT 1").get(data.asset_id,data.fault);
+          const inserted=db.prepare("INSERT INTO incidents(asset_id,fault,status,previous_incident_id) VALUES(?,?,'new',?)").run(data.asset_id,data.fault,previous?.incident_id??null);
+          incident={incident_id:Number(inserted.lastInsertRowid)};
+          db.prepare("INSERT INTO incident_status_history(incident_id,status,transitioned_at) VALUES(?,'new',?)").run(incident.incident_id,detectedAt);
+        }
+        db.prepare("INSERT INTO incident_detections(incident_id,detected_at) VALUES(?,?)").run(incident.incident_id,detectedAt);
+        db.exec("COMMIT");
+        return getIncident(incident.incident_id);
+      } catch (error) {
+        db.exec("ROLLBACK");
+        throw error;
+      }
+    },
+    transitionIncident(incidentId, status, transitionedAt=now()) {
+      db.exec("BEGIN IMMEDIATE");
+      try {
+        const result=db.prepare("UPDATE incidents SET status=? WHERE incident_id=?").run(status,incidentId);
+        if (result.changes===0) throw new Error(`incident ${incidentId} not found`);
+        db.prepare("INSERT INTO incident_status_history(incident_id,status,transitioned_at) VALUES(?,?,?)").run(incidentId,status,transitionedAt);
+        db.exec("COMMIT");
+        return getIncident(incidentId);
+      } catch (error) {
+        db.exec("ROLLBACK");
+        throw error;
+      }
     },
     recordFeature(assetId, tag, value, unit, source, ts=now()) { db.prepare("INSERT INTO historian VALUES(?,?,?,?,?,?)").run(assetId,tag,ts,value,unit,source); },
     flag(data) {
@@ -61,6 +121,7 @@ export function createStore(filename = path.resolve("data/plant-floor.db")) {
     saveAnswer(answer) { db.prepare("INSERT INTO answers VALUES(?,?,?,?,?,?)").run(answer.id,answer.run_id,answer.asset_id,answer.question,JSON.stringify(answer.body),now()); },
     latestAnswer(assetId) { const row=db.prepare("SELECT json FROM answers WHERE asset_id=? ORDER BY created DESC LIMIT 1").get(assetId); return row?JSON.parse(row.json):null; },
     setContainment(value) { setState("containment",value); },
+    containment() { return getState("containment",{state:"UNPROVEN",last_deny:null,denies:[],deny_count:0,policy:null,inference:"inference.local",errors:[]}); },
     board(selection={asset_id:"RPP1",part:"URjoint1",kind:"asset"}) {
       const assets=[
         {asset_id:"RPP1",role:"hero",part:"URjoint1",source:"cwru:105.mat"},
