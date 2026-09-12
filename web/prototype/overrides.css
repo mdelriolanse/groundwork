@@ -1,0 +1,47 @@
+:root { --radius: 0; }
+.badge, .nav-count, .kbd, .cite-button, .tree-row { border-radius: 0; }
+.badge { padding: 0 6px; overflow: visible; text-overflow: unset; }
+
+.rail-trigger {
+  position: absolute;
+  right: 16px;
+  bottom: 16px;
+  top: auto;
+  left: auto;
+  width: auto;
+  height: auto;
+  min-height: 44px;
+  z-index: 8;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 0 14px;
+  writing-mode: horizontal-tb;
+  transform: none;
+  color: #fff;
+  background: var(--primary);
+  border: 1px solid var(--primary);
+  border-radius: 0;
+  font-size: 12px;
+  font-weight: 650;
+  cursor: pointer;
+  box-shadow: var(--shadow-overlay);
+}
+.rail-trigger:hover { background: var(--primary-hover); border-color: var(--primary-hover); }
+.workspace-body.has-rail .rail-trigger { display: none; }
+.workspace-body:not(.has-rail) .page-inner { padding-right: 16px; }
+
+@media (max-width: 720px) {
+  .rail-trigger { display: inline-flex; right: 12px; bottom: 12px; }
+}
+
+.filter-panel .filter-group,
+.filter-panel .filter-group:last-child,
+.filter-panel fieldset.filter-group {
+  margin: 0;
+  border: 0;
+  border-bottom: 0;
+  box-shadow: none;
+  background: transparent;
+}

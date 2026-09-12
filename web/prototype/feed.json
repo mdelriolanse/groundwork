@@ -1,0 +1,732 @@
+{
+  "schema": "pfa.prototype.feed.v1",
+  "manifest": {
+    "t0": "2026-09-12T13:57:50.000-04:00",
+    "duration_s": 20,
+    "hop_s": 1.0,
+    "window_s": 2.0,
+    "flag_at": "2026-09-12T13:58:00.000-04:00",
+    "flag_hop": 10,
+    "honesty": "L1 scalars from CWRU windows. No 12 kHz on the board. T1 is vlft:process."
+  },
+  "cell": {
+    "name": "VFLab \u00b7 hinge assembly",
+    "cite": "https://github.com/difactory/repository",
+    "license": "CC BY-NC 4.0"
+  },
+  "fleet": [
+    {
+      "asset_id": "RPP1",
+      "role": "hero",
+      "part": "URjoint1",
+      "name": "UR pick-and-place",
+      "source": "cwru:105.mat",
+      "aliases": [
+        "MTR-07"
+      ],
+      "supported": true,
+      "glb": "UR_Pick_and_Place_Station.glb"
+    },
+    {
+      "asset_id": "T1",
+      "role": "sibling",
+      "part": "T_Machine_Static",
+      "name": "Tightener",
+      "source": "vlft:process",
+      "aliases": [],
+      "supported": false,
+      "glb": "Tightener_Station.glb"
+    }
+  ],
+  "hops": [
+    {
+      "i": 0,
+      "ts": "2026-09-12T13:57:50.000-04:00",
+      "rpp1": {
+        "rms": 0.0737,
+        "rpm": 1797,
+        "bpfi": {
+          "detected": false,
+          "hz": null,
+          "strength": null
+        },
+        "bpfo": {
+          "detected": false,
+          "hz": null,
+          "strength": null
+        },
+        "fault": null,
+        "engine": "envelope",
+        "source": "cwru:97.mat:X097_DE_time",
+        "window": "1.53..3.53",
+        "file": "97.mat",
+        "channel": "X097_DE_time",
+        "fs_hz": 48000
+      },
+      "t1": {
+        "cycle_s": 2.0,
+        "busy": 0,
+        "job_id": 59,
+        "source": "vlft:process",
+        "part": "T_Machine_Static"
+      }
+    },
+    {
+      "i": 1,
+      "ts": "2026-09-12T13:57:51.000-04:00",
+      "rpp1": {
+        "rms": 0.0749,
+        "rpm": 1797,
+        "bpfi": {
+          "detected": false,
+          "hz": null,
+          "strength": null
+        },
+        "bpfo": {
+          "detected": false,
+          "hz": null,
+          "strength": null
+        },
+        "fault": null,
+        "engine": "envelope",
+        "source": "cwru:97.mat:X097_DE_time",
+        "window": "2.53..4.53",
+        "file": "97.mat",
+        "channel": "X097_DE_time",
+        "fs_hz": 48000
+      },
+      "t1": {
+        "cycle_s": 2.0,
+        "busy": 0,
+        "job_id": 59,
+        "source": "vlft:process",
+        "part": "T_Machine_Static"
+      }
+    },
+    {
+      "i": 2,
+      "ts": "2026-09-12T13:57:52.000-04:00",
+      "rpp1": {
+        "rms": 0.0727,
+        "rpm": 1797,
+        "bpfi": {
+          "detected": false,
+          "hz": null,
+          "strength": null
+        },
+        "bpfo": {
+          "detected": false,
+          "hz": null,
+          "strength": null
+        },
+        "fault": null,
+        "engine": "envelope",
+        "source": "cwru:97.mat:X097_DE_time",
+        "window": "0.45..2.45",
+        "file": "97.mat",
+        "channel": "X097_DE_time",
+        "fs_hz": 48000
+      },
+      "t1": {
+        "cycle_s": 2.0,
+        "busy": 1,
+        "job_id": 60,
+        "source": "vlft:process",
+        "part": "T_Machine_Static"
+      }
+    },
+    {
+      "i": 3,
+      "ts": "2026-09-12T13:57:53.000-04:00",
+      "rpp1": {
+        "rms": 0.0736,
+        "rpm": 1797,
+        "bpfi": {
+          "detected": false,
+          "hz": null,
+          "strength": null
+        },
+        "bpfo": {
+          "detected": false,
+          "hz": null,
+          "strength": null
+        },
+        "fault": null,
+        "engine": "envelope",
+        "source": "cwru:97.mat:X097_DE_time",
+        "window": "1.45..3.45",
+        "file": "97.mat",
+        "channel": "X097_DE_time",
+        "fs_hz": 48000
+      },
+      "t1": {
+        "cycle_s": 2.0,
+        "busy": 1,
+        "job_id": 60,
+        "source": "vlft:process",
+        "part": "T_Machine_Static"
+      }
+    },
+    {
+      "i": 4,
+      "ts": "2026-09-12T13:57:54.000-04:00",
+      "rpp1": {
+        "rms": 0.0749,
+        "rpm": 1797,
+        "bpfi": {
+          "detected": false,
+          "hz": null,
+          "strength": null
+        },
+        "bpfo": {
+          "detected": false,
+          "hz": null,
+          "strength": null
+        },
+        "fault": null,
+        "engine": "envelope",
+        "source": "cwru:97.mat:X097_DE_time",
+        "window": "2.45..4.45",
+        "file": "97.mat",
+        "channel": "X097_DE_time",
+        "fs_hz": 48000
+      },
+      "t1": {
+        "cycle_s": 2.0,
+        "busy": 0,
+        "job_id": 60,
+        "source": "vlft:process",
+        "part": "T_Machine_Static"
+      }
+    },
+    {
+      "i": 5,
+      "ts": "2026-09-12T13:57:55.000-04:00",
+      "rpp1": {
+        "rms": 0.0728,
+        "rpm": 1797,
+        "bpfi": {
+          "detected": false,
+          "hz": null,
+          "strength": null
+        },
+        "bpfo": {
+          "detected": false,
+          "hz": null,
+          "strength": null
+        },
+        "fault": null,
+        "engine": "envelope",
+        "source": "cwru:97.mat:X097_DE_time",
+        "window": "0.37..2.37",
+        "file": "97.mat",
+        "channel": "X097_DE_time",
+        "fs_hz": 48000
+      },
+      "t1": {
+        "cycle_s": 2.0,
+        "busy": 0,
+        "job_id": 60,
+        "source": "vlft:process",
+        "part": "T_Machine_Static"
+      }
+    },
+    {
+      "i": 6,
+      "ts": "2026-09-12T13:57:56.000-04:00",
+      "rpp1": {
+        "rms": 0.0735,
+        "rpm": 1797,
+        "bpfi": {
+          "detected": false,
+          "hz": null,
+          "strength": null
+        },
+        "bpfo": {
+          "detected": false,
+          "hz": null,
+          "strength": null
+        },
+        "fault": null,
+        "engine": "envelope",
+        "source": "cwru:97.mat:X097_DE_time",
+        "window": "1.37..3.37",
+        "file": "97.mat",
+        "channel": "X097_DE_time",
+        "fs_hz": 48000
+      },
+      "t1": {
+        "cycle_s": 2.0,
+        "busy": 0,
+        "job_id": 60,
+        "source": "vlft:process",
+        "part": "T_Machine_Static"
+      }
+    },
+    {
+      "i": 7,
+      "ts": "2026-09-12T13:57:57.000-04:00",
+      "rpp1": {
+        "rms": 0.0748,
+        "rpm": 1797,
+        "bpfi": {
+          "detected": false,
+          "hz": null,
+          "strength": null
+        },
+        "bpfo": {
+          "detected": false,
+          "hz": null,
+          "strength": null
+        },
+        "fault": null,
+        "engine": "envelope",
+        "source": "cwru:97.mat:X097_DE_time",
+        "window": "2.37..4.37",
+        "file": "97.mat",
+        "channel": "X097_DE_time",
+        "fs_hz": 48000
+      },
+      "t1": {
+        "cycle_s": 2.0,
+        "busy": 0,
+        "job_id": 60,
+        "source": "vlft:process",
+        "part": "T_Machine_Static"
+      }
+    },
+    {
+      "i": 8,
+      "ts": "2026-09-12T13:57:58.000-04:00",
+      "rpp1": {
+        "rms": 0.0728,
+        "rpm": 1797,
+        "bpfi": {
+          "detected": false,
+          "hz": null,
+          "strength": null
+        },
+        "bpfo": {
+          "detected": false,
+          "hz": null,
+          "strength": null
+        },
+        "fault": null,
+        "engine": "envelope",
+        "source": "cwru:97.mat:X097_DE_time",
+        "window": "0.28..2.28",
+        "file": "97.mat",
+        "channel": "X097_DE_time",
+        "fs_hz": 48000
+      },
+      "t1": {
+        "cycle_s": 2.0,
+        "busy": 0,
+        "job_id": 60,
+        "source": "vlft:process",
+        "part": "T_Machine_Static"
+      }
+    },
+    {
+      "i": 9,
+      "ts": "2026-09-12T13:57:59.000-04:00",
+      "rpp1": {
+        "rms": 0.0733,
+        "rpm": 1797,
+        "bpfi": {
+          "detected": false,
+          "hz": null,
+          "strength": null
+        },
+        "bpfo": {
+          "detected": false,
+          "hz": null,
+          "strength": null
+        },
+        "fault": null,
+        "engine": "envelope",
+        "source": "cwru:97.mat:X097_DE_time",
+        "window": "1.28..3.28",
+        "file": "97.mat",
+        "channel": "X097_DE_time",
+        "fs_hz": 48000
+      },
+      "t1": {
+        "cycle_s": 2.0,
+        "busy": 0,
+        "job_id": 60,
+        "source": "vlft:process",
+        "part": "T_Machine_Static"
+      }
+    },
+    {
+      "i": 10,
+      "ts": "2026-09-12T13:58:00.000-04:00",
+      "rpp1": {
+        "rms": 0.289,
+        "rpm": 1797,
+        "bpfi": {
+          "detected": true,
+          "hz": 161.5,
+          "strength": "envelope"
+        },
+        "bpfo": {
+          "detected": true,
+          "hz": 102.0,
+          "strength": "envelope"
+        },
+        "fault": "inner_race",
+        "engine": "envelope",
+        "source": "cwru:105.mat:X105_DE_time",
+        "window": "0.00..2.00",
+        "file": "105.mat",
+        "channel": "X105_DE_time",
+        "fs_hz": 12000
+      },
+      "t1": {
+        "cycle_s": 2.0,
+        "busy": 1,
+        "job_id": 61,
+        "source": "vlft:process",
+        "part": "T_Machine_Static"
+      }
+    },
+    {
+      "i": 11,
+      "ts": "2026-09-12T13:58:01.000-04:00",
+      "rpp1": {
+        "rms": 0.292,
+        "rpm": 1797,
+        "bpfi": {
+          "detected": true,
+          "hz": 161.5,
+          "strength": "envelope"
+        },
+        "bpfo": {
+          "detected": true,
+          "hz": 102.0,
+          "strength": "envelope"
+        },
+        "fault": "inner_race",
+        "engine": "envelope",
+        "source": "cwru:105.mat:X105_DE_time",
+        "window": "1.00..3.00",
+        "file": "105.mat",
+        "channel": "X105_DE_time",
+        "fs_hz": 12000
+      },
+      "t1": {
+        "cycle_s": 2.0,
+        "busy": 1,
+        "job_id": 61,
+        "source": "vlft:process",
+        "part": "T_Machine_Static"
+      }
+    },
+    {
+      "i": 12,
+      "ts": "2026-09-12T13:58:02.000-04:00",
+      "rpp1": {
+        "rms": 0.293,
+        "rpm": 1797,
+        "bpfi": {
+          "detected": true,
+          "hz": 161.5,
+          "strength": "envelope"
+        },
+        "bpfo": {
+          "detected": true,
+          "hz": 102.0,
+          "strength": "envelope"
+        },
+        "fault": "inner_race",
+        "engine": "envelope",
+        "source": "cwru:105.mat:X105_DE_time",
+        "window": "2.00..4.00",
+        "file": "105.mat",
+        "channel": "X105_DE_time",
+        "fs_hz": 12000
+      },
+      "t1": {
+        "cycle_s": 2.0,
+        "busy": 0,
+        "job_id": 61,
+        "source": "vlft:process",
+        "part": "T_Machine_Static"
+      }
+    },
+    {
+      "i": 13,
+      "ts": "2026-09-12T13:58:03.000-04:00",
+      "rpp1": {
+        "rms": 0.291,
+        "rpm": 1797,
+        "bpfi": {
+          "detected": true,
+          "hz": 161.5,
+          "strength": "envelope"
+        },
+        "bpfo": {
+          "detected": true,
+          "hz": 102.0,
+          "strength": "envelope"
+        },
+        "fault": "inner_race",
+        "engine": "envelope",
+        "source": "cwru:105.mat:X105_DE_time",
+        "window": "3.00..5.00",
+        "file": "105.mat",
+        "channel": "X105_DE_time",
+        "fs_hz": 12000
+      },
+      "t1": {
+        "cycle_s": 2.0,
+        "busy": 0,
+        "job_id": 61,
+        "source": "vlft:process",
+        "part": "T_Machine_Static"
+      }
+    },
+    {
+      "i": 14,
+      "ts": "2026-09-12T13:58:04.000-04:00",
+      "rpp1": {
+        "rms": 0.291,
+        "rpm": 1797,
+        "bpfi": {
+          "detected": true,
+          "hz": 161.5,
+          "strength": "envelope"
+        },
+        "bpfo": {
+          "detected": true,
+          "hz": 102.0,
+          "strength": "envelope"
+        },
+        "fault": "inner_race",
+        "engine": "envelope",
+        "source": "cwru:105.mat:X105_DE_time",
+        "window": "4.00..6.00",
+        "file": "105.mat",
+        "channel": "X105_DE_time",
+        "fs_hz": 12000
+      },
+      "t1": {
+        "cycle_s": 2.0,
+        "busy": 0,
+        "job_id": 61,
+        "source": "vlft:process",
+        "part": "T_Machine_Static"
+      }
+    },
+    {
+      "i": 15,
+      "ts": "2026-09-12T13:58:05.000-04:00",
+      "rpp1": {
+        "rms": 0.292,
+        "rpm": 1797,
+        "bpfi": {
+          "detected": true,
+          "hz": 161.5,
+          "strength": "envelope"
+        },
+        "bpfo": {
+          "detected": true,
+          "hz": 102.0,
+          "strength": "envelope"
+        },
+        "fault": "inner_race",
+        "engine": "envelope",
+        "source": "cwru:105.mat:X105_DE_time",
+        "window": "5.00..7.00",
+        "file": "105.mat",
+        "channel": "X105_DE_time",
+        "fs_hz": 12000
+      },
+      "t1": {
+        "cycle_s": 2.0,
+        "busy": 0,
+        "job_id": 61,
+        "source": "vlft:process",
+        "part": "T_Machine_Static"
+      }
+    },
+    {
+      "i": 16,
+      "ts": "2026-09-12T13:58:06.000-04:00",
+      "rpp1": {
+        "rms": 0.293,
+        "rpm": 1797,
+        "bpfi": {
+          "detected": true,
+          "hz": 161.5,
+          "strength": "envelope"
+        },
+        "bpfo": {
+          "detected": true,
+          "hz": 102.0,
+          "strength": "envelope"
+        },
+        "fault": "inner_race",
+        "engine": "envelope",
+        "source": "cwru:105.mat:X105_DE_time",
+        "window": "6.00..8.00",
+        "file": "105.mat",
+        "channel": "X105_DE_time",
+        "fs_hz": 12000
+      },
+      "t1": {
+        "cycle_s": 2.0,
+        "busy": 0,
+        "job_id": 61,
+        "source": "vlft:process",
+        "part": "T_Machine_Static"
+      }
+    },
+    {
+      "i": 17,
+      "ts": "2026-09-12T13:58:07.000-04:00",
+      "rpp1": {
+        "rms": 0.291,
+        "rpm": 1797,
+        "bpfi": {
+          "detected": true,
+          "hz": 161.5,
+          "strength": "envelope"
+        },
+        "bpfo": {
+          "detected": true,
+          "hz": 102.0,
+          "strength": "envelope"
+        },
+        "fault": "inner_race",
+        "engine": "envelope",
+        "source": "cwru:105.mat:X105_DE_time",
+        "window": "7.00..9.00",
+        "file": "105.mat",
+        "channel": "X105_DE_time",
+        "fs_hz": 12000
+      },
+      "t1": {
+        "cycle_s": 2.0,
+        "busy": 0,
+        "job_id": 61,
+        "source": "vlft:process",
+        "part": "T_Machine_Static"
+      }
+    },
+    {
+      "i": 18,
+      "ts": "2026-09-12T13:58:08.000-04:00",
+      "rpp1": {
+        "rms": 0.291,
+        "rpm": 1797,
+        "bpfi": {
+          "detected": true,
+          "hz": 161.5,
+          "strength": "envelope"
+        },
+        "bpfo": {
+          "detected": true,
+          "hz": 102.0,
+          "strength": "envelope"
+        },
+        "fault": "inner_race",
+        "engine": "envelope",
+        "source": "cwru:105.mat:X105_DE_time",
+        "window": "8.00..10.00",
+        "file": "105.mat",
+        "channel": "X105_DE_time",
+        "fs_hz": 12000
+      },
+      "t1": {
+        "cycle_s": 2.0,
+        "busy": 1,
+        "job_id": 62,
+        "source": "vlft:process",
+        "part": "T_Machine_Static"
+      }
+    },
+    {
+      "i": 19,
+      "ts": "2026-09-12T13:58:09.000-04:00",
+      "rpp1": {
+        "rms": 0.292,
+        "rpm": 1797,
+        "bpfi": {
+          "detected": true,
+          "hz": 161.5,
+          "strength": "envelope"
+        },
+        "bpfo": {
+          "detected": true,
+          "hz": 102.0,
+          "strength": "envelope"
+        },
+        "fault": "inner_race",
+        "engine": "envelope",
+        "source": "cwru:105.mat:X105_DE_time",
+        "window": "0.87..2.87",
+        "file": "105.mat",
+        "channel": "X105_DE_time",
+        "fs_hz": 12000
+      },
+      "t1": {
+        "cycle_s": 2.0,
+        "busy": 1,
+        "job_id": 62,
+        "source": "vlft:process",
+        "part": "T_Machine_Static"
+      }
+    }
+  ],
+  "flag": {
+    "ts": "2026-09-12T13:58:00.000-04:00",
+    "asset_id": "RPP1",
+    "part": "URjoint1",
+    "flag": "BPFI",
+    "fault": "inner_race",
+    "rms_g": 0.289,
+    "bpxx_hz": 161.5,
+    "rpm": 1797,
+    "source": "cwru:105.mat:X105_DE_time",
+    "window": "0.00..2.00",
+    "wo": "none",
+    "incident_id": "INC-RPP1"
+  },
+  "cmms": [
+    {
+      "wo_id": "WO-1041",
+      "asset_id": "MTR-07",
+      "alias": "RPP1",
+      "opened": "2025-11-02",
+      "closed": "2025-11-04",
+      "fault": "outer_race",
+      "action": "replaced_bearing",
+      "parts": "6205-2RS",
+      "source": "cmms:data/history/work-orders.csv"
+    },
+    {
+      "wo_id": "WO-1188",
+      "asset_id": "MTR-07",
+      "alias": "RPP1",
+      "opened": "2026-03-14",
+      "closed": "2026-03-15",
+      "fault": "imbalance",
+      "action": "added_balance_weight",
+      "parts": "washer-set",
+      "source": "cmms:data/history/work-orders.csv"
+    },
+    {
+      "wo_id": "WO-1410",
+      "asset_id": "MTR-07",
+      "alias": "RPP1",
+      "opened": "2026-08-30",
+      "closed": null,
+      "fault": "inner_race",
+      "action": "pending",
+      "parts": "6205-2RS",
+      "source": "cmms:data/history/work-orders.csv"
+    }
+  ]
+}
