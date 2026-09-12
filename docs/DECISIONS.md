@@ -18,6 +18,8 @@ Do not re-open these unless the box physically cannot run the chosen path.
 | 12 | Pitch leads with regulation, not TCO | Breakeven literature contradicts a pure cost pitch. |
 | 13 | Name the dependency first on stage | Converts derivative risk into a credibility signal. |
 | 14 | No vision, no ASR, no Whisper, no VL model | Factory floor is telemetry + PDFs. Audio hits NVRTC. VL wastes residency. |
+| 15 | Frontend = technician-first Palantir Workshop operations workspace | Workshop Inbox + Object View + AIP Assist matches incident triage, object context, and the existing machinery assistant. It supersedes the Acaysia ink/cream/full-bleed motif. Dataset choice changes twin geometry only. Static five-screen approval precedes integration. See `PRD.md` and `FRONTEND-SPEC.md`. |
+| 16 | Floor = live bird's-eye plan view of the whole VLFT line, not a first-person 3D scene | Fixed orthographic camera (isometric default, top-down toggle), every station placed from `web/twin/scene.json`, neutral materials, selection dims-and-outlines instead of hiding, labels/markers/tree drawn by the parent app from posted screen anchors. 24 stations rendered, only RPP1 + T1 monitored and said so. Warehouse shell omitted. Clicking a machine on the floor opens its Asset 360, whose `Open 3D render` shows that station alone in the same grayscale/grid (`?view=part`) with click-a-part fault facts. Inspection mode (perspective + orbit + hide-others) stays for incident detail. See `FRONTEND-SPEC.md` §5.3 and `web/twin/README.md`. |
 
 Rejected models (do not download, do not "just try"): `gpt-oss-120b` (59 GB, not the NemoClaw path), any dense ≥32B (demo dies at 2.7–8 tok/s), Qwen3-VL, Whisper/Kokoro.
 

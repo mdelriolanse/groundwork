@@ -91,7 +91,9 @@ PMMCP `repository.py` is an in-memory LRU. RUL math exists but the *client* must
 
 ## UI
 
-Not a prompt box. A **fleet board**: assets, last scan, open WOs, citations clickable to the artifact. Background work is already there when judges walk up.
+Not a prompt box. A **technician operations workspace** modeled on Palantir Workshop Inbox, Object View, Object Table, and AIP Assist. Incidents is the default triage workspace; Floor, Assets, and Intelligence are supporting object views. One contextual utility rail switches between Object Preview, Maintenance Assist, and Evidence Viewer. Background work is already present when judges walk up.
+
+Incident is a durable case, separate from detections, analysis runs, and its current cited work order. Dataset choice changes scene geometry/twin bindings only; the Site → Area → Line → Cell → Asset → Component ontology remains stable. See `PRD.md` and `FRONTEND-SPEC.md`.
 
 ## Allowlist
 

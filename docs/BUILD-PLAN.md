@@ -9,7 +9,7 @@ Budget from **18:30**. Video must exist by then. Slides 19:00.
 | 09:50–10:30 | `nemoclaw setup-spark` **or** llama.cpp path. Copy HACKPACK → NVMe. OpenShell ≥0.0.7. Host inference smoke (one completion). | Model answers locally |
 | 10:30–12:00 | PMMCP MCP registered. One CWRU record diagnoses. Local tool allowlist applied. | `diagnose(105.mat)` returns a fault |
 | 12:00–14:00 | sqlite asset registry + cron/heartbeat + work-order skill + citations | Cron writes a WO with two citations |
-| 14:00–16:00 | CWRU batch + FPR number + fleet UI (not a chat). Live ingest only if the rig is actually there | FPR on a slide; board shows ≥2 assets |
+| 14:00–16:00 | CWRU batch + FPR number + five-screen Palantir Workshop-style static prototype, then approved incident UI (not a chat). Live ingest only if the rig is actually there | FPR on a slide; approved Inbox shows multiple assets/incidents |
 | 16:00–17:30 | OpenShell egress deny. Record the demo video | Deny+log captured on camera |
 | 17:30–18:30 | Freeze. Submit video + project. Do not update the stack | Submitted |
 
@@ -23,7 +23,7 @@ Parallel after inference is up. Do not all sit on setup.
 | ---- | ---- | -------------- |
 | **Box** | HACKPACK copy, NemoClaw/OpenShell, inference, allowlist, thermal | Product UI |
 | **DSP** | PMMCP MCP, CWRU runner, FPR script, RPM input | Pitch deck |
-| **Agent** | Skills, cron, sqlite, WO schema, fleet board | Stack install |
+| **Agent** | Skills, cron, sqlite, incident/WO schema, operations read model | Stack install |
 | **Demo** (or Agent if 3) | Beats, video, slides, ISO disclosure line, PMMCP credit | DSP internals |
 
 Agents on each laptop: read [AGENTS.md](../AGENTS.md) and this file. Implement only your seat. Share the WO JSON contract in [ARCHITECTURE.md](ARCHITECTURE.md).

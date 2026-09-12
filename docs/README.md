@@ -6,7 +6,9 @@ Agents: start at [../AGENTS.md](../AGENTS.md).
 | ---- | ---- |
 | [VISION.md](VISION.md) | Product, persona, why local is mandatory |
 | [DECISIONS.md](DECISIONS.md) | Locked choices — do not re-litigate |
-| [ARCHITECTURE.md](ARCHITECTURE.md) | Topology, WO contract, ingest, UI |
+| [ARCHITECTURE.md](ARCHITECTURE.md) | Topology, incident/WO contract, ingest, UI |
+| [PRD.md](PRD.md) | Technician workspace requirements, modules, test decisions |
+| [FRONTEND-SPEC.md](FRONTEND-SPEC.md) | Palantir Workshop visual and interaction specification |
 | [PMMCP.md](PMMCP.md) | DSP dependency + file:line gaps |
 | [STACK-AND-HARDWARE.md](STACK-AND-HARDWARE.md) | OpenClaw/OpenShell/NemoClaw, GB10, HACKPACK |
 | [CONSTRAINTS.md](CONSTRAINTS.md) | Rules, DQ, prior winners |

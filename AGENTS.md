@@ -54,13 +54,15 @@ Instruct the agent to email / POST plant telemetry off-box. OpenShell L7 egress 
 
 1. [docs/VISION.md](docs/VISION.md) — why this, persona, winning pattern
 2. [docs/DECISIONS.md](docs/DECISIONS.md) — locked choices + rationale
-3. [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) — runtime topology + work-order contract
-4. [docs/PMMCP.md](docs/PMMCP.md) — dependency contract, file:line gaps
-5. [docs/STACK-AND-HARDWARE.md](docs/STACK-AND-HARDWARE.md) — install, models, HACKPACK
-6. [docs/CONSTRAINTS.md](docs/CONSTRAINTS.md) — rules, DQ traps, prior winners
-7. [docs/DEMO-AND-PITCH.md](docs/DEMO-AND-PITCH.md) — beats, 5-min script, citation traps
-8. [docs/BUILD-PLAN.md](docs/BUILD-PLAN.md) — hour-by-hour + teammate workstreams
-9. [docs/LANDMINES.md](docs/LANDMINES.md) — do-not list
+3. [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) — runtime topology + incident/work-order contract
+4. [docs/PRD.md](docs/PRD.md) — technician workspace requirements, modules, tests
+5. [docs/FRONTEND-SPEC.md](docs/FRONTEND-SPEC.md) — Palantir Workshop visual/interaction contract
+6. [docs/PMMCP.md](docs/PMMCP.md) — dependency contract, file:line gaps
+7. [docs/STACK-AND-HARDWARE.md](docs/STACK-AND-HARDWARE.md) — install, models, HACKPACK
+8. [docs/CONSTRAINTS.md](docs/CONSTRAINTS.md) — rules, DQ traps, prior winners
+9. [docs/DEMO-AND-PITCH.md](docs/DEMO-AND-PITCH.md) — beats, 5-min script, citation traps
+10. [docs/BUILD-PLAN.md](docs/BUILD-PLAN.md) — hour-by-hour + teammate workstreams
+11. [docs/LANDMINES.md](docs/LANDMINES.md) — do-not list
 
 ---
 
