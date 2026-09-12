@@ -295,7 +295,7 @@
       "asset_id": "PP5",
       "aliases": [],
       "role": "process",
-      "part": "PP_Static",
+      "part": "AC motor",
       "source": "mendeley:0Nm_BPFI_10__ch0.mat",
       "tape": [
         "0Nm_Normal__ch0.mat",

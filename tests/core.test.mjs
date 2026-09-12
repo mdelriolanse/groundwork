@@ -6,7 +6,7 @@ import path from "node:path";
 import { createStore } from "../app/lib/store.mjs";
 import { createRag } from "../app/lib/rag.mjs";
 import { validateWorkOrder, validateQuestion } from "../app/lib/contracts.mjs";
-import { askAssist, bindCitations, buildAssistPacket } from "../app/lib/assist.mjs";
+import { askAssist, assistPrompt, bindCitations, buildAssistPacket } from "../app/lib/assist.mjs";
 import { toolCallsFromHistory, retrievalPassagesFromHistory } from "../app/lib/gateway-client.mjs";
 import { RunManager } from "../app/lib/runs.mjs";
 
@@ -43,6 +43,13 @@ test("board issues list lights named parts from open incidents and clears on res
 test("retrieval resolves pin, history alias, and exact page quote",()=>{const rag=createRag(root);assert.equal(rag.pin("inner_race").page,214);assert.equal(rag.history("RPP1","inner_race")[0].wo_id,"WO-1410");const pages=JSON.parse(fs.readFileSync(path.join(root,"runtime/corpus/manuals/skf-bearing-damage-analysis.pages.json"),"utf8")).pages;const text="Inspect the bearing raceways, cage(s) schedule";assert.equal(rag.resolvePassage("skf-bearing-damage-analysis.pdf",text).page,214);});
 test("gateway history exposes actual nested MCP calls without credentials",()=>{const calls=toolCallsFromHistory({messages:[{content:[{type:"toolCall",name:"tool_call",arguments:{id:"mcp:bundle:predictive-maintenance__diagnose_vibration",args:{signal_id:"x"}}}]}]});assert.deepEqual(calls,[{name:"diagnose_vibration",args:{signal_id:"x"}}]);assert.equal(JSON.stringify(calls).includes("token"),false);});
 test("question scope validates bounded input",()=>{assert.equal(validateQuestion("What should I inspect?"),"What should I inspect?");assert.throws(()=>validateQuestion("x"),/3-500/);assert.throws(()=>validateQuestion("x".repeat(501)),/3-500/);});
+
+test("maintenance assist asks for conversational explanations instead of bare fault labels",()=>{
+  const [{content}] = assistPrompt("What is the issue?",{role:"hero"});
+  assert.match(content,/2-4 complete sentences/);
+  assert.match(content,/Never reply with only a code, label, field value, or fragment/);
+  assert.match(content,/inner_race.*inner-race bearing fault/);
+});
 
 test("assist packet binds hop facts and rejects geometry-only stations",()=>{
   const hops={live:true,latest:{hop:3,ts:"t",rpp1:{source:"cwru:97.mat:X097_DE_time",window:"0.00..1.00",rms:0.07,fault:null,file:"97.mat",engine:"pmmcp",bpfi:{detected:false},bpfo:{detected:false},rpm:1797,part:"URjoint1"},assets:{PP3:{part:"bowl",source:"mendeley:pp3",tags:{busy:1}}}},assets:{PP3:{part:"bowl",source:"mendeley:pp3",tags:{busy:1}}}};

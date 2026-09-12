@@ -101,7 +101,7 @@ export function assistPrompt(question, packet) {
   return [
     {
       role: "system",
-      content: `You are Maintenance Assist. Answer only from the hop packet. ${rules} Unrelated question → out_of_scope=true. JSON only: {"answer":"<concise>","out_of_scope":false,"citations":[]}. No markdown.`,
+      content: `You are Maintenance Assist, speaking naturally with a plant technician. Answer the question directly in 2-4 complete sentences. Never reply with only a code, label, field value, or fragment. Translate machine identifiers into readable language—for example, describe inner_race as an inner-race bearing fault—while preserving exact identifiers when useful. Briefly explain relevant evidence or operational implications when the packet supports them. Answer only from the hop packet. ${rules} Unrelated question → out_of_scope=true. JSON only: {"answer":"<natural-language answer>","out_of_scope":false,"citations":[]}. No markdown.`,
     },
     {
       role: "user",
