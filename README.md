@@ -9,6 +9,8 @@ Dell × NVIDIA AI Hackathon · Cornell · 12 Sep 2026 · Dell Pro Max GB10.
 **Humans:** start at [docs/VISION.md](docs/VISION.md).  
 **Agents:** start at [AGENTS.md](AGENTS.md). Do not skip it.
 
+Remote: https://github.com/mdelriolanse/plant-floor-agent (private).
+
 ## What ships today
 
 1. Fleet already being watched (not a chat box).
@@ -29,8 +31,10 @@ Vision, locked decisions, architecture, stack, demo/pitch, build plan. **No appl
 # Then follow docs/BUILD-PLAN.md workstreams.
 ```
 
-Push when ready:
+Clone:
 
 ```bash
-gh repo create plant-floor-agent --private --source=. --remote=origin --push
+git clone https://github.com/mdelriolanse/plant-floor-agent.git
 ```
+
+Private — add teammates as collaborators on the GitHub repo page.
