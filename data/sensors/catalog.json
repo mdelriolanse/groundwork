@@ -1,0 +1,210 @@
+{
+  "schema": "pfa.sensor.catalog.v1",
+  "honesty": "L1 synthetic tags only. Ranges from cited equipment class. Never cwru:. Never PMMCP diagnose. RPP1 vibration stays L0.",
+  "cites": {
+    "cnfx-hinge-screw": {
+      "title": "Furniture hinge adjustment / grub screw torque",
+      "url": "https://cnfx.com/llms/industry/furniture-manufacturing/component/adjustment-screws.md",
+      "note": "Typical M4/M5 hinge screw torque 0.5–2.5 Nm"
+    },
+    "optimas-socket": {
+      "title": "Optimas socket/grub screw tightening torques",
+      "url": "https://optimas.com/technical-resources/socket-screws-tightening-torques/",
+      "note": "M4/M5 class chart upper bounds; furniture use sits lower"
+    },
+    "vlft-pi": {
+      "title": "VLFT pin-insertion workstation hierarchy",
+      "url": "https://virtualfactory.gitbook.io/vlft/use-cases/factory-assets/workstation",
+      "note": "PI_Machine_Static / Floating_X, Vibrating_Bowl_Pins"
+    },
+    "baltec-en20": {
+      "title": "BalTec EN-20-HPP orbital riveter datasheet",
+      "url": "https://baltec.com/en/products/en-20-hpp-orbital-bench-top-riveting-machine/data-sheet",
+      "note": "20 kN max @ 7 bar; furniture-pin set uses a fraction"
+    },
+    "ur5e-factsheet": {
+      "title": "Universal Robots UR5e product factsheet",
+      "url": "https://assets.ctfassets.net/oxcgtdo88e20/4zQbvCXiDH2RzaaiiuwWci/ca242c85669825e8c25ff3467f8774da/UR5e_Product_Factsheet_EN_WEB.pdf",
+      "note": "Typical ~200–250 W; max 570 W; 5 kg payload class"
+    },
+    "dorner-gearmotor": {
+      "title": "Dorner 3200/5200 0.25 hp gearmotor package",
+      "url": "https://www.dornerconveyors.com/wp-content/uploads/2017/09/851-522f.pdf",
+      "note": "0.19 kW 3φ ~1.2 A; light pallet belt speeds"
+    },
+    "siemens-1le1003": {
+      "title": "Siemens 1LE1003-0EB4 SIMOTICS GP",
+      "url": "https://www.k-drives.eu/goods/index/id/1811",
+      "note": "1.5 kW, 1445 rpm, 3.15 A, 9.9 Nm, 6205 DE/NDE"
+    },
+    "vlft-line": {
+      "title": "VLFT VFLab hinge assembly line",
+      "url": "https://virtualfactory.gitbook.io/vlft/use-cases/assembly-line",
+      "note": "19 stations + 4 buffers; op cycle classes"
+    },
+    "aoi-lux": {
+      "title": "Machine-vision AOI illuminance class",
+      "url": "https://virtualfactory.gitbook.io/vlft/use-cases/assembly-line",
+      "note": "Inspection camera station C1; 800–1500 lx typical AOI lighting"
+    },
+    "vac-gripper": {
+      "title": "Industrial suction-cup vacuum gripper class",
+      "url": "https://virtualfactory.gitbook.io/vlft/use-cases/assembly-line",
+      "note": "60–80 kPa typical working vacuum for light parts"
+    },
+    "indexer": {
+      "title": "Rotary indexing table class",
+      "url": "https://virtualfactory.gitbook.io/vlft/use-cases/assembly-line",
+      "note": "Pneumatic/electric indexer ~8–15 rpm during a short index"
+    }
+  },
+  "classes": {
+    "tightener": {
+      "part": "T_Machine_Static",
+      "cycle_s": 2.0,
+      "tags": {
+        "cycle_s": { "unit": "s", "idle": 2.0, "busy": 2.0 },
+        "busy": { "unit": "bool", "idle": 0, "busy": 1 },
+        "job_id": { "unit": "id", "kind": "counter" },
+        "torque_nm": { "unit": "Nm", "idle": 0.0, "busy_lo": 0.8, "busy_hi": 2.0, "cite": "cnfx-hinge-screw" },
+        "spindle_rpm": { "unit": "rpm", "idle": 0, "busy_lo": 600, "busy_hi": 1200, "cite": "optimas-socket" }
+      },
+      "source": "synthetic:cnfx-hinge-screw"
+    },
+    "pin_insert": {
+      "part": "PI_Machine_Static",
+      "cycle_s": 2.0,
+      "tags": {
+        "cycle_s": { "unit": "s", "idle": 2.0, "busy": 2.0 },
+        "busy": { "unit": "bool", "idle": 0, "busy": 1 },
+        "insert_force_n": { "unit": "N", "idle": 0, "busy_lo": 150, "busy_hi": 400, "cite": "vlft-pi" },
+        "bowl_on": { "unit": "bool", "idle": 0, "busy": 1, "cite": "vlft-pi" }
+      },
+      "source": "synthetic:vlft-pi"
+    },
+    "rivet": {
+      "part": "R_Machine_Static",
+      "cycle_s": 2.0,
+      "tags": {
+        "cycle_s": { "unit": "s", "idle": 2.0, "busy": 2.0 },
+        "busy": { "unit": "bool", "idle": 0, "busy": 1 },
+        "set_force_n": { "unit": "N", "idle": 0, "busy_lo": 1500, "busy_hi": 4000, "cite": "baltec-en20" },
+        "air_bar": { "unit": "bar", "idle": 5.8, "busy_lo": 5.5, "busy_hi": 6.2, "cite": "baltec-en20" }
+      },
+      "source": "synthetic:baltec-en20"
+    },
+    "cartesian_pp": {
+      "part": "PP_Static",
+      "cycle_s": 2.0,
+      "tags": {
+        "cycle_s": { "unit": "s", "idle": 2.0, "busy": 2.0 },
+        "busy": { "unit": "bool", "idle": 0, "busy": 1 },
+        "vac_kpa": { "unit": "kPa", "idle": 0, "busy_lo": 60, "busy_hi": 80, "cite": "vac-gripper" }
+      },
+      "source": "synthetic:vac-gripper"
+    },
+    "wing_pp": {
+      "part": null,
+      "cycle_s": 2.0,
+      "tags": {
+        "cycle_s": { "unit": "s", "idle": 2.0, "busy": 2.0 },
+        "busy": { "unit": "bool", "idle": 0, "busy": 1 },
+        "vac_kpa": { "unit": "kPa", "idle": 0, "busy_lo": 60, "busy_hi": 80, "cite": "vac-gripper" }
+      },
+      "source": "synthetic:vac-gripper"
+    },
+    "collection_pp": {
+      "part": "CB_Static",
+      "cycle_s": 2.0,
+      "tags": {
+        "cycle_s": { "unit": "s", "idle": 2.0, "busy": 2.0 },
+        "busy": { "unit": "bool", "idle": 0, "busy": 1 },
+        "vac_kpa": { "unit": "kPa", "idle": 0, "busy_lo": 60, "busy_hi": 80, "cite": "vac-gripper" }
+      },
+      "source": "synthetic:vac-gripper"
+    },
+    "ur_pp": {
+      "part": "URjoint1",
+      "cycle_s": 2.0,
+      "tags": {
+        "bus_w": { "unit": "W", "idle": 80, "busy_lo": 200, "busy_hi": 250, "cite": "ur5e-factsheet" },
+        "joint1_a": { "unit": "A", "idle": 0.4, "busy_lo": 1.0, "busy_hi": 4.0, "cite": "ur5e-factsheet" }
+      },
+      "source": "synthetic:ur5e-factsheet",
+      "note": "Vibration stays on L0 cwru; these are electrical sidecar tags only"
+    },
+    "rotary": {
+      "part": "R_Table",
+      "cycle_s": 2.0,
+      "tags": {
+        "cycle_s": { "unit": "s", "idle": 2.0, "busy": 2.0 },
+        "busy": { "unit": "bool", "idle": 0, "busy": 1 },
+        "index_rpm": { "unit": "rpm", "idle": 0, "busy_lo": 8, "busy_hi": 15, "cite": "indexer" }
+      },
+      "source": "synthetic:indexer"
+    },
+    "conveyor": {
+      "part": "belt",
+      "always_on": true,
+      "tags": {
+        "belt_m_s": { "unit": "m/s", "idle": 0.15, "busy_lo": 0.14, "busy_hi": 0.16, "cite": "dorner-gearmotor" },
+        "motor_a": { "unit": "A", "idle": 1.05, "busy_lo": 1.1, "busy_hi": 1.25, "cite": "dorner-gearmotor" }
+      },
+      "source": "synthetic:dorner-gearmotor"
+    },
+    "inspect": {
+      "part": "Cs_Camera",
+      "cycle_s": 2.0,
+      "tags": {
+        "cycle_s": { "unit": "s", "idle": 2.0, "busy": 2.0 },
+        "busy": { "unit": "bool", "idle": 0, "busy": 1 },
+        "lux": { "unit": "lx", "idle": 900, "busy_lo": 800, "busy_hi": 1500, "cite": "aoi-lux" }
+      },
+      "source": "synthetic:aoi-lux"
+    },
+    "siemens_motor": {
+      "part": "1LE1003-1EB23-4JA4",
+      "always_on": true,
+      "tags": {
+        "current_a": { "unit": "A", "idle": 2.8, "busy_lo": 2.9, "busy_hi": 3.15, "cite": "siemens-1le1003" },
+        "winding_c": { "unit": "C", "idle": 72, "busy_lo": 70, "busy_hi": 90, "cite": "siemens-1le1003" },
+        "rpm": { "unit": "rpm", "idle": 1440, "busy_lo": 1435, "busy_hi": 1450, "cite": "siemens-1le1003" }
+      },
+      "source": "synthetic:siemens-1le1003",
+      "note": "Electrical/thermal sidecar. Seeded outer_race binds cwru:130.mat (OR007) for demo — 1.5 kW << 15 kW ISO floor, context only."
+    }
+  },
+  "assets": {
+    "T1": { "class": "tightener", "phase": 0, "glb": "Tightener_Station.glb", "click_nodes": ["T1", "T_Machine_Static", "T_Machine_Floating_Y"], "name": "Tightener" },
+    "PI1": { "class": "pin_insert", "phase": 1, "glb": "Pin_Insertion_Station.glb", "click_nodes": ["PI1", "PI_Machine_Static", "PI_Machine_Floating_X", "Vibrating_Bowl_Pins"], "name": "Pin insert 1" },
+    "PI2": { "class": "pin_insert", "phase": 2, "glb": "Pin_Insertion_Station.glb", "click_nodes": ["PI2", "PI_Machine_Static", "PI_Machine_Floating_X", "Vibrating_Bowl_Pins"], "name": "Pin insert 2" },
+    "PI3": { "class": "pin_insert", "phase": 3, "glb": "Pin_Insertion_Station.glb", "click_nodes": ["PI3", "PI_Machine_Static", "PI_Machine_Floating_X", "Vibrating_Bowl_Pins"], "name": "Pin insert 3" },
+    "PI4": { "class": "pin_insert", "phase": 4, "glb": "Pin_Insertion_Station.glb", "click_nodes": ["PI4", "PI_Machine_Static", "PI_Machine_Floating_X", "Vibrating_Bowl_Pins"], "name": "Pin insert 4" },
+    "R1": { "class": "rivet", "phase": 1, "glb": "Riveting_Station.glb", "click_nodes": ["R1", "R_Machine_Static", "R_Machine_Floating_X1"], "name": "Riveter 1" },
+    "R2": { "class": "rivet", "phase": 2, "glb": "Riveting_Station.glb", "click_nodes": ["R2", "R_Machine_Static", "R_Machine_Floating_X1"], "name": "Riveter 2" },
+    "R3": { "class": "rivet", "phase": 3, "glb": "Riveting_Station.glb", "click_nodes": ["R3", "R_Machine_Static", "R_Machine_Floating_X1"], "name": "Riveter 3" },
+    "R4": { "class": "rivet", "phase": 4, "glb": "Riveting_Station.glb", "click_nodes": ["R4", "R_Machine_Static", "R_Machine_Floating_X1"], "name": "Riveter 4" },
+    "PP1": { "class": "cartesian_pp", "phase": 1, "glb": "Pick_and_Place_Station.glb", "click_nodes": ["PP1", "PP_Static", "PP_Floating_X", "PP_Floating_Y"], "name": "Pick & place 1" },
+    "PP2": { "class": "cartesian_pp", "phase": 2, "glb": "Pick_and_Place_Station.glb", "click_nodes": ["PP2", "PP_Static", "PP_Floating_X", "PP_Floating_Y"], "name": "Pick & place 2" },
+    "PP3": { "class": "cartesian_pp", "phase": 2, "glb": "Pick_and_Place_Station.glb", "click_nodes": ["PP3", "PP_Static", "PP_Floating_X", "PP_Floating_Y"], "name": "Pick & place 3" },
+    "PP4": { "class": "cartesian_pp", "phase": 3, "glb": "Pick_and_Place_Station.glb", "click_nodes": ["PP4", "PP_Static", "PP_Floating_X", "PP_Floating_Y"], "name": "Pick & place 4" },
+    "PP5": { "class": "cartesian_pp", "phase": 4, "glb": "Pick_and_Place_Station_Box.glb", "click_nodes": ["PP5", "PP_Static", "PP_Floating_X", "PP_Floating_Y"], "name": "Pick & place box" },
+    "PPW1": { "class": "wing_pp", "phase": 0, "part": "WC1_Static", "glb": "Wing_Conveyor_1_Station.glb", "click_nodes": ["PPW1", "WC1_Static", "WC1_Floating_X", "WC1_Floating_Y"], "name": "Wing conveyor 1" },
+    "PPH1": { "class": "wing_pp", "phase": 0, "part": "WC2_Static", "glb": "Wing_Conveyor_2_Station.glb", "click_nodes": ["PPH1", "WC2_Static", "WC2_Floating_X", "WC2_Floating_Y"], "name": "Wing conveyor 2" },
+    "CB1": { "class": "collection_pp", "phase": 5, "glb": "Collection_Box_Station.glb", "click_nodes": ["CB1", "CB_Static", "CB_Floating_X", "CB_Floating_Y"], "name": "Collection box" },
+    "RPP1": { "class": "ur_pp", "phase": 0, "glb": "UR_Pick_and_Place_Station.glb", "click_nodes": ["RPP1", "URjoint1", "URPPs_Robot", "URbase"], "name": "UR pick-and-place", "aliases": ["MTR-07"], "role": "hero" },
+    "RT1": { "class": "rotary", "phase": 0, "glb": "Rotating_Table_Station.glb", "click_nodes": ["RT1", "R_Table"], "name": "Rotating table" },
+    "B1": { "class": "conveyor", "phase": 1, "glb": "Conveyor_Main.glb", "click_nodes": ["B1", "belt"], "name": "Conveyor buffer 1" },
+    "B2": { "class": "conveyor", "phase": 2, "glb": "Conveyor_Main.glb", "click_nodes": ["B2", "belt"], "name": "Conveyor buffer 2" },
+    "B3": { "class": "conveyor", "phase": 3, "glb": "Conveyor_Main.glb", "click_nodes": ["B3", "belt"], "name": "Conveyor buffer 3" },
+    "B4": { "class": "conveyor", "phase": 4, "glb": "Conveyor_Main.glb", "click_nodes": ["B4", "belt"], "name": "Conveyor buffer 4" },
+    "C1": { "class": "inspect", "phase": 5, "glb": "Inspection_Camera_Station.glb", "click_nodes": ["C1", "Cs_Camera"], "name": "Inspection camera" },
+    "MTR07-CAD": { "class": "siemens_motor", "phase": 0, "glb": "Siemens_1LE1003_Motor.glb", "click_nodes": ["MTR07-CAD", "1LE1003-1EB23-4JA4"], "name": "Siemens 1LE1003" }
+  },
+  "line": {
+    "takt_s": 2.0,
+    "busy_duty": 0.35,
+    "flag_drift_pct": 0.03,
+    "cite": "vlft-line"
+  }
+}

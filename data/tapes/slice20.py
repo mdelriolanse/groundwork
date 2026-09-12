@@ -44,8 +44,8 @@ def main() -> None:
             if row["ts"] in want:
                 writer.writerow(row)
                 kept += 1
-    if kept != HOPS * 3:
-        raise SystemExit(f"expected {HOPS * 3} L1 rows, got {kept}")
+    if kept < HOPS:
+        raise SystemExit(f"expected at least {HOPS} L1 rows in window, got {kept}")
 
     src_l2 = HERE / "l2" / "dirty.jsonl"
     out_l2 = OUT / "l2" / "dirty.jsonl"
@@ -67,7 +67,7 @@ def main() -> None:
         "window_s": src_manifest["window_s"],
         "flag_at": flag_at,
         "flag_hop": 10,
-        "honesty": "Window pointers only. No invented RMS. Flip is hop 10 / flag_at.",
+        "honesty": "Window pointers only. No invented RMS. Flip is hop 10 / flag_at. L1 fleet tags are synthetic cites from data/sensors/catalog.json.",
         "files": {
             "l0": "l0/rpp1-de.jsonl",
             "l1": "l1/historian.csv",

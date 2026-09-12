@@ -6,7 +6,7 @@
   "hop_s": 1.0,
   "window_s": 2.0,
   "quality_good": 192,
-  "honesty": "No invented RMS or waveforms. L0 points at CWRU. L1 process is VLFT DES.",
+  "honesty": "No invented RMS or waveforms. L0 points at CWRU. L1 process/electrical tags are synthetic cites from data/sensors/catalog.json (VLFT DES clock).",
   "files": {
     "l0": "l0/rpp1-de.jsonl",
     "l1": "l1/historian.csv",
