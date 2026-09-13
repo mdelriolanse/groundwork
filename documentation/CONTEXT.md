@@ -4,6 +4,22 @@ An air-gapped maintenance desk: one discrete assembly cell, vibration evidence, 
 
 ## Language
 
+**Groundwork**:
+The product. An always-on AI maintenance engineer on the plant floor.
+_Avoid_: plant-floor-agent, digital twin, the hackathon project (on the Landing)
+
+**Landing**:
+Groundwork's public first-glance page. Speaks as the company. Not the Board, not a portfolio byline.
+_Avoid_: case study, about page, Board
+
+**Concept**:
+A mute slow orbit of one VFLab **Asset** on the **Landing**. No label. Not the Twin pane.
+_Avoid_: product render, digital twin, hero object
+
+**Visitor**:
+A curious person or recruiter who arrived from the personal site. Not the person who uses the Board.
+_Avoid_: user, customer, judge, technician (on this page)
+
 **Asset**:
 A maintainable machine we persist, cron, and write a work order against. Canonical id is its VLFT station name (`RPP1`).
 _Avoid_: machine, equipment, motor (as an id), record
@@ -93,4 +109,7 @@ _Avoid_: isolate, localize, zoom (localize already means a **Fault** on a **Part
 - "error" / "localize on the machine" — resolved: we name a **Fault** on a **Part**, not an xyz point. Showing one machine is **Focus**, not localize.
 - "digital twin" — resolved: **Twin** is a pane, not the product. Product is unattended **Work Orders** + containment.
 - "this is a Tesla factory" — resolved: VFLab is a published hinge-assembly cell. Pitch the *buyer* (discrete-manufacturing maintenance), not a fake OEM layout.
+- "landing page" as portfolio case vs product site — resolved: **Landing** is Groundwork's own page. No author, no event. Placement on a personal site does not change the voice.
+- Pitch-deck copy on the **Landing** — resolved: hero tagline plus a short product beat. Not TAM, competitors, team, or stats. Visitor-facing noun is **Work Order**, not ticket. The **Landing** does not link to the pitch deck.
+- **Landing** color — resolved: Palantir industrial / Board Workshop, black accent (the old dark blue). No pitch-site green/forest, no logo-derived green, no Gorskikh orange. Beat order may still follow the reference site; the visual system does not.
 - how WO output reaches the Board / the next isolated wake — resolved: sqlite is the bus. Model emits JSON; a writer gates cites; Board polls `BoardView`. See [adr/0002-sqlite-is-the-wo-bus.md](adr/0002-sqlite-is-the-wo-bus.md).

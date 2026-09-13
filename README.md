@@ -28,6 +28,7 @@ cd groundwork
 node app/server.mjs
 ```
 
+Landing: `http://127.0.0.1:8765/`
 Board: `http://127.0.0.1:8765/prototype/`
 
 Hop loop (separate process):

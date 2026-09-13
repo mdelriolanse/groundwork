@@ -138,7 +138,8 @@ const server=http.createServer(async(req,res)=>{
     if(req.method==="GET"&&url.pathname.startsWith("/api/artifacts/history/")) {const id=safeBase(url.pathname.split("/").pop());const row=rag.history("RPP1").find(x=>x.wo_id===id);if(!row)return json(res,404,{error:"history row missing"});return json(res,200,row);}
     if(req.method==="GET"&&url.pathname.startsWith("/api/artifacts/signal/")) {const segs=url.pathname.slice("/api/artifacts/signal/".length).split("/");const prefix=safeBase(segs[0]);const file=safeBase(segs[1]||"");const cite={type:"signal",source:`${prefix}:${file}`};rag.validateCitation(cite,"RPP1");res.writeHead(200,{"content-type":"application/octet-stream","content-disposition":`attachment; filename="${file}"`});return fs.createReadStream(rag.artifact(cite)).pipe(res);}
     let file;
-    if(url.pathname==="/")file=path.join(ROOT,"web/board/index.html");
+    if(url.pathname==="/"||url.pathname==="/landing"||url.pathname==="/landing/")file=path.join(ROOT,"web/landing/index.html");
+    else if(url.pathname.startsWith("/landing/"))file=path.join(ROOT,"web/landing",url.pathname.slice(9));
     else if(url.pathname.startsWith("/board/"))file=path.join(ROOT,"web/board",url.pathname.slice(7));
     else if(url.pathname==="/twin/")file=path.join(ROOT,"web/twin/index.html");
     else if(url.pathname.startsWith("/twin/"))file=path.join(ROOT,"web/twin",url.pathname.slice(6));
