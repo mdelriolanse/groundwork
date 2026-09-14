@@ -73,6 +73,17 @@ test("hero is a Gorskikh-scale italic serif manifesto without a 3D object", () =
   assert.doesNotMatch(html.match(/<section class="hero"[\s\S]*?<\/section>/)[0], /data-concept|canvas|<iframe/i);
 });
 
+test("Landing publishes the mark as the site thumbnail", () => {
+  const og = fs.readFileSync("web/landing/og.png");
+  const icon = fs.readFileSync("web/landing/apple-touch-icon.png");
+  assert.equal(og[0], 0x89);
+  assert.equal(icon[0], 0x89);
+  assert.match(html, /rel="apple-touch-icon"/);
+  assert.match(html, /property="og:image"/);
+  assert.match(html, /get-groundwork\.vercel\.app\/landing\/og\.png/);
+  assert.match(fs.readFileSync("scripts/build-demo.mjs", "utf8"), /og\.png/);
+});
+
 test("Board nav uses the Landing mark file", () => {
   const mark = fs.readFileSync("web/landing/groundwork-mark.svg", "utf8");
   const board = fs.readFileSync("web/prototype/groundwork-mark.svg", "utf8");
