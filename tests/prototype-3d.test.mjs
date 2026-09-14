@@ -66,7 +66,7 @@ test("incident detail embeds an accessible Three.js inspection panel with load s
 
 
 test("3D inspection derives named issue target from board data and hides unmapped markers", () => {
-  assert.match(prototype, /fetch\s*\(\s*`\$\{\s*apiBase\(\)\s*\}\/api\/board`/, "inspection target must come from the SQLite-backed board API");
+  assert.match(prototype, /demo\.snapshot\(\)/, "board data comes from fixed browser fixtures");
   assert.match(prototype, /selection\s*(?:\?\.|\.)\s*asset_id/, "target asset must use board.selection.asset_id");
   assert.match(
     prototype,
@@ -195,16 +195,16 @@ test("3D inspection expansion and mapped issue controls are accessible by mouse 
   );
 });
 
-test("cross-origin twin embed uses app port and a validated focus/light/ready message bridge", () => {
+test("same-origin twin embed uses app origin and a validated focus/light/ready message bridge", () => {
   assert.ok(incidentStart >= 0 && incidentEnd > incidentStart, "incident-detail inspection source must be discoverable");
 
   assert.ok(
-    /location\.port\s*===\s*["']4173["']/.test(prototype) && /location\.origin/.test(prototype),
-    "twin URL must use the serving origin, with static :4173 falling back to the board",
+    /const twinOrigin = location\.origin/.test(prototype),
+    "twin URL must use the serving origin",
   );
   assert.match(prototype, /\$\{twinOrigin\}\/twin\/\?/, "part frame must use the cross-origin twin URL");
   assert.doesNotMatch(prototype, /frame\.src\s*=\s*["'][^"']*(?:127\.0\.0\.1|localhost)/i, "iframe hostname must not be hard-coded");
-  assert.match(prototype, /fetch\s*\(\s*`\$\{\s*apiBase\(\)\s*\}\/api\/board`/, "same-origin board API integration must remain relative");
+  assert.match(prototype, /demo\.snapshot\(\)/, "board data comes from fixed browser fixtures");
 
   assert.doesNotMatch(prototype, /contentWindow\s*(?:\?\.|\.)\s*__twin/, "parent must not access cross-origin iframe properties");
   assert.match(prototype, /addEventListener\s*\(\s*["']message["']/, "parent must receive twin messages");
@@ -233,13 +233,13 @@ test("cross-origin twin embed uses app port and a validated focus/light/ready me
 });
 
 
-test("prototype board fetch uses twin origin and board CORS only trusts same-host port 4173", async () => {
+test("public board uses fixtures and legacy board CORS remains restricted", async () => {
   assert.match(
     prototype,
-    /fetch\s*\(\s*`\$\{\s*apiBase\(\)\s*\}\/api\/board`/,
-    "board data must be fetched from the live twin origin",
+    /demo\.snapshot\(\)/,
+    "board data comes from fixed browser fixtures",
   );
-  assert.match(prototype, /\/api\/questions/, "Maintenance Assist must POST questions to the board, not invent answers");
+  assert.match(prototype, /demo\.answer\(/, "Assist uses prepared contextual answers");
 
   const server = fs.readFileSync("app/server.mjs", "utf8");
   const corsModuleUrl = new URL("../app/lib/board-cors.mjs", import.meta.url);
@@ -298,7 +298,7 @@ test("prototype board fetch uses twin origin and board CORS only trusts same-hos
 
 test("parent posts twin:issues from board and twin keeps issues across part:clear", () => {
   assert.match(prototype, /["']twin:issues["']/, "parent must send sqlite issues through the message protocol");
-  assert.match(prototype, /postDetectOnce|\/api\/detect/, "tape must write the detect bus once at flag_at");
+  assert.doesNotMatch(prototype, /postDetectOnce|\/api\/detect/, "public replay never creates incidents");
   assert.match(twin, /["']twin:issues["']/, "twin must listen for twin:issues");
   assert.match(twin, /issueCriticalMat|issueWarningMat|issueMat/, "twin must have a distinct issue material");
   assert.match(twin, /sensorMat/, "sensor-bound parts get a distinct neutral material");

@@ -1,10 +1,7 @@
+import { createDemo } from "./demo.mjs";
 const app = document.querySelector("#app");
-const staticPreview = location.port === "4173";
-const twinOrigin = staticPreview ? `${location.protocol}//${location.hostname}:8765` : location.origin;
-const apiBase = () => (staticPreview ? twinOrigin : "");
-const fetchBoard = () => fetch(`${apiBase()}/api/board`, { cache: "no-store" });
-const fetchIncidents = () => fetch(`${apiBase()}/api/incidents`, { cache: "no-store" });
-const fetchHops = () => fetch(`${apiBase()}/api/hops/latest?limit=20`, { cache: "no-store" });
+const twinOrigin = location.origin;
+let demo;
 
 let feed = null;
 let board = null;
@@ -32,8 +29,10 @@ let healthyLoop = true; // tape fallback loops hops 0–9 when hop-loop offline
 const RAIL_MIN = 280;
 const RAIL_MAX = 720;
 const RAIL_STORE = "groundwork-rail-widths";
+const NAV_STORE = "groundwork-nav-collapsed";
 let railWidths = { left: null, right: null };
 let railDrag = null;
+let navCollapsed = false;
 
 function snapshotDetails() {
   for (const el of app.querySelectorAll("details[data-open-key]")) {
@@ -87,6 +86,42 @@ function applyRailWidths() {
 
 function persistRailWidths() {
   try { localStorage.setItem(RAIL_STORE, JSON.stringify(railWidths)); } catch {}
+}
+
+function persistNavCollapsed() {
+  try { localStorage.setItem(NAV_STORE, navCollapsed ? "1" : "0"); } catch {}
+}
+
+function restoreNavCollapsed() {
+  try {
+    const saved = localStorage.getItem(NAV_STORE);
+    if (saved === "1") navCollapsed = true;
+    else if (saved === "0") navCollapsed = false;
+    else navCollapsed = matchMedia("(max-width: 720px)").matches;
+  } catch {}
+}
+
+function followNavMotion(shellEl) {
+  const tick = () => { positionFloorLive(); positionPartLive(); };
+  let frames = 0;
+  const follow = () => {
+    tick();
+    if (++frames < 18) requestAnimationFrame(follow);
+  };
+  requestAnimationFrame(follow);
+  shellEl.addEventListener("transitionend", event => {
+    if (event.propertyName === "grid-template-columns") tick();
+  }, { once: true });
+}
+
+function applyNavCollapsed() {
+  const shellEl = app.querySelector(".app-shell");
+  if (!shellEl) return;
+  shellEl.classList.toggle("is-nav-collapsed", navCollapsed);
+  const btn = shellEl.querySelector("[data-action='toggle-nav']");
+  if (!btn) return;
+  btn.setAttribute("aria-expanded", navCollapsed ? "false" : "true");
+  btn.setAttribute("aria-label", navCollapsed ? "Expand navigation" : "Collapse navigation");
 }
 
 function restoreRailWidths() {
@@ -277,7 +312,7 @@ function renderFloorLabels(route = getRoute()) {
     const critical = a.asset_id === "RPP1" && flag;
     const cls = ["floor-label", monitored ? "monitored" : "unmonitored", a.asset_id === selected ? "selected" : "", critical ? "critical" : "", a.asset_id === hovered ? "hover" : ""].filter(Boolean).join(" ");
     const state = critical ? "flag" : a.asset_id === "RPP1" ? "ok" : monitored ? "process" : "no sensor";
-    return `<button type="button" class="${cls}" data-open-asset="${a.asset_id}" data-floor-label="${a.asset_id}" style="${style(a)}" aria-label="Open ${a.asset_id} asset page, ${state}" aria-current="${a.asset_id === selected}">${critical ? `${icon("alert", "sm")}` : ""}<span class="mono">${a.asset_id}</span>${monitored || critical ? `<small>${state}</small>` : ""}</button>`;
+    return `<button type="button" class="${cls}" data-open-asset="${esc(a.asset_id)}" data-floor-label="${esc(a.asset_id)}" style="${style(a)}" aria-label="Open ${esc(a.asset_id)} asset page, ${state}" aria-current="${a.asset_id === selected}">${critical ? `${icon("alert", "sm")}` : ""}<span class="mono">${esc(a.asset_id)}</span>${monitored || critical ? `<small>${state}</small>` : ""}</button>`;
   }).join("");
 }
 
@@ -293,7 +328,6 @@ let partSent = null;
 let partIssuesKey = null;
 let partObserver = null;
 let partScrollTarget = null;
-let detectPosted = false; // unused in live path; kept for tape fallback quiet
 const prefetchedTwin = new Set();
 
 function boardIssues() {
@@ -570,7 +604,7 @@ function dash(value) {
 function clock(ts) {
   if (!ts) return "—";
   const match = String(ts).match(/T(\d{2}:\d{2}:\d{2})/);
-  return match ? match[1] : ts;
+  return match ? match[1] : "—";
 }
 
 function hopIndex() {
@@ -653,7 +687,7 @@ function processTagEntries(slot) {
 function processTagDl(slot) {
   const entries = processTagEntries(slot);
   if (!entries.length) return `<p class="section-note">No process tags on this hop.</p>`;
-  const rows = entries.map(([k, v]) => `<dt>${esc(k)}</dt><dd>${dash(v)}</dd>`).join("");
+  const rows = entries.map(([k, v]) => `<dt>${esc(k)}</dt><dd>${esc(dash(v))}</dd>`).join("");
   return `<dl class="key-grid"><dt>Source</dt><dd class="mono">${esc(slot.source || "—")}</dd>${rows}</dl>`;
 }
 
@@ -824,50 +858,18 @@ function mapLiveIncident(row) {
   };
 }
 
-function derivedIncident() {
-  // Live path: incidents come from sqlite. Keep derived only as tape fallback for RPP1.
-  if (liveIncidents.length) return null;
-  if (!hop().rpp1?.fault || !feed?.flag) return null;
-  const now = hop();
-  const flag = feed.flag;
-  const fault = now.rpp1.fault || flag.fault;
-  return {
-    id: flag.incident_id,
-    priority: "Critical",
-    title: `${fault.replaceAll("_", " ")} on ${flag.part}`,
-    asset: flag.asset_id,
-    component: flag.part,
-    area: feed.cell.name,
-    line: "—",
-    cell: feed.cell.name,
-    status: acknowledgedIds.has(flag.incident_id) ? "Acknowledged" : "New",
-    ai: "L1",
-    last: clock(now.ts),
-    age: `${Math.max(0, cursor - (feed.manifest?.flag_hop || 10))}s`,
-    ageMin: 0,
-    detections: detections(),
-    signal: now.rpp1.bpfi?.detected ? "Elevated" : "Normal",
-    fault,
-    source: now.rpp1.source,
-    first: now.ts,
-    window: now.rpp1.window,
-    rpm: now.rpp1.rpm,
-    rms: now.rpp1.rms,
-    wo_id: flag.wo && flag.wo !== "none" ? flag.wo : null,
-    work_order: null,
-  };
-}
-
-function incidents() {
-  if (liveIncidents.length) return liveIncidents.map(mapLiveIncident);
-  const item = derivedIncident();
-  return item ? [item] : [];
-}
+function derivedIncident() { return null; }
+function incidents() { return liveIncidents.map(mapLiveIncident); }
 
 function assetsMap() {
   const now = hop();
   const list = incidents();
-  const byAsset = Object.fromEntries(list.map((i) => [i.asset, i]));
+  const rank = { Critical: 0, High: 1, Medium: 2, Low: 3 };
+  const byAsset = {};
+  for (const incident of list) {
+    const current = byAsset[incident.asset];
+    if (!current || (rank[incident.priority] ?? 9) < (rank[current.priority] ?? 9)) byAsset[incident.asset] = incident;
+  }
   const out = {};
   for (const row of feed.fleet) {
     const hit = byAsset[row.asset_id];
@@ -976,8 +978,9 @@ function selectedAsset(route) {
   const map = assetsMap();
   const idFromPath = route.path.startsWith("/assets/") ? route.path.split("/")[2] : null;
   const incident = selectedIncident(route);
-  const id = idFromPath || route.params.get("asset") || incident?.asset || "RPP1";
-  if (map[id]) return map[id];
+  const requestedId = idFromPath || route.params.get("asset") || incident?.asset || "RPP1";
+  const id = /^[A-Za-z0-9-]{1,40}$/.test(requestedId) ? requestedId : "RPP1";
+  if (Object.hasOwn(map, id)) return map[id];
   const station = stationById(id);
   if (station) {
     return { id, name: humanModel(station.model), component: "—", location: `${feed.cell.name} · ${cellName(station.cell)}`, condition: "Unmonitored", supported: false, fault: "—", source: "none", incident: null, unmonitored: true, model: station.model, cell: station.cell };
@@ -997,7 +1000,7 @@ function statusClass(value) {
 
 function navLink(module, label, iconName, path, count = "") {
   const active = activeModule(getRoute().path) === module;
-  return `<a class="nav-link ${active ? "active" : ""}" href="#${path}" ${active ? 'aria-current="page"' : ""}>${icon(iconName)}<span>${label}</span>${count ? `<span class="nav-count">${count}</span>` : ""}</a>`;
+  return `<a class="nav-link ${active ? "active" : ""}" href="#${path}" title="${esc(label)}" ${active ? 'aria-current="page"' : ""}>${icon(iconName)}<span>${label}</span>${count ? `<span class="nav-count">${count}</span>` : ""}</a>`;
 }
 
 function breadcrumb(route) {
@@ -1010,21 +1013,24 @@ function breadcrumb(route) {
 function tapeStamp() {
   const now = hop();
   const live = Boolean(liveHops?.live);
-  const inj = liveHops?.hop_override ? ` · inject ${liveHops.hop_override.file}` : "";
-  return `<div class="refresh-line"><span class="live-dot"></span>${live ? "Live" : "Fallback"} · ${hopLabel()}${inj} · ${clock(now.ts)} · ${esc(now.rpp1?.source || "—")}</div>`;
+  return `<div class="refresh-line"><span class="live-dot"></span>Replay · ${hopLabel()} · ${clock(now.ts)} · ${esc(now.rpp1?.source || "—")}</div>`;
+}
+
+function scopeLabel(route) {
+  return route.params.get("scope") === "site" ? "Entire site" : "Cell";
 }
 
 function shell(main, route, rail) {
-  const scope = route.params.get("scope") === "site" ? "Entire site" : feed.cell.name;
+  const scope = scopeLabel(route);
   const open = incidents().length;
   const leftRail = isReportOpen(route);
   const rightRail = Boolean(rightRailMode(route));
   const bodyClass = ["workspace-body", (leftRail || rightRail) ? "has-rail" : "", leftRail ? "has-left-rail" : "", rightRail ? "has-right-rail" : ""].filter(Boolean).join(" ");
   const assistTrigger = rightRail ? "" : `<button class="rail-trigger" data-action="open-assist" data-focus-id="rail-trigger" type="button" aria-label="Open Maintenance Assist">${icon("spark", "sm")}<span>Maintenance Assist</span></button>`;
   return `
-    <div class="app-shell">
+    <div class="app-shell${navCollapsed ? " is-nav-collapsed" : ""}">
       <nav class="left-nav" aria-label="Primary navigation">
-        <div class="brand"><a class="mark" href="#/incidents"><img src="/landing/groundwork-mark.svg" alt="Groundwork" width="28" height="28" onerror="this.onerror=null;this.src='groundwork-mark.svg'"></a><div class="brand-copy"><strong>Groundwork</strong><span>${esc(feed.cell.name)}</span></div></div>
+        <div class="brand"><a class="mark" href="#/incidents"><img src="/landing/groundwork-mark.svg" alt="Groundwork" width="28" height="28" onerror="this.onerror=null;this.src='groundwork-mark.svg'"></a><div class="brand-copy"><strong>Groundwork</strong></div><button class="nav-toggle" data-action="toggle-nav" data-focus-id="nav-toggle" type="button" aria-expanded="${navCollapsed ? "false" : "true"}" aria-label="${navCollapsed ? "Expand navigation" : "Collapse navigation"}">${icon("back", "sm")}</button></div>
         <div class="nav-section-label">Workspace</div>
         <div class="nav-list">
           ${navLink("incidents", "Incidents", "inbox", "/incidents", String(open))}
@@ -1033,16 +1039,17 @@ function shell(main, route, rail) {
           ${navLink("condition", "Condition", "pulse", "/condition")}
           ${navLink("intelligence", "Intelligence", "intel", "/intelligence")}
         </div>
-        <div class="nav-bottom"><div class="nav-system"><span class="system-dot"></span><strong>${liveHops?.live ? "Hop loop" : "Tape fallback"}</strong><small>1 Hz · no egress${liveHops?.hop_override ? " · injected" : ""}</small></div></div>
+        <div class="nav-bottom"><div class="nav-system"><span class="system-dot"></span><strong>Demo replay</strong><small>1 Hz · browser replay</small></div></div>
       </nav>
       <section class="workspace">
         <header class="global-header">
           <div class="breadcrumb">${breadcrumb(route)}</div>
           <div class="header-spacer"></div>
-          <button class="header-scope" data-action="toggle-scope" type="button" aria-label="Change plant scope">${icon("pin", "sm")}<span>${esc(scope)}</span>${icon("chevron", "sm")}</button>
+          <button class="header-scope" data-action="toggle-scope" type="button" aria-label="Change plant scope" aria-pressed="${route.params.get("scope") === "site"}">${icon("pin", "sm")}<span>${esc(scope)}</span>${icon("chevron", "sm")}</button>
           <label class="header-search">${icon("search", "sm")}<span class="sr-only">Search incidents and assets</span><input data-global-search value="${esc(route.params.get("search") || "")}" placeholder="Search incidents or assets" autocomplete="off"></label>
           ${containmentBadge()}
         </header>
+        <div class="demo-disclosure">Interactive demo · simulated telemetry · prepared answers · <a href="/credits.html">Sources</a></div>
         <div class="${bodyClass}">
           ${main}
           ${rail}
@@ -1066,7 +1073,7 @@ function metricStat(label, value, note, tone = "", info = "") {
 }
 
 function filterOption(kind, value, label, count, checked, disabled = false) {
-  return `<label class="filter-option${checked ? " is-on" : ""}${disabled ? " is-locked" : ""}"><input type="checkbox" data-filter-kind="${kind}" data-focus-id="filter-${kind}-${value}" value="${value}" ${checked ? "checked" : ""}${disabled ? " disabled" : ""}><span class="filter-check" aria-hidden="true"></span><span class="filter-label">${esc(label)}</span><span class="count">${count}</span></label>`;
+  return `<label class="filter-option${checked ? " is-on" : ""}${disabled ? " is-locked" : ""}"><input type="checkbox" data-filter-kind="${esc(kind)}" data-focus-id="filter-${esc(kind)}-${esc(value)}" value="${esc(value)}" ${checked ? "checked" : ""}${disabled ? " disabled" : ""}><span class="filter-check" aria-hidden="true"></span><span class="filter-label">${esc(label)}</span><span class="count">${count}</span></label>`;
 }
 
 function setFiltersOpen(open, { restore = false } = {}) {
@@ -1196,15 +1203,15 @@ function inboxPage(route) {
   const aging = list.filter(item => item.ageMin >= 120).length;
   const clearVisible = metric !== "all" || priorities.size || statuses.size || ai.size || route.params.get("search");
   const table = rows.length ? `<table class="object-table"><thead><tr><th>Priority</th><th>Incident</th><th>Asset</th><th>Area / line</th><th>Case status</th><th>Last seen</th><th>Age</th></tr></thead><tbody>${rows.map(item => `
-    <tr class="${item.id === selected?.id ? "selected" : ""}" data-select-incident="${item.id}" tabindex="0" aria-selected="${item.id === selected?.id}">
-      <td><span class="status ${statusClass(item.priority)}">${item.priority}</span></td>
-      <td class="incident-cell"><span class="object-title">${esc(item.title)}</span><span class="object-id"><span class="mono">${item.id}</span> · ${esc(item.signal)} signal</span></td>
-      <td class="mono">${item.asset}</td><td>${esc(item.area)}<span class="object-id">${esc(item.line)}</span></td>
-      <td><span class="badge ${statusClass(item.status)}">${item.status}</span></td>
-      <td class="num">${item.last}</td><td class="num">${item.age}</td>
-    </tr>`).join("")}</tbody></table>` : `<div class="empty-state">${icon("filter", "lg")}<div><h2>${list.length ? "No matching incidents" : "No open incident"}</h2><p>${list.length ? "Current filters exclude all active cases." : "Hop loop healthy. Seeded cases load from sqlite; inject IR on stage."}</p>${list.length ? `<button class="btn" data-action="clear-filters">Clear filters</button>` : ""}</div></div>`;
+    <tr class="${item.id === selected?.id ? "selected" : ""}" data-select-incident="${esc(item.id)}" tabindex="0" aria-selected="${item.id === selected?.id}">
+      <td><span class="status ${statusClass(item.priority)}">${esc(item.priority)}</span></td>
+      <td class="incident-cell"><span class="object-title">${esc(item.title)}</span><span class="object-id"><span class="mono">${esc(item.id)}</span> · ${esc(item.signal)} signal</span></td>
+      <td class="mono">${esc(item.asset)}</td><td>${esc(item.area)}<span class="object-id">${esc(item.line)}</span></td>
+      <td><span class="badge ${statusClass(item.status)}">${esc(item.status)}</span></td>
+      <td class="num">${esc(item.last)}</td><td class="num">${esc(item.age)}</td>
+    </tr>`).join("")}</tbody></table>` : `<div class="empty-state">${icon("filter", "lg")}<div><h2>${list.length ? "No matching incidents" : "No open incident"}</h2><p>${list.length ? "Current filters exclude all active cases." : "No pre-populated incidents in this view."}</p>${list.length ? `<button class="btn" data-action="clear-filters">Clear filters</button>` : ""}</div></div>`;
   return `<main class="page"><div class="page-inner compact">
-    ${moduleHeader("Incidents", "Live inbox from sqlite. Seeded High OR + Medium process; Critical IR arrives on inject.", `${tapeStamp()}<button class="btn sm" data-action="toggle-scope">${icon("pin", "sm")} ${route.params.get("scope") === "site" ? "Entire site" : "Cell"}</button>`)}
+    ${moduleHeader("Incidents", "Pre-populated incidents · browser-local replay · no new faults.", `${tapeStamp()}<button class="btn sm" data-action="toggle-scope" type="button" aria-label="Change plant scope" aria-pressed="${route.params.get("scope") === "site"}">${icon("pin", "sm")} ${esc(scopeLabel(route))}</button>`)}
     <div class="tabs" role="tablist" aria-label="Incident registry view"><button class="tab active" role="tab" aria-selected="true">Active <span class="badge">${list.length}</span></button><button class="tab" role="tab" aria-selected="false" data-action="resolved-view">Resolved <span class="badge">0</span></button></div>
     <div style="height:12px"></div>
     <section class="metric-grid" aria-label="Incident metrics">
@@ -1231,15 +1238,21 @@ function incidentDetailPage(route) {
   const item = selectedIncident(route);
   const now = hop();
   if (!item) {
-    return `<main class="page incident-detail-page"><div class="page-inner compact">${moduleHeader("No incident", "No case selected.", tapeStamp())}<div class="empty-state">${icon("clock", "lg")}<div><h2>Pick an inbox row</h2><p>Seeded cases are in sqlite. Live IR appears after inject.</p></div></div></div></main>`;
+    return `<main class="page incident-detail-page"><div class="page-inner compact">${moduleHeader("No incident", "No case selected.", tapeStamp())}<div class="empty-state">${icon("clock", "lg")}<div><h2>Pick an inbox row</h2><p>Select one of the pre-populated cases.</p></div></div></div></main>`;
   }
   const cmms = feed.cmms.filter(row => row.fault === item.fault);
   const workOrder = resolveWorkOrder(item);
-  const inc4Summary = item.id === "INC-4" ? {
-    happened: "Inner-race bearing fault detected on URjoint1.",
-    workOrder: "Replace the 6205-2RS bearing after technician approval.",
-    trust: "BPFI at 161.69 Hz matches the expected 162.19 Hz, with harmonics.",
-  } : null;
+  const vibration = item.rms != null;
+  const happened = `${esc(capitalize(humanModel(item.fault)))} on ${esc(item.component)}.`
+    + (item.source ? ` Source ${esc(item.source)}` : "")
+    + (item.window ? ` · window ${esc(item.window)}` : "")
+    + (vibration ? ` RMS ${esc(dash(item.rms))} g.` : " Process/electrical only — no vibration diagnosis.");
+  const trust = vibration
+    ? "Cited window and RMS come from the pre-populated fixture. No 12 kHz samples on this board. ISO 15 kW floor — context only."
+    : "This case is bound to process tags, not a vibration channel. No ISO zone or SKF page is claimed.";
+  const rmsValue = vibration ? item.rms : (item.asset === "RPP1" ? now.rpp1?.rms : null);
+  const rpmValue = item.rpm ?? (item.asset === "RPP1" ? now.rpp1?.rpm : null);
+  const bpfi = item.asset === "RPP1" ? now.rpp1?.bpfi : null;
   const issueHit = boardIssues().find((row) => row.asset_id === item.asset && row.part === item.component);
   const inspectionAsset = issueHit?.asset_id || board?.selection?.asset_id;
   const inspectionComponent = issueHit?.part || board?.work_order?.evidence?.part;
@@ -1266,24 +1279,24 @@ function incidentDetailPage(route) {
       </div>
     </section>`;
   return `<main class="page incident-detail-page"><div class="page-inner compact">
-    ${moduleHeader(`${item.id} · ${esc(item.title)}`, `${item.asset} / ${item.component} · ${esc(item.area)}`, `<button type="button" class="btn" data-action="open-asset" aria-label="Open ${esc(item.asset)} asset profile">${icon("asset", "sm")}Asset profile</button><button class="btn" data-action="view-floor">${icon("floor", "sm")}View on floor</button><button class="btn ${item.status === "Acknowledged" ? "" : "primary"}" data-action="acknowledge" data-focus-id="acknowledge" aria-pressed="${item.status === "Acknowledged"}">${icon("check", "sm")}${item.status === "Acknowledged" ? "Acknowledged" : "Acknowledge incident"}</button>`)}
-    <div class="detail-meta"><span class="badge ${statusClass(item.priority)}">${esc(item.priority)} priority</span><span class="badge ${item.status === "Acknowledged" ? "" : "info"}">${item.status === "Acknowledged" ? "Acknowledged" : item.status}</span><span>${icon("clock", "sm")}last ${item.last} · ${item.detections} detections</span><span>Signal: <strong class="${item.signal === "Elevated" ? "text-warning" : ""}">${item.signal}</strong></span><span>L1: <strong class="text-success">${esc(now.rpp1?.engine || "—")}</strong></span></div>
+    ${moduleHeader(`${esc(item.id)} · ${esc(item.title)}`, `${esc(item.asset)} / ${esc(item.component)} · ${esc(item.area)}`, `<button type="button" class="btn" data-action="open-asset" aria-label="Open ${esc(item.asset)} asset profile">${icon("asset", "sm")}Asset profile</button><button class="btn" data-action="view-floor">${icon("floor", "sm")}View on floor</button><button class="btn ${item.status === "Acknowledged" ? "" : "primary"}" data-action="acknowledge" data-focus-id="acknowledge" aria-pressed="${item.status === "Acknowledged"}">${icon("check", "sm")}${item.status === "Acknowledged" ? "Acknowledged" : "Acknowledge incident"}</button>`)}
+    <div class="detail-meta"><span class="badge ${statusClass(item.priority)}">${esc(item.priority)} priority</span><span class="badge ${item.status === "Acknowledged" ? "" : "info"}">${item.status === "Acknowledged" ? "Acknowledged" : esc(item.status)}</span><span>${icon("clock", "sm")}last ${esc(item.last)} · ${esc(item.detections)} detections</span><span>Signal: <strong class="${item.signal === "Elevated" ? "text-warning" : ""}">${esc(item.signal)}</strong></span><span>L1: <strong class="text-success">${esc(now.rpp1?.engine || "—")}</strong></span></div>
     <div style="height:10px"></div>
     <section class="question-grid${pendingIncidentReveal ? " is-revealed" : ""}" data-incident-overview tabindex="-1" aria-label="Incident overview">
-      <article class="question-card"><span class="question-number">01</span><h2>What happened?</h2><p>${inc4Summary ? inc4Summary.happened : `${esc(now.rpp1.engine)} on ${esc(now.rpp1.source)} window ${esc(now.rpp1.window)}. Fault ${esc(dash(now.rpp1.fault))}. BPFI ${now.rpp1.bpfi.detected ? `${now.rpp1.bpfi.hz} Hz` : "not detected"}.`}</p><div class="inline-citations">${citationButton("signal", "Signal", `${now.rpp1.file} · ${now.rpp1.window}`)}</div></article>
-      <article class="question-card action"><span class="question-number">02</span><h2>Work order</h2><p>${inc4Summary ? inc4Summary.workOrder : workOrder ? `<span class="mono">wo: ${esc(workOrder.wo_id || item.wo_id || "—")}</span> · ${esc(workOrder.action || "Review the cited evidence before approval.")}` : "No current work order is attached to this incident."}</p><div class="inline-citations">${cmms.map(row => citationButton("history", "CMMS", row.wo_id)).join("") || `<span class="section-note">No matching CMMS row</span>`}</div></article>
-      <article class="question-card trust"><span class="question-number">03</span><h2>Why trust it?</h2><p>${inc4Summary ? inc4Summary.trust : "L0 pointer + L1 scalars. No 12 kHz on the board. ISO 15 kW floor — context only."}</p><div class="inline-citations"><span class="badge ${now.rpp1.rms == null ? "warning" : "success"}">${now.rpp1.rms == null ? "RMS source-gap" : "RMS from window"}</span></div></article>
+      <article class="question-card"><span class="question-number">01</span><h2>What happened?</h2><p>${happened}</p><div class="inline-citations">${citationButton("signal", "Signal", `${item.source || "—"} · ${item.window || "process"}`, { source: item.source, window: item.window, incident: item.id })}</div></article>
+      <article class="question-card action"><span class="question-number">02</span><h2>Work order</h2><p>${workOrder ? `<span class="mono">wo: ${esc(workOrder.wo_id || item.wo_id || "—")}</span> · ${esc(workOrder.action || "Review the cited evidence before approval.")}` : "No current work order is attached to this incident."}</p><div class="inline-citations">${cmms.map(row => citationButton("history", "CMMS", row.wo_id)).join("") || `<span class="section-note">No matching CMMS row</span>`}</div></article>
+      <article class="question-card trust"><span class="question-number">03</span><h2>Why trust it?</h2><p>${trust}</p><div class="inline-citations"><span class="badge ${vibration ? "success" : "warning"}">${vibration ? "RMS from cited window" : "Process tags only"}</span></div></article>
     </section>
     ${twinPanel}
     <section class="detail-grid">
       <article class="panel"><div class="panel-header"><h2>L1 hops</h2><span class="badge info" style="margin-left:auto">${hopLabel()}</span></div><div class="panel-body"><div class="timeline">
-        ${recentHopRows(6).map(row => `<div class="timeline-row"><span class="timeline-icon">${icon("check", "sm")}</span><div class="timeline-copy"><strong class="mono">${esc(row.rpp1.file || "—")}</strong><span>${esc(row.rpp1.source || "—")} · ${esc(row.rpp1.window || "—")} · RMS ${dash(row.rpp1.rms)} g${row.rpp1.fault ? ` · ${row.rpp1.fault}` : ""}</span></div><time>${clock(row.ts)}</time></div>`).join("")}
+        ${recentHopRows(6).map(row => `<div class="timeline-row"><span class="timeline-icon">${icon("check", "sm")}</span><div class="timeline-copy"><strong class="mono">${esc(row.rpp1.file || "—")}</strong><span>${esc(row.rpp1.source || "—")} · ${esc(row.rpp1.window || "—")} · RMS ${esc(dash(row.rpp1.rms))} g${row.rpp1.fault ? ` · ${esc(row.rpp1.fault)}` : ""}</span></div><time>${clock(row.ts)}</time></div>`).join("")}
       </div></div></article>
-      <article class="panel"><div class="panel-header"><h2>Condition</h2><button class="btn sm" data-evidence="signal">Open exact signal</button></div><div class="condition-numbers"><div class="condition-number"><span>RMS</span><strong class="num">${dash(now.rpp1.rms)}<small>g</small></strong></div><div class="condition-number"><span>Speed</span><strong class="num">${dash(now.rpp1.rpm)}<small>rpm</small></strong></div><div class="condition-number"><span>BPFI</span><strong class="num">${dash(now.rpp1.bpfi.hz)}<small>Hz</small></strong></div></div>${rmsChart(320, 80, "RPP1 RMS hops")}<div class="limit-note">${icon("alert", "sm")}ISO 20816 shown as context only; this 2 hp dataset asset is below the 15 kW applicability floor.</div></article>
+      <article class="panel"><div class="panel-header"><h2>Condition</h2><button class="btn sm" data-evidence="signal">Open exact signal</button></div><div class="condition-numbers"><div class="condition-number"><span>RMS</span><strong class="num">${dash(rmsValue)}<small>g</small></strong></div><div class="condition-number"><span>Speed</span><strong class="num">${dash(rpmValue)}<small>rpm</small></strong></div><div class="condition-number"><span>BPFI</span><strong class="num">${dash(bpfi?.hz)}<small>Hz</small></strong></div></div>${item.asset === "RPP1" ? rmsChart(320, 80, "RPP1 RMS hops") : ""}<div class="limit-note">${icon("alert", "sm")}${vibration ? "ISO 20816 shown as context only; this asset is below the 15 kW applicability floor." : "No vibration channel on this case — process tags only."}</div></article>
     </section>
     <section class="detail-grid">
       <article class="panel"><div class="panel-header"><h2>Current work order</h2>${workOrder ? `<div class="wo-l2-pair"><span class="badge">wo: ${esc(workOrder.wo_id || item.wo_id)}</span><button class="btn sm primary" data-action="open-l2-report">View L2 report</button></div>` : ""}</div><div class="work-order">${workOrder ? `<div class="work-order-callout">${icon("wrench")}<div><strong>${esc(workOrder.action || "Review required")}</strong><p>Draft · human approval required</p></div></div><dl class="key-grid"><dt>Priority</dt><dd>${esc(workOrder.priority || item.priority)}</dd><dt>Part</dt><dd class="mono">${esc((workOrder.parts || []).join(", ") || item.component)}</dd><dt>Evidence</dt><dd>${citationButton("signal", "Signal", item.window || "—")}</dd></dl>` : `<div class="work-order-callout">${icon("alert")}<div><strong>No current work order</strong><p>Review cited incident evidence before assigning maintenance.</p></div></div>`}</div></article>
-      <article class="panel"><div class="panel-header"><h2>Case activity</h2><span class="section-note" style="margin-left:auto">Live clock</span></div><div class="panel-body activity-list">${item.source ? `<div class="activity-item"><time>${clock(item.first || item.last)}</time><span class="event-mark"></span><div><strong>Opened</strong><p class="mono">${esc(item.source)}${item.window ? ` · ${esc(item.window)}` : ""}</p></div></div>` : ""}<div class="activity-item"><time>${clock(now.ts)}</time><span class="event-mark"></span><div><strong>${hopLabel()}</strong><p>RMS ${dash(now.rpp1?.rms)} g · ${esc(now.rpp1?.file || "—")}</p></div></div></div></article>
+      <article class="panel"><div class="panel-header"><h2>Case activity</h2><span class="section-note" style="margin-left:auto">Live clock</span></div><div class="panel-body activity-list">${item.source ? `<div class="activity-item"><time>${clock(item.first || item.last)}</time><span class="event-mark"></span><div><strong>Opened</strong><p class="mono">${esc(item.source)}${item.window ? ` · ${esc(item.window)}` : ""}</p></div></div>` : ""}<div class="activity-item"><time>${clock(now.ts)}</time><span class="event-mark"></span><div><strong>${hopLabel()}</strong><p>${vibration ? `Cited RMS ${dash(item.rms)} g` : `Replay hop RMS ${dash(now.rpp1?.rms)} g`} · ${esc(item.source || now.rpp1?.file || "—")}</p></div></div></div></article>
     </section>
   </div></main>`;
 }
@@ -1297,7 +1310,7 @@ function stationState(id) {
 
 function floorTree(route) {
   const selected = selectedAsset(route).id;
-  const row = id => { const s = stationState(id); return `<div class="tree-row indent-1 ${selected === id ? "selected" : ""}" data-select-asset="${id}" role="button" tabindex="0" aria-pressed="${selected === id}"><span class="mono">${id}</span><span class="tree-count ${s.cls}">${s.text}</span></div>`; };
+  const row = id => { const s = stationState(id); return `<div class="tree-row indent-1 ${selected === id ? "selected" : ""}" data-select-asset="${esc(id)}" role="button" tabindex="0" aria-pressed="${selected === id}"><span class="mono">${esc(id)}</span><span class="tree-count ${s.cls}">${s.text}</span></div>`; };
   if (!twinStations) {
     return `<div class="tree-row"><strong>${esc(feed.cell.name)}</strong><span class="tree-count">${incidents().length} incidents</span></div>${row("RPP1")}${row("T1")}<p class="tree-note">Loading line geometry…</p>`;
   }
@@ -1336,7 +1349,7 @@ function partFacts(asset, part) {
   if (!part) return null;
   if (asset.id === "RPP1" && bound) {
     const incident = derivedIncident();
-    return { part, bound: true, source: now.rpp1.source, window: now.rpp1.window, rms: now.rpp1.rms, rpm: now.rpp1.rpm, bpfi: now.rpp1.bpfi?.hz, bus_w: now.rpp1.bus_w, joint1_a: now.rpp1.joint1_a, fault: flagged() ? (now.rpp1.fault || feed.flag.fault) : null, incident, tone: flagged() ? "critical" : "success", state: flagged() ? "Fault flagged" : "No fault on this hop" };
+    return { part, bound: true, source: now.rpp1.source, window: now.rpp1.window, rms: now.rpp1.rms, rpm: now.rpp1.rpm, bpfi: now.rpp1.bpfi?.hz, bus_w: now.rpp1.bus_w, joint1_a: now.rpp1.joint1_a, fault: flagged() ? (now.rpp1.fault || null) : null, incident, tone: flagged() ? "critical" : "success", state: flagged() ? "Fault flagged" : "No fault on this hop" };
   }
   if (bound) {
     const diag = diagnosedIncident(asset);
@@ -1362,9 +1375,9 @@ function partPanel(asset) {
   const badge = `<span class="badge ${facts.tone === "critical" ? "critical" : facts.tone === "success" ? "success" : ""}">${esc(facts.state)}</span>`;
   let body = "";
   if (facts.bound && asset.id === "RPP1") {
-    body = `<dl class="key-grid"><dt>Source</dt><dd class="mono">${esc(facts.source)}</dd><dt>Window</dt><dd class="mono">${esc(facts.window)}</dd><dt>RMS</dt><dd>${dash(facts.rms)} g</dd><dt>Speed</dt><dd>${dash(facts.rpm)} rpm</dd><dt>BPFI</dt><dd>${dash(facts.bpfi)} Hz</dd><dt>bus_w</dt><dd>${dash(facts.bus_w)} W</dd><dt>joint1_a</dt><dd>${dash(facts.joint1_a)} A</dd>${facts.fault ? `<dt>Fault</dt><dd class="text-critical">${esc(facts.fault)}</dd>` : ""}</dl>${facts.incident ? `<div class="rail-actions"><button type="button" class="btn primary sm" data-open-incident="${facts.incident.id}">Open ${facts.incident.id} ${icon("arrow", "sm")}</button><button type="button" class="btn sm" data-evidence="signal">Open exact signal</button></div>` : `<div class="rail-actions"><button type="button" class="btn sm" data-evidence="signal">Open exact signal</button></div>`}`;
+    body = `<dl class="key-grid"><dt>Source</dt><dd class="mono">${esc(facts.source)}</dd><dt>Window</dt><dd class="mono">${esc(facts.window)}</dd><dt>RMS</dt><dd>${dash(facts.rms)} g</dd><dt>Speed</dt><dd>${dash(facts.rpm)} rpm</dd><dt>BPFI</dt><dd>${dash(facts.bpfi)} Hz</dd><dt>bus_w</dt><dd>${dash(facts.bus_w)} W</dd><dt>joint1_a</dt><dd>${dash(facts.joint1_a)} A</dd>${facts.fault ? `<dt>Fault</dt><dd class="text-critical">${esc(facts.fault)}</dd>` : ""}</dl>${facts.incident ? `<div class="rail-actions"><button type="button" class="btn primary sm" data-open-incident="${esc(facts.incident.id)}">Open ${esc(facts.incident.id)} ${icon("arrow", "sm")}</button><button type="button" class="btn sm" data-evidence="signal">Open exact signal</button></div>` : `<div class="rail-actions"><button type="button" class="btn sm" data-evidence="signal">Open exact signal</button></div>`}`;
   } else if (facts.bound && facts.incident) {
-    body = `<dl class="key-grid"><dt>Source</dt><dd class="mono">${esc(dash(facts.source))}</dd><dt>Window</dt><dd class="mono">${esc(dash(facts.window))}</dd><dt>RMS</dt><dd>${dash(facts.rms)} g</dd><dt>Speed</dt><dd>${dash(facts.rpm)} rpm</dd>${facts.fault ? `<dt>Fault</dt><dd class="text-critical">${esc(facts.fault)}</dd>` : ""}</dl><div class="rail-actions"><button type="button" class="btn primary sm" data-open-incident="${facts.incident.id}">Open ${facts.incident.id} ${icon("arrow", "sm")}</button><button type="button" class="btn sm" data-evidence="signal">Open exact signal</button></div>`;
+    body = `<dl class="key-grid"><dt>Source</dt><dd class="mono">${esc(dash(facts.source))}</dd><dt>Window</dt><dd class="mono">${esc(dash(facts.window))}</dd><dt>RMS</dt><dd>${dash(facts.rms)} g</dd><dt>Speed</dt><dd>${dash(facts.rpm)} rpm</dd>${facts.fault ? `<dt>Fault</dt><dd class="text-critical">${esc(facts.fault)}</dd>` : ""}</dl><div class="rail-actions"><button type="button" class="btn primary sm" data-open-incident="${esc(facts.incident.id)}">Open ${esc(facts.incident.id)} ${icon("arrow", "sm")}</button><button type="button" class="btn sm" data-evidence="signal">Open exact signal</button></div>`;
   } else if (facts.bound) {
     body = processTagDl(facts.slot || { source: facts.source });
   } else {
@@ -1458,13 +1471,13 @@ function assetPage(route) {
       ? `<dl class="key-grid"><dt>VLFT model</dt><dd class="mono">${esc(asset.model)}</dd><dt>Cell</dt><dd>${esc(cellName(asset.cell))}</dd><dt>Signal source</dt><dd class="mono">none</dd></dl><p class="section-note">Unmonitored station. Geometry only; never diagnosed.</p>`
       : `${processTagDl(slot)}<p class="section-note">Process / electrical tags only. Never diagnosed. Not a vibration channel.</p>`;
   return `<main class="page"><div class="page-inner compact">
-    ${moduleHeader(`${asset.id} · ${esc(asset.name)}`, `${esc(asset.location)} · ${esc(asset.component)} · ${esc(asset.source)}`, actions)}
+    ${moduleHeader(`${esc(asset.id)} · ${esc(asset.name)}`, `${esc(asset.location)} · ${esc(asset.component)} · ${esc(asset.source)}`, actions)}
     <div class="tabs" role="tablist">${assetTab("overview", "Overview")}${assetTab("maintenance", "Maintenance")}${assetTab("evidence", "Evidence")}${assetTab("activity", "Activity")}</div><div style="height:10px"></div>
     <div class="asset-layout ${renderOpen ? "has-render" : ""}">${renderOpen ? `<aside class="render-column">${renderPanel(route, asset)}</aside>` : ""}<div class="asset-main">
     <section class="asset-summary"><article class="panel asset-score"><div><div class="asset-score-ring" aria-label="${esc(asset.condition)}">${ring}</div><strong>${esc(asset.condition)}</strong><span>${ringNote}</span></div></article><article class="panel asset-facts"><div class="asset-fact"><span>Open incidents</span><strong class="${asset.incident ? "text-critical" : ""}">${asset.incident || "None"}</strong></div><div class="asset-fact"><span>${fact2[0]}</span><strong class="${unmon ? "mono" : "num"}">${fact2[1]}</strong></div><div class="asset-fact"><span>Last hop</span><strong>${clock(now.ts)}</strong></div><div class="asset-fact"><span>Source</span><strong class="mono">${esc(asset.source)}</strong></div></article></section>
     <section class="asset-columns">
       <div>
-        <article class="panel" style="margin-bottom:8px"><div class="panel-header"><h2>Condition</h2>${asset.incident ? `<button class="btn sm primary" data-open-incident="${asset.incident}" style="margin-left:auto">Open incident ${icon("arrow", "sm")}</button>` : ""}</div><div class="panel-body">${condition}</div></article>
+        <article class="panel" style="margin-bottom:8px"><div class="panel-header"><h2>Condition</h2>${asset.incident ? `<button class="btn sm primary" data-open-incident="${esc(asset.incident)}" style="margin-left:auto">Open incident ${icon("arrow", "sm")}</button>` : ""}</div><div class="panel-body">${condition}</div></article>
         <article class="panel" style="margin-bottom:8px"><div class="panel-header"><h2>Current work order</h2>${workOrder ? `<button class="btn sm primary" data-action="open-l2-report">View L2 report</button><span class="badge" style="margin-left:auto">${esc(workOrder.wo_id)}</span>` : ""}</div><div class="panel-body">${workOrder ? `<div class="work-order-callout">${icon("wrench")}<div><strong>${esc(workOrder.action || "Review required")}</strong><p>${esc(workOrder.priority || "Draft")} · human approval required</p></div></div><dl class="key-grid"><dt>Parts</dt><dd class="mono">${esc((workOrder.parts || []).join(", ") || "None specified")}</dd><dt>Incident</dt><dd class="mono">${esc(asset.incident || "—")}</dd></dl>` : `<p class="section-note">No open work order for this asset.</p>`}</div></article>
         <article class="panel"><div class="panel-header"><h2>Maintenance history</h2><span class="section-note" style="margin-left:auto">${isHero ? "Alias MTR-07" : "No CMMS rows"}</span></div>${history.length ? `<table class="simple-table"><thead><tr><th>Work order</th><th>Date</th><th>Fault</th><th>Action / part</th></tr></thead><tbody>${history.map(row => `<tr><td><button class="cite-button mono" data-evidence="history">${esc(row.wo_id)}</button></td><td>${esc(row.opened)}</td><td>${esc(row.fault)}</td><td>${esc(row.action)} · ${esc(row.parts)}</td></tr>`).join("")}</tbody></table>` : `<div class="panel-body"><p class="section-note">—</p></div>`}</article>
       </div>
@@ -1492,15 +1505,15 @@ function intelligencePage(route) {
   const openCount = incidents().length;
   const faulted = rows.filter((r) => r.rpp1?.fault).length;
   return `<main class="page intelligence-page"><div class="page-inner compact">
-    ${moduleHeader("Intelligence", "Always-on L1 hop loop. Open incidents from sqlite.", `${tapeStamp()}<button class="btn" data-evidence="containment">${icon("shield", "sm")}Inspect containment</button>`)}
-    <section class="metric-grid" aria-label="Live metrics">${metricStat("Hop", String(hopIndex()), clock(now.ts), "info", "Monotonic hop index from the always-on 1 Hz loop. Not a finite tape replay.")}${metricStat("Open incidents", String(openCount), openCount ? "sqlite inbox" : "clear", openCount ? "critical" : "success", "Active cases in the incident registry — seeded plus live detects.")}${metricStat("RMS", dash(now.rpp1?.rms), "g · current", "", "Window RMS on this hop. ISO 20816 zones do not apply — asset below the 15 kW floor.")}${metricStat("BPFI", dash(now.rpp1?.bpfi?.hz), now.rpp1?.bpfi?.detected ? "detected" : "not detected", "", `Ball-pass inner-race frequency from L1 (${now.rpp1?.engine || "—"}).`)}</section>
+    ${moduleHeader("Intelligence", "Browser-local telemetry replay with fixed pre-populated incidents.", `${tapeStamp()}<button class="btn" data-evidence="containment">${icon("shield", "sm")}Inspect containment</button>`)}
+    <section class="metric-grid" aria-label="Live metrics">${metricStat("Hop", String(hopIndex()), clock(now.ts), "info", "Replay hop count; resets when this page reloads.")}${metricStat("Open incidents", String(openCount), openCount ? "demo inbox" : "clear", openCount ? "critical" : "success", "Fixed pre-populated cases; no live detection.")}${metricStat("RMS", dash(now.rpp1?.rms), "g · current", "", "Window RMS on this hop. ISO 20816 zones do not apply — asset below the 15 kW floor.")}${metricStat("BPFI", dash(now.rpp1?.bpfi?.hz), now.rpp1?.bpfi?.detected ? "detected" : "not detected", "", `Ball-pass inner-race frequency from L1 (${now.rpp1?.engine || "—"}).`)}</section>
     <section class="system-strip" aria-label="System health"><div class="system-cell"><span>Loop</span><strong><i class="live-dot"></i>${liveHops?.live ? "live" : "fallback"} · 1 Hz</strong></div><div class="system-cell"><span>L1</span><strong class="text-success">${icon("check", "sm")}${esc(now.rpp1?.engine || "—")}</strong></div><div class="system-cell"><span>Fleet</span><strong>${feed.fleet.length} monitored</strong></div><div class="system-cell"><span>Containment</span>${containmentCell()}</div></section>
     <section class="panel" style="margin-bottom:8px"><div class="panel-header"><h2>Current work orders</h2><span class="section-note" style="margin-left:auto">Open incident drafts</span></div>${currentWorkOrderTable()}</section>
     <section class="intel-layout">
-      <article class="panel"><div class="panel-header"><h2>Recent hops</h2><span class="section-note" style="margin-left:auto">${rows.length} shown${faulted ? ` · ${faulted} faulted` : ""}</span></div><div class="run-list">${rows.map(item => `<div class="run-row ${`HOP-${item.i}` === run ? "selected" : ""}" data-select-run="HOP-${item.i}" tabindex="0"><div class="run-main"><strong class="mono">HOP-${item.i}</strong><span>${clock(item.ts)} · ${esc(item.rpp1.file || "—")}</span><br><span>RMS ${dash(item.rpp1.rms)} g · ${item.rpp1.fault || "healthy"}</span></div><div class="run-side"><span class="status ${statusClass(item.rpp1.fault ? "critical" : "healthy")}">${item.rpp1.fault || "ok"}</span><time>${esc(item.rpp1.window || "—")}</time></div></div>`).join("")}</div></article>
+      <article class="panel"><div class="panel-header"><h2>Recent hops</h2><span class="section-note" style="margin-left:auto">${rows.length} shown${faulted ? ` · ${faulted} faulted` : ""}</span></div><div class="run-list">${rows.map(item => `<div class="run-row ${`HOP-${item.i}` === run ? "selected" : ""}" data-select-run="HOP-${item.i}" tabindex="0"><div class="run-main"><strong class="mono">HOP-${item.i}</strong><span>${clock(item.ts)} · ${esc(item.rpp1.file || "—")}</span><br><span>RMS ${esc(dash(item.rpp1.rms))} g · ${esc(item.rpp1.fault || "healthy")}</span></div><div class="run-side"><span class="status ${statusClass(item.rpp1.fault ? "critical" : "healthy")}">${esc(item.rpp1.fault || "ok")}</span><time>${esc(item.rpp1.window || "—")}</time></div></div>`).join("")}</div></article>
       <article class="panel"><div class="trace-header"><div class="trace-title"><h2>Current hop</h2><span class="badge ${now.rpp1?.fault ? "critical" : "success"}">${now.rpp1?.fault || "Healthy"}</span></div><div class="trace-meta"><span class="mono">${hopLabel()}</span><span>RPP1 / URjoint1</span><span>${clock(now.ts)}</span><span>${esc(now.rpp1?.engine || "—")}</span></div></div><div class="trace-stages">
         <details class="trace-stage" data-open-key="trace-l0" open><summary class="trace-summary"><span class="timeline-icon">${icon("check", "sm")}</span><span class="trace-stage-label">L0</span><strong>DAQ drop</strong><time>${clock(now.ts)}</time></summary><div class="trace-body"><dl><dt>Source</dt><dd class="mono">${esc(now.rpp1?.source || "—")}</dd><dt>Window</dt><dd class="mono">${esc(now.rpp1?.window || "—")}</dd><dt>fs</dt><dd class="num">${dash(now.rpp1?.fs_hz)} Hz</dd></dl><div class="inline-citations">${citationButton("signal", "Signal", now.rpp1?.window || "—")}</div></div></details>
-        <details class="trace-stage" data-open-key="trace-l1" open><summary class="trace-summary"><span class="timeline-icon">${icon("check", "sm")}</span><span class="trace-stage-label">L1</span><strong>Condition features</strong></summary><div class="trace-body"><dl><dt>RMS</dt><dd>${dash(now.rpp1?.rms)} g</dd><dt>BPFI</dt><dd>${now.rpp1?.bpfi?.detected ? `${now.rpp1.bpfi.hz} Hz` : "not detected"}</dd><dt>Fault</dt><dd>${dash(now.rpp1?.fault)}</dd><dt>bus_w</dt><dd>${dash(now.rpp1?.bus_w)} W</dd></dl></div></details>
+        <details class="trace-stage" data-open-key="trace-l1" open><summary class="trace-summary"><span class="timeline-icon">${icon("check", "sm")}</span><span class="trace-stage-label">L1</span><strong>Condition features</strong></summary><div class="trace-body"><dl><dt>RMS</dt><dd>${esc(dash(now.rpp1?.rms))} g</dd><dt>BPFI</dt><dd>${now.rpp1?.bpfi?.detected ? `${esc(now.rpp1.bpfi.hz)} Hz` : "not detected"}</dd><dt>Fault</dt><dd>${esc(dash(now.rpp1?.fault))}</dd><dt>bus_w</dt><dd>${esc(dash(now.rpp1?.bus_w))} W</dd></dl></div></details>
         <details class="trace-stage" data-open-key="trace-fleet" open><summary class="trace-summary"><span class="timeline-icon">${icon("check", "sm")}</span><span class="trace-stage-label">Fleet</span><strong>Assets and Condition</strong></summary><div class="trace-body"><p class="section-note">Pointer only — process tags and vibration diagnosis are their own pages, not this chip-strip.</p><div class="fleet-pointers"><a class="btn sm" href="#/assets">Open Assets · 24 process cards</a><a class="btn sm" href="#/condition">Open Condition · 6 motors</a></div></div></details>
       </div></article>
     </section>
@@ -1573,7 +1586,7 @@ function objectPreviewRail(route) {
       ${previewSection("What should I do", workOrder ? "Current work order" : "Next technician step", action, workOrder?.parts?.length ? `<p class="preview-parts"><span>Parts</span> ${esc(workOrder.parts.join(", "))}</p>` : "")}
       ${previewSection("Why trust it", workOrder ? "Evidence-backed draft" : "L1 evidence only", evidenceSummary, stages)}
       ${technical}`;
-    const actions = `<button class="btn primary" data-open-incident="${incident.id}">Open incident ${icon("arrow", "sm")}</button><div class="preview-actions-secondary"><button class="btn" data-action="view-floor">${icon("floor", "sm")}View on floor</button><button class="btn" data-action="open-assist">${icon("spark", "sm")}Ask Assist</button></div>`;
+    const actions = `<button class="btn primary" data-open-incident="${esc(incident.id)}">Open incident ${icon("arrow", "sm")}</button><div class="preview-actions-secondary"><button class="btn" data-action="view-floor">${icon("floor", "sm")}View on floor</button><button class="btn" data-action="open-assist">${icon("spark", "sm")}Ask Assist</button></div>`;
     return previewRail(`${incident.id} · Incident`, body, actions);
   }
 
@@ -1602,7 +1615,7 @@ function objectPreviewRail(route) {
     <section class="preview-section"><div class="rail-kicker">Current condition · ${esc(hopLabel())}</div><div class="preview-facts"><div class="preview-fact"><span>RMS</span><strong>${dash(now.rpp1?.rms)} g</strong></div><div class="preview-fact"><span>Speed</span><strong>${dash(now.rpp1?.rpm)} rpm</strong></div><div class="preview-fact"><span>BPFI</span><strong>${now.rpp1?.bpfi?.detected ? `${dash(now.rpp1.bpfi.hz)} Hz` : "Not detected"}</strong></div></div>${currentWindow ? `<div class="inline-citations">${citationButton("signal", "Open current signal", currentWindow, { source: currentSource, window: currentWindow })}</div>` : ""}</section>
     <details class="preview-details" data-open-key="preview-details"><summary>Source details</summary><dl class="key-grid"><dt>Source</dt><dd class="mono">${esc(currentSource)}</dd><dt>Window</dt><dd class="mono">${esc(currentWindow || "—")}</dd><dt>Active case</dt><dd>${esc(asset.incident || "None")}</dd></dl></details>`;
   const actions = asset.incident
-    ? `<button class="btn primary" data-open-incident="${asset.incident}">Open incident ${icon("arrow", "sm")}</button><div class="preview-actions-secondary"><button class="btn" data-action="open-asset">Open Asset 360</button><button class="btn" data-action="open-assist">${icon("spark", "sm")}Ask Assist</button></div>`
+    ? `<button class="btn primary" data-open-incident="${esc(asset.incident)}">Open incident ${icon("arrow", "sm")}</button><div class="preview-actions-secondary"><button class="btn" data-action="open-asset">Open Asset 360</button><button class="btn" data-action="open-assist">${icon("spark", "sm")}Ask Assist</button></div>`
     : `<button class="btn primary" data-action="open-asset">Open Asset 360</button><button class="btn" data-action="open-assist">${icon("spark", "sm")}Ask Maintenance Assist</button>`;
   return previewRail(`${asset.id} · Asset`, body, actions);
 }
@@ -1683,7 +1696,7 @@ function answerContent(question, asset) {
   const workOrder = workOrderForAsset(asset.id);
   if (lastAssist && lastAssist.question === question && lastAssist.asset_id === asset.id) {
     const scope = lastAssist.out_of_scope ? " · out of scope" : "";
-    return `<div class="assist-message user"><div class="sender">You</div><p>${esc(question)}</p></div><div class="assist-message"><div class="sender">Maintenance Assist · ${esc(lastAssist.model || "Qwen3-0.6B")}${scope}</div><p>${esc(lastAssist.answer)}</p><div class="citation-list">${citationButtons(lastAssist.citations, asset)}</div></div>`;
+    return `<div class="assist-message user"><div class="sender">You</div><p>${esc(question)}</p></div><div class="assist-message"><div class="sender">Maintenance Assist · ${esc(lastAssist.model || "Prepared demo answer")}${scope}</div><p>${esc(lastAssist.answer)}</p><div class="citation-list">${citationButtons(lastAssist.citations, asset)}</div></div>`;
   }
   if (isHeroAsset(asset)) {
     const inc = incidents().find((incident) => incident.asset === asset.id) || null;
@@ -1696,7 +1709,7 @@ function answerContent(question, asset) {
   }
   const slot = assetHop(asset.id);
   const entries = processTagEntries(slot);
-  const rows = entries.map(([k, v]) => `<dt>${esc(k)}</dt><dd>${dash(v)}</dd>`).join("");
+  const rows = entries.map(([k, v]) => `<dt>${esc(k)}</dt><dd>${esc(dash(v))}</dd>`).join("");
   return `<div class="assist-message user"><div class="sender">You</div><p>${esc(question)}</p></div><div class="assist-message"><div class="sender">Maintenance Assist · L1 process tags</div><p>No vibration channel on <span class="mono">${esc(asset.id)}</span>. Not diagnosed. No work order. Numbers are this hop's cited process / electrical tags.</p><dl class="key-grid"><dt>Part</dt><dd class="mono">${esc(slot?.part || asset.component)}</dd><dt>Source</dt><dd class="mono">${esc(slot?.source || asset.source)}</dd>${rows}</dl><div class="citation-list"><button class="citation-link" data-evidence="process">${icon("intel")}<span>${esc(slot?.source || asset.source)} · ${hopLabel()}</span>${icon("external", "sm")}</button></div></div>`;
 }
 
@@ -1720,31 +1733,31 @@ function assistSuggestions(asset) {
 function assistPipeline(asset, state) {
   const now = hop();
   if (isHeroAsset(asset)) {
-    const l2 = state === "answered" && lastAssist?.model ? lastAssist.model : "Qwen3-0.6B · :8080";
-    return `<div class="assist-run"><details class="assist-details" data-open-key="assist-details"${state === "running" ? " open" : ""}><summary>${icon("intel", "sm")}Processing stages<span class="status ${state === "failed" ? "critical" : state === "running" ? "info" : "success"}">${state === "running" ? "Running" : state === "failed" ? "Failed" : "Ready"}</span></summary><div class="pipeline-mini"><div class="pipeline-step"><span class="pipeline-dot">${icon("check", "sm")}</span><div><strong>L0 pointer</strong><span>${esc(now.rpp1.file)}</span></div></div><div class="pipeline-step"><span class="pipeline-dot">${icon("check", "sm")}</span><div><strong>L1 features</strong><span>${esc(now.rpp1.engine)}</span></div></div><div class="pipeline-step"><span class="pipeline-dot">${state === "answered" ? icon("check", "sm") : ""}</span><div><strong>L2 local model</strong><span>${esc(l2)}</span></div></div><div class="pipeline-step"><span class="pipeline-dot"></span><div><strong>L2 work order</strong><span>wo: ${esc(feed.flag.wo)}</span></div></div></div></details><button class="btn" data-action="open-full-run">Open full run ${icon("arrow", "sm")}</button></div>`;
+    const l2 = state === "answered" && lastAssist?.model ? lastAssist.model : "Prepared demo answer";
+    return `<div class="assist-run"><details class="assist-details" data-open-key="assist-details"${state === "running" ? " open" : ""}><summary>${icon("intel", "sm")}Demo evidence stages<span class="status ${state === "failed" ? "critical" : state === "running" ? "info" : "success"}">${state === "running" ? "Running" : state === "failed" ? "Failed" : "Ready"}</span></summary><div class="pipeline-mini"><div class="pipeline-step"><span class="pipeline-dot">${icon("check", "sm")}</span><div><strong>L0 pointer</strong><span>${esc(now.rpp1.file)}</span></div></div><div class="pipeline-step"><span class="pipeline-dot">${icon("check", "sm")}</span><div><strong>L1 features</strong><span>${esc(now.rpp1.engine)}</span></div></div><div class="pipeline-step"><span class="pipeline-dot">${state === "answered" ? icon("check", "sm") : ""}</span><div><strong>Prepared answer</strong><span>${esc(l2)}</span></div></div><div class="pipeline-step"><span class="pipeline-dot"></span><div><strong>L2 work order</strong><span>wo: ${esc(workOrderForAsset(asset.id)?.wo_id || "none")}</span></div></div></div></details><button class="btn" data-action="open-full-run">Open full run ${icon("arrow", "sm")}</button></div>`;
   }
   const diag = diagnosedIncident(asset);
   if (diag) {
-    const l2 = state === "answered" && lastAssist?.model ? lastAssist.model : "Qwen3-0.6B · :8080";
-    return `<div class="assist-run"><details class="assist-details" data-open-key="assist-details"${state === "running" ? " open" : ""}><summary>${icon("intel", "sm")}Processing stages<span class="status ${state === "failed" ? "critical" : state === "running" ? "info" : "success"}">${state === "running" ? "Running" : state === "failed" ? "Failed" : "Ready"}</span></summary><div class="pipeline-mini"><div class="pipeline-step"><span class="pipeline-dot">${icon("check", "sm")}</span><div><strong>L0 pointer</strong><span>${esc(diag.source)}</span></div></div><div class="pipeline-step"><span class="pipeline-dot">${icon("check", "sm")}</span><div><strong>L1 features</strong><span>fault=${esc(diag.fault)} rms=${dash(diag.rms)}g</span></div></div><div class="pipeline-step"><span class="pipeline-dot">${state === "answered" ? icon("check", "sm") : ""}</span><div><strong>L2 local model</strong><span>${esc(l2)}</span></div></div><div class="pipeline-step"><span class="pipeline-dot">${diag.wo_id ? icon("check", "sm") : ""}</span><div><strong>L2 work order</strong><span>wo: ${esc(diag.wo_id || "none")}</span></div></div></div></details></div>`;
+    const l2 = state === "answered" && lastAssist?.model ? lastAssist.model : "Prepared demo answer";
+    return `<div class="assist-run"><details class="assist-details" data-open-key="assist-details"${state === "running" ? " open" : ""}><summary>${icon("intel", "sm")}Demo evidence stages<span class="status ${state === "failed" ? "critical" : state === "running" ? "info" : "success"}">${state === "running" ? "Running" : state === "failed" ? "Failed" : "Ready"}</span></summary><div class="pipeline-mini"><div class="pipeline-step"><span class="pipeline-dot">${icon("check", "sm")}</span><div><strong>L0 pointer</strong><span>${esc(diag.source)}</span></div></div><div class="pipeline-step"><span class="pipeline-dot">${icon("check", "sm")}</span><div><strong>L1 features</strong><span>fault=${esc(diag.fault)} rms=${dash(diag.rms)}g</span></div></div><div class="pipeline-step"><span class="pipeline-dot">${state === "answered" ? icon("check", "sm") : ""}</span><div><strong>Prepared answer</strong><span>${esc(l2)}</span></div></div><div class="pipeline-step"><span class="pipeline-dot">${diag.wo_id ? icon("check", "sm") : ""}</span><div><strong>L2 work order</strong><span>wo: ${esc(diag.wo_id || "none")}</span></div></div></div></details></div>`;
   }
   const slot = assetHop(asset.id);
   const n = processTagEntries(slot).length;
-  return `<div class="assist-run"><details class="assist-details" data-open-key="assist-details"${state === "running" ? " open" : ""}><summary>${icon("intel", "sm")}Processing stages<span class="status ${state === "failed" ? "critical" : state === "running" ? "info" : "success"}">${state === "running" ? "Running" : state === "failed" ? "Failed" : "Ready"}</span></summary><div class="pipeline-mini"><div class="pipeline-step"><span class="pipeline-dot">${icon("check", "sm")}</span><div><strong>L1 process tags</strong><span>${n} · ${esc(slot?.source || asset.source)}</span></div></div><div class="pipeline-step"><span class="pipeline-dot"></span><div><strong>L0 vibration</strong><span>none on this asset</span></div></div><div class="pipeline-step"><span class="pipeline-dot"></span><div><strong>L2 work order</strong><span>not opened · never diagnosed</span></div></div></div></details></div>`;
+  return `<div class="assist-run"><details class="assist-details" data-open-key="assist-details"${state === "running" ? " open" : ""}><summary>${icon("intel", "sm")}Demo evidence stages<span class="status ${state === "failed" ? "critical" : state === "running" ? "info" : "success"}">${state === "running" ? "Running" : state === "failed" ? "Failed" : "Ready"}</span></summary><div class="pipeline-mini"><div class="pipeline-step"><span class="pipeline-dot">${icon("check", "sm")}</span><div><strong>L1 process tags</strong><span>${n} · ${esc(slot?.source || asset.source)}</span></div></div><div class="pipeline-step"><span class="pipeline-dot"></span><div><strong>L0 vibration</strong><span>none on this asset</span></div></div><div class="pipeline-step"><span class="pipeline-dot"></span><div><strong>L2 work order</strong><span>not opened · never diagnosed</span></div></div></div></details></div>`;
 }
 
 function assistRail(route) {
   const incident = selectedIncident(route);
   const asset = selectedAsset(route);
   const canAssist = assistable(asset);
-  let state = route.params.get("assistState") || (canAssist ? "ready" : "unsupported");
+  let state = canAssist ? (lastAssist?.asset_id === asset.id && lastAssist.question === route.params.get("question") ? "answered" : "ready") : "unsupported";
   if (!canAssist) state = "unsupported";
   else if (state === "unsupported") state = "ready";
   const question = route.params.get("question") || draftQuestion || (isHeroAsset(asset) ? "What L1 features are on this hop?" : "What L1 tags are on this hop?");
   let body = assistContext(asset, incident);
   let footer = "";
   if (state === "ready") {
-    body += `<div class="assist-empty">${icon("spark")}<p>Ask about this hop. Local Qwen on <span class="mono">:8080</span> answers from the L1 ${isHeroAsset(asset) || diagnosedIncident(asset) ? "scalars" : "process / electrical tags"} on <span class="mono">${esc(asset.source)}</span>; no invented manual pages.${isHeroAsset(asset) || diagnosedIncident(asset) ? "" : " Not diagnosed."}</p></div>`;
+    body += `<div class="assist-empty">${icon("spark")}<p>Choose a suggested question for a prepared answer from this asset’s evidence. No model runs in this demo.</p></div>`;
     footer += assistSuggestions(asset);
   }
   if (state === "answered") footer += assistSuggestions(asset);
@@ -1752,87 +1765,30 @@ function assistRail(route) {
   if (state === "answered") body += answerContent(question, asset);
   if (state === "unsupported") body += `<div class="assist-state warning"><strong>${icon("alert")}Assistant unavailable for ${asset.id}</strong><p>No L1 tags on this station. Geometry only — nothing to bind. Pick a monitored asset.</p><div class="rail-actions"><button class="btn" data-action="select-supported">Select supported RPP1 context</button></div></div>`;
   if (state === "failed") body += `<div class="assist-message user"><div class="sender">You</div><p>${esc(question)}</p></div><div class="assist-state error" role="alert"><strong>${icon("alert")}Run failed</strong><p>Question retained.</p><div class="rail-actions"><button class="btn danger" data-action="retry-assist">Retry question</button></div></div>`;
-  if (state === "offline") body += `<div class="assist-state offline" role="alert"><strong>${icon("alert")}Local inference offline</strong><p>Answers need Qwen on <span class="mono">127.0.0.1:8080</span>.</p><dl class="key-grid"><dt>Inference</dt><dd class="mono">:8080</dd><dt>Draft</dt><dd>Retained locally</dd></dl></div>`;
+  if (state === "offline") body += `<p class="section-note">Prepared answers are available through the suggested questions.</p>`;
   if (state !== "unsupported") body += assistPipeline(asset, state);
   const disabled = ["running", "unsupported", "offline"].includes(state);
   if (state !== "unsupported") footer += `<form class="composer" data-assist-form><label class="sr-only" for="assist-question">Ask about this incident or asset</label><div class="composer-box"><textarea id="assist-question" ${disabled ? "disabled" : ""} placeholder="${isHeroAsset(asset) ? "Ask about L1 features or the flag" : "Ask about this hop's L1 tags"}">${state === "failed" ? esc(question) : ""}</textarea><button class="btn primary icon-only ${state === "running" ? "loading" : ""}" type="submit" ${disabled ? "disabled" : ""} aria-label="Send question">${state === "running" ? "" : icon("arrow")}</button></div><p class="composer-hint">Enter to send · Shift+Enter for a new line</p></form>`;
-  return `<aside class="utility-rail assist-rail" aria-label="Maintenance Assist" data-overlay-rail>${railResizeGrip("right")}<div class="rail-header">${icon("spark")}<div class="rail-title"><strong>Maintenance Assist</strong><span>${asset.id} / ${asset.component} · L1 feed</span></div><div class="rail-header-actions"><span class="badge dark">LOCAL</span><button class="btn icon-only sm" data-action="close-rail" aria-label="Close Maintenance Assist">${icon("close")}</button></div></div><div class="rail-body">${body}</div>${footer ? `<div class="assist-footer">${footer}</div>` : ""}</aside>`;
+  return `<aside class="utility-rail assist-rail" aria-label="Maintenance Assist" data-overlay-rail>${railResizeGrip("right")}<div class="rail-header">${icon("spark")}<div class="rail-title"><strong>Maintenance Assist</strong><span>${asset.id} / ${asset.component} · L1 feed</span></div><div class="rail-header-actions"><span class="badge dark">DEMO</span><button class="btn icon-only sm" data-action="close-rail" aria-label="Close Maintenance Assist">${icon("close")}</button></div></div><div class="rail-body">${body}</div>${footer ? `<div class="assist-footer">${footer}</div>` : ""}</aside>`;
 }
 
-// Containment comes only from /api/board → app/lib/openshell.mjs (gateway audit log). Never from feed.json.
-function containment() {
-  const c = board?.containment;
-  if (!c || !Array.isArray(c.denies)) return { state: board ? "UNPROVEN" : "OFFLINE", denies: [], deny_count: 0, policy: null, errors: [board ? "board has no containment block" : "/api/board unreachable — prototype must be served by app/server.mjs"], sandbox: null, last_deny: null };
-  return c;
-}
+function containment() { return board.containment; }
 function containmentBadge() {
-  const c = containment();
-  const proven = c.state === "CONTAINED" && c.denies.length > 0;
-  const label = proven ? "Local · Contained" : c.state === "UNSAFE" ? "Local · UNSAFE" : "Local · Unproven";
-  const title = proven ? `OpenShell ${c.sandbox}: ${c.deny_count} egress deny in gateway audit` : c.state === "UNSAFE" ? "Sandbox reached an external host" : "No deny audit line read from OpenShell yet";
-  return `<button class="contained-badge" data-evidence="containment" type="button" title="${esc(title)}" style="${proven ? "" : "opacity:.7"}">${icon(c.state === "UNSAFE" ? "alert" : "shield", "sm")}<span>${label}</span></button>`;
+  return `<button class="contained-badge" data-evidence="containment" type="button">${icon("shield", "sm")}<span>Demo · containment unavailable</span></button>`;
 }
-function containmentCell() {
-  const c = containment();
-  if (c.state === "CONTAINED" && c.denies.length) return `<strong class="text-success">${icon("check", "sm")}CONTAINED · ${c.deny_count} deny</strong>`;
-  if (c.state === "UNSAFE") return `<strong class="text-critical">${icon("alert", "sm")}UNSAFE · egress allowed</strong>`;
-  if (c.state === "OFFLINE") return `<strong>gateway offline</strong>`;
-  return `<strong>unproven · no deny audit yet</strong>`;
-}
-function containmentRail(c) {
-  const busy = attemptState === "running";
-  const policy = c.policy && !c.policy.error ? `<dl class="key-grid"><dt>Sandbox</dt><dd class="mono">${esc(c.sandbox || "—")}</dd><dt>Policy</dt><dd class="mono">v${c.policy.version ?? "—"} · ${esc(c.policy.status || "—")}</dd><dt>Hash</dt><dd class="mono">${esc((c.policy.hash || "").slice(0, 16))}${c.policy.hash ? "…" : "—"}</dd><dt>Inference</dt><dd class="mono">${esc(c.inference || "inference.local")}</dd><dt>Read</dt><dd class="mono">${esc(c.fetched_at ? clock(c.fetched_at) : "—")}</dd></dl>` : `<p class="section-note">Policy not readable${c.policy?.error ? `: ${esc(c.policy.error)}` : ""}.</p>`;
-  const attempt = `<div class="rail-actions"><button class="btn ${c.state === "UNSAFE" ? "danger" : "primary"}" data-action="attempt-exfil" ${busy ? "disabled" : ""}>${icon("shield", "sm")}${busy ? "Attempting telemetry POST…" : "Attempt telemetry POST from sandbox"}</button></div>${attemptState === "failed" ? `<div class="assist-state error" role="alert"><strong>${icon("alert")}Attempt did not produce a deny line</strong><p>${esc(attemptError || "curl left the sandbox or the gateway logged nothing.")}</p></div>` : ""}`;
-  const head = c.state === "CONTAINED" && c.denies.length
-    ? `<section class="rail-section"><div class="rail-kicker">OpenShell gateway</div><div class="rail-heading">Egress denied · ${c.deny_count} audit line${c.deny_count === 1 ? "" : "s"}</div><p>Lines below are read live via <span class="mono">${esc(c.source || "openshell logs")}</span>. Not seeded, not on the tape.</p>${policy}</section>`
-    : c.state === "UNSAFE"
-      ? `<section class="rail-section"><div class="rail-kicker">OpenShell gateway</div><div class="rail-heading">Egress succeeded</div><p>The sandbox reached an external host. Containment claim withdrawn until policy is fixed.</p>${policy}</section>`
-      : `<section class="rail-section"><div class="rail-kicker">OpenShell gateway</div><div class="rail-heading">Unproven</div><p>No <span class="mono">NET:OPEN DENIED</span> line in the gateway log yet. Trigger one below; nothing here is asserted without it.</p>${policy}${(c.errors || []).length ? `<p class="section-note">${c.errors.map(esc).join(" · ")}</p>` : ""}</section>`;
-  const lines = c.denies.length ? `<section class="rail-section"><div class="rail-kicker">OCSF audit</div>${[...c.denies].reverse().map(d => `<div class="evidence-document" style="margin-bottom:6px">${d.ts ? `${esc(clock(d.ts))} ` : ""}<mark>DENIED</mark> ${esc(d.process || "?")}(${d.pid ?? "?"}) → <mark>${esc(d.dest || "?")}</mark><br>engine: ${esc(d.engine || "—")} · policy: ${esc(d.policy || "gateway")}<br>${d.reason ? `reason: ${esc(d.reason)}<br>` : ""}<span style="opacity:.65">${esc(d.raw)}</span></div>`).join("")}</section>` : "";
-  return `${head}${attempt}${lines}`;
-}
-let attemptState = "idle", attemptError = "";
-async function refreshBoard() {
-  const response = await fetchBoard().catch(() => null);
-  const next = response?.ok ? await response.json() : board;
-  const beforeIssues = JSON.stringify(board?.issues);
-  board = next;
-  return beforeIssues !== JSON.stringify(board?.issues);
+function containmentCell() { return `<strong>No recorded evidence available</strong>`; }
+function containmentRail() {
+  return `<section class="rail-section"><div class="rail-kicker">Recorded containment example</div><div class="rail-heading">No recorded evidence available</div><p>This hosted demo does not run OpenShell or prove live containment.</p><button class="btn" disabled>Replay recorded containment example</button></section>`;
 }
 
-async function refreshLive() {
-  const [incRes, hopRes, issuesChanged] = await Promise.all([
-    fetchIncidents().catch(() => null),
-    fetchHops().catch(() => null),
-    refreshBoard(),
-  ]);
-  let incidentsChanged = false;
-  let hopsChanged = false;
-  if (incRes?.ok) {
-    const data = await incRes.json();
-    const next = data.incidents || [];
-    if (JSON.stringify(next) !== JSON.stringify(liveIncidents)) {
-      liveIncidents = next;
-      incidentsChanged = true;
-    }
-  }
-  if (hopRes?.ok) {
-    const data = await hopRes.json();
-    const before = JSON.stringify(liveHops?.latest);
-    liveHops = data;
-    if (data.latest) {
-      cursor = data.latest.hop ?? cursor;
-      healthyLoop = false;
-    }
-    if (JSON.stringify(data.latest) !== before) hopsChanged = true;
-    const busy = Object.entries(data.assets || {}).filter(([, slot]) => slot?.busy).map(([id]) => id);
-    postFloor({ type: "twin:flow", busy });
-  }
-  if (issuesChanged || hopsChanged) {
-    const parts = boardIssues().filter((row) => row.part).map((row) => ({ assetId: row.asset_id, part: row.part, severity: row.severity || "critical" }));
-    postFloor({ type: "twin:issues", parts });
-  }
-  return { incidents: incidentsChanged, hops: hopsChanged, issues: issuesChanged };
+function refreshLive() {
+  const snapshot = demo.snapshot();
+  board = snapshot.board;
+  liveIncidents = snapshot.incidents;
+  liveHops = snapshot.hops;
+  cursor = liveHops.latest.hop;
+  postFloor({ type: "twin:flow", busy: Object.entries(liveHops.assets || {}).filter(([, slot]) => slot.busy).map(([id]) => id) });
+  postFloor({ type: "twin:issues", parts: board.issues.map(row => ({ assetId: row.asset_id, part: row.part, severity: row.severity })) });
 }
 
 function softLiveTick() {
@@ -1881,68 +1837,6 @@ function applyLiveTick() {
   positionPartLive();
 }
 
-async function injectFault(source = "ir", hops = 30) {
-  try {
-    const response = await fetch(`${apiBase()}/api/demo/inject`, {
-      method: "POST",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify({ source, hops }),
-    });
-    const data = await response.json().catch(() => ({}));
-    console.info("inject", data);
-    await refreshLive();
-    render();
-  } catch (err) {
-    console.warn("inject failed", err);
-  }
-}
-
-async function postDetectOnce() {
-  // Live hop-loop posts detect itself. Tape fallback only.
-  if (liveHops?.live || detectPosted || !hop().rpp1?.fault) return;
-  detectPosted = true;
-  const now = hop();
-  const payload = {
-    asset_id: "RPP1",
-    part: "URjoint1",
-    fault: now.rpp1.fault,
-    source: now.rpp1.source,
-    window: now.rpp1.window,
-    rpm: now.rpp1.rpm,
-    rms: now.rpp1.rms,
-    ts: now.ts,
-  };
-  try {
-    const response = await fetch(`${apiBase()}/api/detect`, {
-      method: "POST",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify(payload),
-    });
-    if (!response.ok) {
-      detectPosted = false;
-      return;
-    }
-  } catch (err) {
-    detectPosted = false;
-    return;
-  }
-  partIssuesKey = null;
-  await refreshLive();
-  render();
-}
-async function attemptExfil() {
-  if (attemptState === "running") return;
-  attemptState = "running"; attemptError = ""; render();
-  try {
-    const response = await fetch("/api/containment/attempt", { method: "POST" });
-    const data = await response.json().catch(() => ({}));
-    if (!response.ok) { attemptState = "failed"; attemptError = data.error || data.stderr || `gateway returned ${response.status}`; }
-    else attemptState = "idle";
-  } catch (error) { attemptState = "failed"; attemptError = error.message; }
-  await refreshBoard();
-  render();
-}
-
 function l2ReportRail(route) {
   const incident = selectedIncident(route);
   const asset = selectedAsset(route);
@@ -1951,7 +1845,7 @@ function l2ReportRail(route) {
     return `<aside class="utility-rail l2-report-rail" aria-label="L2 Report" data-overlay-rail data-rail-side="left">${railResizeGrip("left")}<div class="rail-header">${icon("intel")}<div class="rail-title"><strong>L2 report</strong><span>Not available</span></div><div class="rail-header-actions"><button class="btn icon-only sm" data-action="close-l2-report" aria-label="Close L2 report">${icon("close")}</button></div></div><div class="rail-body"><section class="rail-section"><div class="rail-heading">No report attached</div><p>This incident has L1 screening only. No L2 fields will be inferred.</p></section></div></aside>`;
   }
   const features = Array.isArray(report.evidence?.features) ? report.evidence.features : [];
-  return `<aside class="utility-rail l2-report-rail" aria-label="L2 Report" data-overlay-rail data-rail-side="left">${railResizeGrip("left")}<div class="rail-header">${icon("intel")}<div class="rail-title"><strong>L2 report</strong><span>${esc(report.wo_id || incident?.id || "draft")}</span></div><div class="rail-header-actions"><span class="badge dark">LOCAL</span><button class="btn icon-only sm" data-action="close-l2-report" aria-label="Close L2 report">${icon("close")}</button></div></div><div class="rail-body">
+  return `<aside class="utility-rail l2-report-rail" aria-label="L2 Report" data-overlay-rail data-rail-side="left">${railResizeGrip("left")}<div class="rail-header">${icon("intel")}<div class="rail-title"><strong>L2 report</strong><span>${esc(report.wo_id || incident?.id || "draft")}</span></div><div class="rail-header-actions"><span class="badge dark">DEMO</span><button class="btn icon-only sm" data-action="close-l2-report" aria-label="Close L2 report">${icon("close")}</button></div></div><div class="rail-body">
     <section class="report-status"><span class="badge warning">Draft · human review required</span><h2>${esc(capitalize(humanModel(report.fault || incident?.fault || asset.fault)))}</h2><p>This report informs inspection and planning. It does not authorize maintenance or a safety decision.</p></section>
     <section class="rail-section"><div class="rail-kicker">Recommended action</div><div class="report-action">${esc(report.action || "No action drafted")}</div><dl class="key-grid"><dt>Priority</dt><dd>${esc(report.priority || incident?.priority || "Draft")}</dd><dt>Candidate parts</dt><dd class="mono">${esc((report.parts || []).join(", ") || "None specified")}</dd><dt>Severity</dt><dd>${esc(report.severity || "Not classified")}</dd></dl></section>
     <section class="rail-section"><div class="rail-kicker">Deterministic evidence</div><div class="report-features">${features.length ? features.map((feature, index) => `<article><span>${index + 1}</span><p>${esc(feature)}</p></article>`).join("") : `<p class="section-note">No feature summary attached.</p>`}</div>${l2PeakChart(report)}</section>
@@ -1961,7 +1855,8 @@ function l2ReportRail(route) {
 }
 
 function evidenceRail(route) {
-  const type = route.params.get("evidence") || "signal";
+  const requested = route.params.get("evidence");
+  const type = ["manual", "history", "signal", "process", "containment"].includes(requested) ? requested : "signal";
   const expanded = route.params.get("expanded") === "1";
   const now = hop();
   const evidenceIncidentId = route.params.get("evidenceIncident");
@@ -1987,7 +1882,7 @@ function evidenceRail(route) {
     content = `<section class="rail-section"><div class="rail-kicker">Cited L1 tags</div><div class="rail-heading mono">${esc(asset.id)} · ${esc(slot?.source || asset.source)}</div>${processTagDl(slot)}<p class="section-note">Synthetic process / electrical tags from the catalog cite. Not a vibration channel. Never diagnosed.</p></section>`;
   }
   if (type === "containment") content = containmentRail(cont);
-  return `<aside class="utility-rail" aria-label="Evidence Viewer" data-overlay-rail>${railResizeGrip("right")}<div class="rail-header">${icon("file")}<div class="rail-title"><strong>${titles[type][0]}</strong><span>${titles[type][1]}</span></div><div class="rail-header-actions"><button class="btn sm" data-action="return-rail">${icon("back", "sm")}Back</button><button class="btn icon-only sm" data-action="close-rail" aria-label="Close Evidence Viewer">${icon("close")}</button></div></div><div class="rail-body"><div class="viewer-toolbar"><span class="badge ${gap ? "warning" : cont.state === "UNSAFE" && type === "containment" ? "critical" : "success"}">${gap ? "Source-gap" : type === "containment" ? "Gateway audit" : "Feed artifact"}</span></div>${content}${type === "manual" && expanded ? `<p class="section-note">Still no page.</p>` : ""}${type === "manual" ? `<button class="btn" style="width:100%;margin-top:12px" data-action="expand-evidence">${expanded ? "Collapse full artifact" : "Open full artifact"}</button>` : ""}</div></aside>`;
+  return `<aside class="utility-rail" aria-label="Evidence Viewer" data-overlay-rail>${railResizeGrip("right")}<div class="rail-header">${icon("file")}<div class="rail-title"><strong>${titles[type][0]}</strong><span>${esc(titles[type][1])}</span></div><div class="rail-header-actions"><button class="btn sm" data-action="return-rail">${icon("back", "sm")}Back</button><button class="btn icon-only sm" data-action="close-rail" aria-label="Close Evidence Viewer">${icon("close")}</button></div></div><div class="rail-body"><div class="viewer-toolbar"><span class="badge ${gap ? "warning" : cont.state === "UNSAFE" && type === "containment" ? "critical" : "success"}">${gap ? "Source-gap" : type === "containment" ? "Gateway audit" : "Feed artifact"}</span></div>${content}${type === "manual" && expanded ? `<p class="section-note">Still no page.</p>` : ""}${type === "manual" ? `<button class="btn" style="width:100%;margin-top:12px" data-action="expand-evidence">${expanded ? "Collapse full artifact" : "Open full artifact"}</button>` : ""}</div></aside>`;
 }
 
 function captureTypedField() {
@@ -2072,6 +1967,7 @@ function render() {
   const rightRailBody = app.querySelector(".utility-rail:not([data-rail-side=left]) .rail-body");
   if (rightRailBody) rightRailBody.scrollTop = savedRightRailScroll;
   applyRailWidths();
+  applyNavCollapsed();
   syncFloor(route);
   syncPart(route);
   document.title = `${activeModule(route.path)[0].toUpperCase()}${activeModule(route.path).slice(1)} · Groundwork`;
@@ -2106,34 +2002,11 @@ function openEvidence(type, trigger) {
   }, route));
 }
 
-async function startAssist(question) {
-  draftQuestion = question;
-  lastAssistError = "";
-  assistAbort?.abort();
+function startAssist(question) {
   const asset = selectedAsset(getRoute());
-  const ac = new AbortController();
-  assistAbort = ac;
-  updateRoute(persistReport({ rail: "assist", assistState: "running", question }));
-  try {
-    const response = await fetch(`${apiBase()}/api/questions`, {
-      method: "POST",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify({ question, asset_id: asset.id }),
-      signal: ac.signal,
-    });
-    const data = await response.json().catch(() => ({}));
-    if (ac.signal.aborted) return;
-    if (!response.ok) throw new Error(data.error || `assist ${response.status}`);
-    lastAssist = { ...data, question: data.question || question, asset_id: data.asset_id || asset.id };
-    const current = getRoute();
-    if (current.params.get("rail") === "assist" && current.params.get("assistState") === "running") updateRoute({ assistState: "answered" });
-  } catch (err) {
-    if (err.name === "AbortError") return;
-    lastAssistError = err.message || "assist failed";
-    const offline = /unavailable|Failed to fetch|timeout|inference|ECONN|offline/i.test(lastAssistError);
-    const current = getRoute();
-    if (current.params.get("rail") === "assist") updateRoute({ assistState: offline ? "offline" : "failed", question });
-  }
+  draftQuestion = String(question).trim().slice(0, 500);
+  lastAssist = demo.answer(draftQuestion, asset.id, selectedIncident(getRoute())?.id);
+  updateRoute(persistReport({ rail: "assist", assistState: "answered", question: draftQuestion }));
 }
 
 function onAppClick(event) {
@@ -2185,6 +2058,14 @@ function onAppClick(event) {
   if (target.dataset.suggestion) { startAssist(target.dataset.suggestion); return; }
   const action = target.dataset.action;
   if (!action) return;
+  if (action === "toggle-nav") {
+    navCollapsed = !navCollapsed;
+    persistNavCollapsed();
+    applyNavCollapsed();
+    const shellEl = app.querySelector(".app-shell");
+    if (shellEl) followNavMotion(shellEl);
+    return;
+  }
   if (action === "toggle-scope") updateRoute({ scope: getRoute().params.get("scope") === "site" ? null : "site" });
   if (action === "toggle-context") {
     const now = performance.now();
@@ -2220,7 +2101,6 @@ function onAppClick(event) {
   }
   if (action === "return-rail") updateRoute({ rail: getRoute().params.get("returnRail") || "preview", evidence: null, returnRail: null, expanded: null });
   if (action === "expand-evidence") updateRoute({ expanded: getRoute().params.get("expanded") === "1" ? null : "1" });
-  if (action === "attempt-exfil") attemptExfil();
   if (action === "toggle-inspection") {
     focusRestoreId = "inspection-toggle";
     const cur = getRoute().params.get("inspection");
@@ -2400,22 +2280,15 @@ app.addEventListener("submit", event => {
   event.preventDefault();
   const text = event.target.querySelector("textarea").value.trim();
   if (!text) return;
-  if (/offline/i.test(text)) updateRoute({ assistState: "offline", question: text });
-  else if (/fail/i.test(text)) updateRoute({ assistState: "failed", question: text });
-  else startAssist(text);
+  startAssist(text);
 });
 
 function startReplay() {
   clearInterval(replayTimer);
-  if (matchMedia("(prefers-reduced-motion: reduce)").matches) {
-    if (!liveHops?.live) cursor = Math.min(9, feed.hops.length - 1);
-    render();
-    return;
-  }
   replayTimer = setInterval(() => {
-    if (liveHops?.live) return;
-    const healthyEnd = Math.min(9, feed.hops.length - 1);
-    cursor = (cursor + 1) % (healthyEnd + 1);
+    if (document.hidden) return;
+    demo.tick();
+    refreshLive();
     if (softLiveTick()) applyLiveTick();
     else render();
   }, 1000);
@@ -2442,47 +2315,20 @@ async function loadStations() {
 }
 
 async function boot() {
-  const [response, boardResponse] = await Promise.all([
-    fetch("./feed.json"),
-    fetchBoard().catch(() => null),
-  ]);
-  if (!response.ok) throw new Error(`feed.json ${response.status}`);
-  feed = await response.json();
+  const responses = await Promise.all([fetch("./feed.json"), fetch("./incidents.json")]);
+  if (responses.some(response => !response.ok)) throw new Error("Demo fixtures unavailable");
+  const [loadedFeed, seed] = await Promise.all(responses.map(response => response.json()));
+  feed = loadedFeed;
+  demo = createDemo(feed, seed);
+  refreshLive();
   prefetchTwinAssets("RPP1");
-  board = boardResponse?.ok ? await boardResponse.json() : null;
-  await refreshLive();
-  if (!liveHops?.live) {
-    try {
-      await fetch(`${apiBase()}/api/demo/seed`, { method: "POST", headers: { "content-type": "application/json" }, body: "{}" });
-      await refreshLive();
-    } catch {}
-  }
   loadStations();
-  cursor = liveHops?.latest?.hop ?? 0;
   restoreRailWidths();
+  restoreNavCollapsed();
   if (!location.hash) location.replace("#/incidents");
-  else render();
+  render();
   startReplay();
-  setInterval(async () => {
-    if (attemptState === "running") return;
-    const beforeContainment = JSON.stringify(board?.containment);
-    const delta = await refreshLive();
-    const containmentChanged = JSON.stringify(board?.containment) !== beforeContainment;
-    if (delta.incidents || delta.issues || containmentChanged) {
-      if (softLiveTick()) applyLiveTick();
-      else render();
-    } else if (delta.hops) {
-      if (softLiveTick()) applyLiveTick();
-      else render();
-    }
-  }, 1000);
 }
-
-window.addEventListener("keydown", (event) => {
-  if (!(event.altKey && (event.key === "i" || event.key === "I"))) return;
-  event.preventDefault();
-  injectFault(event.shiftKey ? "clear" : "ir", 30);
-});
 
 window.addEventListener("hashchange", render);
 window.addEventListener("message", handleTwinMessage);
@@ -2495,5 +2341,5 @@ window.addEventListener("resize", () => {
 });
 boot().catch(err => {
   parkPartLive();
-  app.innerHTML = `<main class="page"><div class="page-inner compact"><h1>Feed missing</h1><p>${esc(err.message)}</p><p class="section-note">Run scripts/build-prototype-feed.py on spark.</p></div></main>`;
+  app.innerHTML = `<main class="page"><div class="page-inner compact"><h1>Feed missing</h1><p>${esc(err.message)}</p><p class="section-note">Reload to retry loading the demo.</p></div></main>`;
 });

@@ -13,7 +13,7 @@ async function json(url) {
 }
 
 async function mount() {
-  const [spec, tape] = await Promise.all([json("/twin/scene.json"), json("/prototype/feed.json")]);
+  const [spec, tape, seed] = await Promise.all([json("/twin/scene.json"), json("/prototype/feed.json"), json("/prototype/incidents.json")]);
   const canvas = frame.querySelector("canvas");
   const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
   renderer.setPixelRatio(Math.min(devicePixelRatio, 1.5));
@@ -48,7 +48,7 @@ async function mount() {
   const camera = new THREE.OrthographicCamera(-10, 10, 10, -10, .1, 200);
   const offset = new THREE.Vector3(2, 15, 18);
   const target = center.clone();
-  let elapsed = 0, previous = 0, hops = null, board = null;
+  let elapsed = 0, previous = 0;
   function fit() {
     camera.zoom = 1;
     target.copy(center);
@@ -66,14 +66,6 @@ async function mount() {
   }).observe(frame);
   fit();
   motion.addEventListener("change", () => { elapsed = 0; fit(); });
-  async function poll() {
-    if (visible) {
-      try { [hops, board] = await Promise.all([json("/api/hops/latest"), json("/api/board")]); }
-      catch { hops = null; board = null; }
-    }
-    setTimeout(poll, 2000);
-  }
-  poll();
   let lastStatus = "";
   function render(time) {
     requestAnimationFrame(render);
@@ -89,7 +81,8 @@ async function mount() {
       camera.updateProjectionMatrix(); camera.lookAt(target);
     }
     const recorded = tape.hops[motion.matches ? 9 : Math.floor(time / 1800) % Math.min(10, tape.hops.length)];
-    const current = lineStatus(hops, board, recorded, tape.flag);
+    const current = lineStatus(null, null, recorded, null);
+    current.flagged = (seed.incidents || []).map(incident => incident.asset_id).filter(Boolean);
     const key = JSON.stringify(current);
     if (lastStatus !== key) {
       for (const { id, root } of stations) root.traverse(node => { if (node.isMesh) node.material = current.flagged.includes(id) ? red : current.running.includes(id) ? green : gray; });

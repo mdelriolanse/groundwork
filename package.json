@@ -3,9 +3,12 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "start": "/home/dell/.local/bin/node app/server.mjs",
-    "replay": "/home/dell/.local/bin/node scripts/replay-hero.mjs",
-    "index-corpus": "/home/dell/.local/bin/node scripts/index-corpus.mjs",
-    "test": "/home/dell/.local/bin/node --test tests/*.test.mjs"
+    "start": "node app/server.mjs",
+    "replay": "node scripts/replay-hero.mjs",
+    "index-corpus": "node scripts/index-corpus.mjs",
+    "test": "node --test tests/*.test.mjs",
+    "build": "node scripts/build-demo.mjs",
+    "test:demo": "node --test tests/demo.test.mjs",
+    "preview": "node scripts/serve-demo.mjs"
   }
 }

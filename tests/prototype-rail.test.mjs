@@ -60,3 +60,28 @@ test("FRONTEND-SPEC records default rail widths as user-resizable, not URL state
   assert.match(spec, /user-resizable/i);
   assert.match(spec, /localStorage/);
 });
+
+test("left navigation collapses to an icon rail and persists locally", () => {
+  assert.match(prototype, /data-action="toggle-nav"/);
+  assert.match(prototype, /groundwork-nav-collapsed/);
+  assert.match(prototype, /function applyNavCollapsed\(/);
+  assert.match(prototype, /aria-expanded/);
+  assert.match(styles, /\.app-shell\.is-nav-collapsed/);
+  assert.match(styles, /\.nav-toggle/);
+  assert.match(styles, /pointer-events:\s*none/);
+  assert.match(styles, /transition:\s*grid-template-columns 240ms ease/);
+  assert.match(styles, /\.nav-toggle \.icon \{[^}]*transition:\s*transform 240ms ease/);
+  assert.match(spec, /collapsible to 56 px/);
+  assert.match(spec, /Collapse state lives in localStorage/);
+});
+
+test("plant scope lives in header controls, not the left-nav brand", () => {
+  const brand = prototype.split("class=\"brand\"")[1].split("nav-section-label")[0];
+  assert.match(brand, /<strong>Groundwork<\/strong>/);
+  assert.doesNotMatch(brand, /feed\.cell\.name/);
+  assert.match(prototype, /function scopeLabel\(/);
+  assert.match(prototype, /data-action="toggle-scope"/);
+  assert.match(prototype, /class="header-scope"/);
+  assert.equal([...prototype.matchAll(/data-action="toggle-scope"/g)].length, 2);
+  assert.doesNotMatch(styles, /header-scope > span \{ display: none/);
+});

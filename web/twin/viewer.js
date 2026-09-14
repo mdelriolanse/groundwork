@@ -22,15 +22,7 @@ const partAsset = partMode ? (queryAsset || "RPP1") : null;
 const soloAsset = planMode ? null : (partMode ? partAsset : queryAsset);
 
 const canvas = document.getElementById("c");
-const parentOrigin = (() => {
-  try {
-    if (document.referrer) {
-      const ref = new URL(document.referrer);
-      if (ref.hostname === location.hostname) return ref.origin;
-    }
-  } catch {}
-  return location.origin;
-})();
+const parentOrigin = location.origin;
 const hud = {
   asset: document.getElementById("asset"),
   part: document.getElementById("part"),
