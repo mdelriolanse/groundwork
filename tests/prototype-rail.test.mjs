@@ -68,6 +68,8 @@ test("left navigation collapses to an icon rail and persists locally", () => {
   assert.match(styles, /\.nav-toggle \.icon \{[^}]*transition:\s*transform 240ms cubic-bezier\(\.4, 0, \.2, 1\)/);
   assert.doesNotMatch(styles, /is-nav-collapsed \.brand \{[^}]*flex-direction:\s*column/);
   assert.doesNotMatch(styles, /is-nav-collapsed \.nav-link \{[^}]*justify-content:\s*center/);
+  assert.match(styles, /is-nav-collapsed \.nav-toggle \{[^}]*top:\s*58px/);
+  assert.doesNotMatch(styles, /is-nav-collapsed \.nav-toggle \{[^}]*width:\s*56px/);
 });
 
 test("plant scope lives in header controls, not the left-nav brand", () => {
