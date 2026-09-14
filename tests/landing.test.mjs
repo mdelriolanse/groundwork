@@ -33,6 +33,18 @@ test("landing copy contract is present and pitch furniture is absent", () => {
   for (const re of FORBIDDEN) assert.doesNotMatch(html, re);
 });
 
+test("top disclosure keeps demo and sources only", () => {
+  const board = fs.readFileSync("web/prototype/app.js", "utf8");
+  const landingBar = html.match(/class="landing-disclosure"[^>]*>([\s\S]*?)<\/div>/)[1];
+  const boardBar = board.match(/class="demo-disclosure"[^>]*>([\s\S]*?)<\/div>/)[1];
+  for (const bar of [landingBar, boardBar]) {
+    assert.match(bar, /interactive demo/i);
+    assert.match(bar, /credits\.html">Sources/);
+    assert.doesNotMatch(bar, /simulated telemetry/);
+    assert.doesNotMatch(bar, /prepared answers/);
+  }
+});
+
 test("landing has no top bar and every Demo Now opens the Board", () => {
   assert.doesNotMatch(html, /<header\b[^>]*class="[^"]*\bbar\b/);
   const demos = [...html.matchAll(/<a\b[^>]*class="[^"]*\bdemo-now\b[^"]*"[^>]*>/g)].map((m) => m[0]);

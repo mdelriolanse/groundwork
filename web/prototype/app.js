@@ -1049,7 +1049,7 @@ function shell(main, route, rail) {
           <label class="header-search">${icon("search", "sm")}<span class="sr-only">Search incidents and assets</span><input data-global-search value="${esc(route.params.get("search") || "")}" placeholder="Search incidents or assets" autocomplete="off"></label>
           ${containmentBadge()}
         </header>
-        <div class="demo-disclosure">Interactive demo · simulated telemetry · prepared answers · <a href="/credits.html">Sources</a></div>
+        <div class="demo-disclosure">Interactive demo · <a href="/credits.html">Sources</a></div>
         <div class="${bodyClass}">
           ${main}
           ${rail}
