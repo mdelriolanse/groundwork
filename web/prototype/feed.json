@@ -7,7 +7,7 @@
     "window_s": 2.0,
     "flag_at": "2026-09-12T13:58:00.000-04:00",
     "flag_hop": 10,
-    "honesty": "L1 scalars from CWRU windows for RPP1. Fleet process/electrical tags are synthetic cites. No 12 kHz on the board. Only RPP1 is diagnosed."
+    "honesty": "L1 scalars from CWRU windows for RPP1 and B1\u2013B4. PP5 cites Mendeley. Fleet process tags are synthetic. Only RPP1 / PP5 may flag. No ISO zone letters."
   },
   "cell": {
     "name": "VFLab \u00b7 hinge assembly",
@@ -68,51 +68,41 @@
       "glb": "Wing_Conveyor_2_Station.glb"
     },
     {
-      "asset_id": "MTR07-CAD",
-      "role": "process",
-      "part": "1LE1003-1EB23-4JA4",
-      "name": "Siemens 1LE1003",
-      "source": "synthetic:siemens-1le1003",
-      "aliases": [],
-      "supported": false,
-      "glb": "Siemens_1LE1003_Motor.glb"
-    },
-    {
       "asset_id": "B1",
-      "role": "process",
+      "role": "condition",
       "part": "belt",
       "name": "Conveyor buffer 1",
-      "source": "synthetic:dorner-gearmotor",
+      "source": "cwru:97.mat",
       "aliases": [],
       "supported": false,
       "glb": "Conveyor_Main.glb"
     },
     {
       "asset_id": "B2",
-      "role": "process",
+      "role": "condition",
       "part": "belt",
       "name": "Conveyor buffer 2",
-      "source": "synthetic:dorner-gearmotor",
+      "source": "cwru:98.mat",
       "aliases": [],
       "supported": false,
       "glb": "Conveyor_Main.glb"
     },
     {
       "asset_id": "B3",
-      "role": "process",
+      "role": "condition",
       "part": "belt",
       "name": "Conveyor buffer 3",
-      "source": "synthetic:dorner-gearmotor",
+      "source": "cwru:99.mat",
       "aliases": [],
       "supported": false,
       "glb": "Conveyor_Main.glb"
     },
     {
       "asset_id": "B4",
-      "role": "process",
+      "role": "condition",
       "part": "belt",
       "name": "Conveyor buffer 4",
-      "source": "synthetic:dorner-gearmotor",
+      "source": "cwru:100.mat",
       "aliases": [],
       "supported": false,
       "glb": "Conveyor_Main.glb"
@@ -200,9 +190,9 @@
     {
       "asset_id": "PP5",
       "role": "process",
-      "part": "PP_Static",
+      "part": "AC motor",
       "name": "Pick & place box",
-      "source": "synthetic:vac-gripper",
+      "source": "mendeley:0Nm_BPFI_10__ch0.mat",
       "aliases": [],
       "supported": false,
       "glb": "Pick_and_Place_Station_Box.glb"
@@ -491,7 +481,21 @@
             "cycle_s": 2.0,
             "busy": 0,
             "vac_kpa": 0.0
-          }
+          },
+          "vibration": {
+            "rms": 1.352,
+            "fault": "inner_race",
+            "source": "mendeley:0Nm_BPFI_10__ch0.mat",
+            "window": "0.00..2.00",
+            "file": "0Nm_BPFI_10__ch0.mat",
+            "channel": null,
+            "engine": "mendeley-seed",
+            "rpm": 3010
+          },
+          "rms": 1.352,
+          "window": "0.00..2.00",
+          "file": "0Nm_BPFI_10__ch0.mat",
+          "fault": "inner_race"
         },
         "PPW1": {
           "part": "WC1_Static",
@@ -559,7 +563,21 @@
           "tags": {
             "belt_m_s": 0.149,
             "motor_a": 1.22
-          }
+          },
+          "vibration": {
+            "rms": 0.0732,
+            "fault": "none",
+            "source": "cwru:97.mat",
+            "window": "0.00..2.00",
+            "file": "97.mat",
+            "channel": "X097_DE_time",
+            "engine": "cwru-normal",
+            "rpm": 1797.0
+          },
+          "rms": 0.0732,
+          "window": "0.00..2.00",
+          "file": "97.mat",
+          "fault": "none"
         },
         "B2": {
           "part": "belt",
@@ -569,7 +587,21 @@
           "tags": {
             "belt_m_s": 0.149,
             "motor_a": 1.13
-          }
+          },
+          "vibration": {
+            "rms": 0.0658,
+            "fault": "none",
+            "source": "cwru:98.mat",
+            "window": "0.00..2.00",
+            "file": "98.mat",
+            "channel": "X098_DE_time",
+            "engine": "cwru-normal",
+            "rpm": 1772.0
+          },
+          "rms": 0.0658,
+          "window": "0.00..2.00",
+          "file": "98.mat",
+          "fault": "none"
         },
         "B3": {
           "part": "belt",
@@ -579,7 +611,21 @@
           "tags": {
             "belt_m_s": 0.159,
             "motor_a": 1.11
-          }
+          },
+          "vibration": {
+            "rms": 0.0645,
+            "fault": "none",
+            "source": "cwru:99.mat",
+            "window": "0.00..2.00",
+            "file": "99.mat",
+            "channel": "X099_DE_time",
+            "engine": "cwru-normal",
+            "rpm": 1750.0
+          },
+          "rms": 0.0645,
+          "window": "0.00..2.00",
+          "file": "99.mat",
+          "fault": "none"
         },
         "B4": {
           "part": "belt",
@@ -589,7 +635,21 @@
           "tags": {
             "belt_m_s": 0.148,
             "motor_a": 1.18
-          }
+          },
+          "vibration": {
+            "rms": 0.0661,
+            "fault": "none",
+            "source": "cwru:100.mat",
+            "window": "0.00..2.00",
+            "file": "100.mat",
+            "channel": "X100_DE_time",
+            "engine": "cwru-normal",
+            "rpm": 1730.0
+          },
+          "rms": 0.0661,
+          "window": "0.00..2.00",
+          "file": "100.mat",
+          "fault": "none"
         },
         "C1": {
           "part": "Cs_Camera",
@@ -601,18 +661,6 @@
             "cycle_s": 2.0,
             "busy": 1,
             "lux": 1308
-          }
-        },
-        "MTR07-CAD": {
-          "part": "1LE1003-1EB23-4JA4",
-          "source": "synthetic:siemens-1le1003",
-          "current_a": 3.05,
-          "winding_c": 89.4,
-          "rpm": 1473,
-          "tags": {
-            "current_a": 3.05,
-            "winding_c": 89.4,
-            "rpm": 1473
           }
         }
       }
@@ -839,7 +887,21 @@
             "cycle_s": 2.0,
             "busy": 0,
             "vac_kpa": 0.0
-          }
+          },
+          "vibration": {
+            "rms": 1.352,
+            "fault": "inner_race",
+            "source": "mendeley:0Nm_BPFI_10__ch0.mat",
+            "window": "0.00..2.00",
+            "file": "0Nm_BPFI_10__ch0.mat",
+            "channel": null,
+            "engine": "mendeley-seed",
+            "rpm": 3010
+          },
+          "rms": 1.352,
+          "window": "0.00..2.00",
+          "file": "0Nm_BPFI_10__ch0.mat",
+          "fault": "inner_race"
         },
         "PPW1": {
           "part": "WC1_Static",
@@ -907,7 +969,21 @@
           "tags": {
             "belt_m_s": 0.143,
             "motor_a": 1.11
-          }
+          },
+          "vibration": {
+            "rms": 0.073,
+            "fault": "none",
+            "source": "cwru:97.mat",
+            "window": "1.00..3.00",
+            "file": "97.mat",
+            "channel": "X097_DE_time",
+            "engine": "cwru-normal",
+            "rpm": 1797.0
+          },
+          "rms": 0.073,
+          "window": "1.00..3.00",
+          "file": "97.mat",
+          "fault": "none"
         },
         "B2": {
           "part": "belt",
@@ -917,7 +993,21 @@
           "tags": {
             "belt_m_s": 0.16,
             "motor_a": 1.24
-          }
+          },
+          "vibration": {
+            "rms": 0.066,
+            "fault": "none",
+            "source": "cwru:98.mat",
+            "window": "1.00..3.00",
+            "file": "98.mat",
+            "channel": "X098_DE_time",
+            "engine": "cwru-normal",
+            "rpm": 1772.0
+          },
+          "rms": 0.066,
+          "window": "1.00..3.00",
+          "file": "98.mat",
+          "fault": "none"
         },
         "B3": {
           "part": "belt",
@@ -927,7 +1017,21 @@
           "tags": {
             "belt_m_s": 0.162,
             "motor_a": 1.16
-          }
+          },
+          "vibration": {
+            "rms": 0.0642,
+            "fault": "none",
+            "source": "cwru:99.mat",
+            "window": "1.00..3.00",
+            "file": "99.mat",
+            "channel": "X099_DE_time",
+            "engine": "cwru-normal",
+            "rpm": 1750.0
+          },
+          "rms": 0.0642,
+          "window": "1.00..3.00",
+          "file": "99.mat",
+          "fault": "none"
         },
         "B4": {
           "part": "belt",
@@ -937,7 +1041,21 @@
           "tags": {
             "belt_m_s": 0.142,
             "motor_a": 1.22
-          }
+          },
+          "vibration": {
+            "rms": 0.0656,
+            "fault": "none",
+            "source": "cwru:100.mat",
+            "window": "1.00..3.00",
+            "file": "100.mat",
+            "channel": "X100_DE_time",
+            "engine": "cwru-normal",
+            "rpm": 1730.0
+          },
+          "rms": 0.0656,
+          "window": "1.00..3.00",
+          "file": "100.mat",
+          "fault": "none"
         },
         "C1": {
           "part": "Cs_Camera",
@@ -949,18 +1067,6 @@
             "cycle_s": 2.0,
             "busy": 1,
             "lux": 1040
-          }
-        },
-        "MTR07-CAD": {
-          "part": "1LE1003-1EB23-4JA4",
-          "source": "synthetic:siemens-1le1003",
-          "current_a": 3.01,
-          "winding_c": 71.8,
-          "rpm": 1421,
-          "tags": {
-            "current_a": 3.01,
-            "winding_c": 71.8,
-            "rpm": 1421
           }
         }
       }
@@ -1187,7 +1293,21 @@
             "cycle_s": 2.0,
             "busy": 1,
             "vac_kpa": 73.6
-          }
+          },
+          "vibration": {
+            "rms": 1.352,
+            "fault": "inner_race",
+            "source": "mendeley:0Nm_BPFI_10__ch0.mat",
+            "window": "0.00..2.00",
+            "file": "0Nm_BPFI_10__ch0.mat",
+            "channel": null,
+            "engine": "mendeley-seed",
+            "rpm": 3010
+          },
+          "rms": 1.352,
+          "window": "0.00..2.00",
+          "file": "0Nm_BPFI_10__ch0.mat",
+          "fault": "inner_race"
         },
         "PPW1": {
           "part": "WC1_Static",
@@ -1255,7 +1375,21 @@
           "tags": {
             "belt_m_s": 0.152,
             "motor_a": 1.23
-          }
+          },
+          "vibration": {
+            "rms": 0.074,
+            "fault": "none",
+            "source": "cwru:97.mat",
+            "window": "2.00..4.00",
+            "file": "97.mat",
+            "channel": "X097_DE_time",
+            "engine": "cwru-normal",
+            "rpm": 1797.0
+          },
+          "rms": 0.074,
+          "window": "2.00..4.00",
+          "file": "97.mat",
+          "fault": "none"
         },
         "B2": {
           "part": "belt",
@@ -1265,7 +1399,21 @@
           "tags": {
             "belt_m_s": 0.145,
             "motor_a": 1.16
-          }
+          },
+          "vibration": {
+            "rms": 0.0665,
+            "fault": "none",
+            "source": "cwru:98.mat",
+            "window": "2.00..4.00",
+            "file": "98.mat",
+            "channel": "X098_DE_time",
+            "engine": "cwru-normal",
+            "rpm": 1772.0
+          },
+          "rms": 0.0665,
+          "window": "2.00..4.00",
+          "file": "98.mat",
+          "fault": "none"
         },
         "B3": {
           "part": "belt",
@@ -1275,7 +1423,21 @@
           "tags": {
             "belt_m_s": 0.156,
             "motor_a": 1.15
-          }
+          },
+          "vibration": {
+            "rms": 0.0643,
+            "fault": "none",
+            "source": "cwru:99.mat",
+            "window": "2.00..4.00",
+            "file": "99.mat",
+            "channel": "X099_DE_time",
+            "engine": "cwru-normal",
+            "rpm": 1750.0
+          },
+          "rms": 0.0643,
+          "window": "2.00..4.00",
+          "file": "99.mat",
+          "fault": "none"
         },
         "B4": {
           "part": "belt",
@@ -1285,7 +1447,21 @@
           "tags": {
             "belt_m_s": 0.154,
             "motor_a": 1.1
-          }
+          },
+          "vibration": {
+            "rms": 0.0654,
+            "fault": "none",
+            "source": "cwru:100.mat",
+            "window": "2.00..4.00",
+            "file": "100.mat",
+            "channel": "X100_DE_time",
+            "engine": "cwru-normal",
+            "rpm": 1730.0
+          },
+          "rms": 0.0654,
+          "window": "2.00..4.00",
+          "file": "100.mat",
+          "fault": "none"
         },
         "C1": {
           "part": "Cs_Camera",
@@ -1297,18 +1473,6 @@
             "cycle_s": 2.0,
             "busy": 0,
             "lux": 905
-          }
-        },
-        "MTR07-CAD": {
-          "part": "1LE1003-1EB23-4JA4",
-          "source": "synthetic:siemens-1le1003",
-          "current_a": 3.1,
-          "winding_c": 88.6,
-          "rpm": 1452,
-          "tags": {
-            "current_a": 3.1,
-            "winding_c": 88.6,
-            "rpm": 1452
           }
         }
       }
@@ -1535,7 +1699,21 @@
             "cycle_s": 2.0,
             "busy": 1,
             "vac_kpa": 75.5
-          }
+          },
+          "vibration": {
+            "rms": 1.352,
+            "fault": "inner_race",
+            "source": "mendeley:0Nm_BPFI_10__ch0.mat",
+            "window": "0.00..2.00",
+            "file": "0Nm_BPFI_10__ch0.mat",
+            "channel": null,
+            "engine": "mendeley-seed",
+            "rpm": 3010
+          },
+          "rms": 1.352,
+          "window": "0.00..2.00",
+          "file": "0Nm_BPFI_10__ch0.mat",
+          "fault": "inner_race"
         },
         "PPW1": {
           "part": "WC1_Static",
@@ -1603,7 +1781,21 @@
           "tags": {
             "belt_m_s": 0.156,
             "motor_a": 1.12
-          }
+          },
+          "vibration": {
+            "rms": 0.0747,
+            "fault": "none",
+            "source": "cwru:97.mat",
+            "window": "3.00..5.00",
+            "file": "97.mat",
+            "channel": "X097_DE_time",
+            "engine": "cwru-normal",
+            "rpm": 1797.0
+          },
+          "rms": 0.0747,
+          "window": "3.00..5.00",
+          "file": "97.mat",
+          "fault": "none"
         },
         "B2": {
           "part": "belt",
@@ -1613,7 +1805,21 @@
           "tags": {
             "belt_m_s": 0.15,
             "motor_a": 1.22
-          }
+          },
+          "vibration": {
+            "rms": 0.0669,
+            "fault": "none",
+            "source": "cwru:98.mat",
+            "window": "3.00..5.00",
+            "file": "98.mat",
+            "channel": "X098_DE_time",
+            "engine": "cwru-normal",
+            "rpm": 1772.0
+          },
+          "rms": 0.0669,
+          "window": "3.00..5.00",
+          "file": "98.mat",
+          "fault": "none"
         },
         "B3": {
           "part": "belt",
@@ -1623,7 +1829,21 @@
           "tags": {
             "belt_m_s": 0.152,
             "motor_a": 1.15
-          }
+          },
+          "vibration": {
+            "rms": 0.0644,
+            "fault": "none",
+            "source": "cwru:99.mat",
+            "window": "3.00..5.00",
+            "file": "99.mat",
+            "channel": "X099_DE_time",
+            "engine": "cwru-normal",
+            "rpm": 1750.0
+          },
+          "rms": 0.0644,
+          "window": "3.00..5.00",
+          "file": "99.mat",
+          "fault": "none"
         },
         "B4": {
           "part": "belt",
@@ -1633,7 +1853,21 @@
           "tags": {
             "belt_m_s": 0.142,
             "motor_a": 1.13
-          }
+          },
+          "vibration": {
+            "rms": 0.0655,
+            "fault": "none",
+            "source": "cwru:100.mat",
+            "window": "3.00..5.00",
+            "file": "100.mat",
+            "channel": "X100_DE_time",
+            "engine": "cwru-normal",
+            "rpm": 1730.0
+          },
+          "rms": 0.0655,
+          "window": "3.00..5.00",
+          "file": "100.mat",
+          "fault": "none"
         },
         "C1": {
           "part": "Cs_Camera",
@@ -1645,18 +1879,6 @@
             "cycle_s": 2.0,
             "busy": 0,
             "lux": 907
-          }
-        },
-        "MTR07-CAD": {
-          "part": "1LE1003-1EB23-4JA4",
-          "source": "synthetic:siemens-1le1003",
-          "current_a": 2.92,
-          "winding_c": 72.5,
-          "rpm": 1443,
-          "tags": {
-            "current_a": 2.92,
-            "winding_c": 72.5,
-            "rpm": 1443
           }
         }
       }
@@ -1883,7 +2105,21 @@
             "cycle_s": 2.0,
             "busy": 0,
             "vac_kpa": 0.0
-          }
+          },
+          "vibration": {
+            "rms": 1.352,
+            "fault": "inner_race",
+            "source": "mendeley:0Nm_BPFI_10__ch0.mat",
+            "window": "0.00..2.00",
+            "file": "0Nm_BPFI_10__ch0.mat",
+            "channel": null,
+            "engine": "mendeley-seed",
+            "rpm": 3010
+          },
+          "rms": 1.352,
+          "window": "0.00..2.00",
+          "file": "0Nm_BPFI_10__ch0.mat",
+          "fault": "inner_race"
         },
         "PPW1": {
           "part": "WC1_Static",
@@ -1951,7 +2187,21 @@
           "tags": {
             "belt_m_s": 0.146,
             "motor_a": 1.24
-          }
+          },
+          "vibration": {
+            "rms": 0.0729,
+            "fault": "none",
+            "source": "cwru:97.mat",
+            "window": "0.92..2.92",
+            "file": "97.mat",
+            "channel": "X097_DE_time",
+            "engine": "cwru-normal",
+            "rpm": 1797.0
+          },
+          "rms": 0.0729,
+          "window": "0.92..2.92",
+          "file": "97.mat",
+          "fault": "none"
         },
         "B2": {
           "part": "belt",
@@ -1961,7 +2211,21 @@
           "tags": {
             "belt_m_s": 0.155,
             "motor_a": 1.17
-          }
+          },
+          "vibration": {
+            "rms": 0.0666,
+            "fault": "none",
+            "source": "cwru:98.mat",
+            "window": "4.00..6.00",
+            "file": "98.mat",
+            "channel": "X098_DE_time",
+            "engine": "cwru-normal",
+            "rpm": 1772.0
+          },
+          "rms": 0.0666,
+          "window": "4.00..6.00",
+          "file": "98.mat",
+          "fault": "none"
         },
         "B3": {
           "part": "belt",
@@ -1971,7 +2235,21 @@
           "tags": {
             "belt_m_s": 0.154,
             "motor_a": 1.13
-          }
+          },
+          "vibration": {
+            "rms": 0.0643,
+            "fault": "none",
+            "source": "cwru:99.mat",
+            "window": "4.00..6.00",
+            "file": "99.mat",
+            "channel": "X099_DE_time",
+            "engine": "cwru-normal",
+            "rpm": 1750.0
+          },
+          "rms": 0.0643,
+          "window": "4.00..6.00",
+          "file": "99.mat",
+          "fault": "none"
         },
         "B4": {
           "part": "belt",
@@ -1981,7 +2259,21 @@
           "tags": {
             "belt_m_s": 0.148,
             "motor_a": 1.26
-          }
+          },
+          "vibration": {
+            "rms": 0.0658,
+            "fault": "none",
+            "source": "cwru:100.mat",
+            "window": "4.00..6.00",
+            "file": "100.mat",
+            "channel": "X100_DE_time",
+            "engine": "cwru-normal",
+            "rpm": 1730.0
+          },
+          "rms": 0.0658,
+          "window": "4.00..6.00",
+          "file": "100.mat",
+          "fault": "none"
         },
         "C1": {
           "part": "Cs_Camera",
@@ -1993,18 +2285,6 @@
             "cycle_s": 2.0,
             "busy": 0,
             "lux": 904
-          }
-        },
-        "MTR07-CAD": {
-          "part": "1LE1003-1EB23-4JA4",
-          "source": "synthetic:siemens-1le1003",
-          "current_a": 2.86,
-          "winding_c": 74.9,
-          "rpm": 1449,
-          "tags": {
-            "current_a": 2.86,
-            "winding_c": 74.9,
-            "rpm": 1449
           }
         }
       }
@@ -2231,7 +2511,21 @@
             "cycle_s": 2.0,
             "busy": 0,
             "vac_kpa": 0.0
-          }
+          },
+          "vibration": {
+            "rms": 1.352,
+            "fault": "inner_race",
+            "source": "mendeley:0Nm_BPFI_10__ch0.mat",
+            "window": "0.00..2.00",
+            "file": "0Nm_BPFI_10__ch0.mat",
+            "channel": null,
+            "engine": "mendeley-seed",
+            "rpm": 3010
+          },
+          "rms": 1.352,
+          "window": "0.00..2.00",
+          "file": "0Nm_BPFI_10__ch0.mat",
+          "fault": "inner_race"
         },
         "PPW1": {
           "part": "WC1_Static",
@@ -2299,7 +2593,21 @@
           "tags": {
             "belt_m_s": 0.159,
             "motor_a": 1.25
-          }
+          },
+          "vibration": {
+            "rms": 0.074,
+            "fault": "none",
+            "source": "cwru:97.mat",
+            "window": "1.92..3.92",
+            "file": "97.mat",
+            "channel": "X097_DE_time",
+            "engine": "cwru-normal",
+            "rpm": 1797.0
+          },
+          "rms": 0.074,
+          "window": "1.92..3.92",
+          "file": "97.mat",
+          "fault": "none"
         },
         "B2": {
           "part": "belt",
@@ -2309,7 +2617,21 @@
           "tags": {
             "belt_m_s": 0.149,
             "motor_a": 1.2
-          }
+          },
+          "vibration": {
+            "rms": 0.0662,
+            "fault": "none",
+            "source": "cwru:98.mat",
+            "window": "5.00..7.00",
+            "file": "98.mat",
+            "channel": "X098_DE_time",
+            "engine": "cwru-normal",
+            "rpm": 1772.0
+          },
+          "rms": 0.0662,
+          "window": "5.00..7.00",
+          "file": "98.mat",
+          "fault": "none"
         },
         "B3": {
           "part": "belt",
@@ -2319,7 +2641,21 @@
           "tags": {
             "belt_m_s": 0.15,
             "motor_a": 1.11
-          }
+          },
+          "vibration": {
+            "rms": 0.0642,
+            "fault": "none",
+            "source": "cwru:99.mat",
+            "window": "5.00..7.00",
+            "file": "99.mat",
+            "channel": "X099_DE_time",
+            "engine": "cwru-normal",
+            "rpm": 1750.0
+          },
+          "rms": 0.0642,
+          "window": "5.00..7.00",
+          "file": "99.mat",
+          "fault": "none"
         },
         "B4": {
           "part": "belt",
@@ -2329,7 +2665,21 @@
           "tags": {
             "belt_m_s": 0.149,
             "motor_a": 1.13
-          }
+          },
+          "vibration": {
+            "rms": 0.066,
+            "fault": "none",
+            "source": "cwru:100.mat",
+            "window": "5.00..7.00",
+            "file": "100.mat",
+            "channel": "X100_DE_time",
+            "engine": "cwru-normal",
+            "rpm": 1730.0
+          },
+          "rms": 0.066,
+          "window": "5.00..7.00",
+          "file": "100.mat",
+          "fault": "none"
         },
         "C1": {
           "part": "Cs_Camera",
@@ -2341,18 +2691,6 @@
             "cycle_s": 2.0,
             "busy": 0,
             "lux": 900
-          }
-        },
-        "MTR07-CAD": {
-          "part": "1LE1003-1EB23-4JA4",
-          "source": "synthetic:siemens-1le1003",
-          "current_a": 3.02,
-          "winding_c": 71.0,
-          "rpm": 1408,
-          "tags": {
-            "current_a": 3.02,
-            "winding_c": 71.0,
-            "rpm": 1408
           }
         }
       }
@@ -2579,7 +2917,21 @@
             "cycle_s": 2.0,
             "busy": 0,
             "vac_kpa": 0.0
-          }
+          },
+          "vibration": {
+            "rms": 1.352,
+            "fault": "inner_race",
+            "source": "mendeley:0Nm_BPFI_10__ch0.mat",
+            "window": "0.00..2.00",
+            "file": "0Nm_BPFI_10__ch0.mat",
+            "channel": null,
+            "engine": "mendeley-seed",
+            "rpm": 3010
+          },
+          "rms": 1.352,
+          "window": "0.00..2.00",
+          "file": "0Nm_BPFI_10__ch0.mat",
+          "fault": "inner_race"
         },
         "PPW1": {
           "part": "WC1_Static",
@@ -2647,7 +2999,21 @@
           "tags": {
             "belt_m_s": 0.144,
             "motor_a": 1.23
-          }
+          },
+          "vibration": {
+            "rms": 0.0748,
+            "fault": "none",
+            "source": "cwru:97.mat",
+            "window": "2.92..4.92",
+            "file": "97.mat",
+            "channel": "X097_DE_time",
+            "engine": "cwru-normal",
+            "rpm": 1797.0
+          },
+          "rms": 0.0748,
+          "window": "2.92..4.92",
+          "file": "97.mat",
+          "fault": "none"
         },
         "B2": {
           "part": "belt",
@@ -2657,7 +3023,21 @@
           "tags": {
             "belt_m_s": 0.154,
             "motor_a": 1.19
-          }
+          },
+          "vibration": {
+            "rms": 0.0665,
+            "fault": "none",
+            "source": "cwru:98.mat",
+            "window": "6.00..8.00",
+            "file": "98.mat",
+            "channel": "X098_DE_time",
+            "engine": "cwru-normal",
+            "rpm": 1772.0
+          },
+          "rms": 0.0665,
+          "window": "6.00..8.00",
+          "file": "98.mat",
+          "fault": "none"
         },
         "B3": {
           "part": "belt",
@@ -2667,7 +3047,21 @@
           "tags": {
             "belt_m_s": 0.14,
             "motor_a": 1.24
-          }
+          },
+          "vibration": {
+            "rms": 0.0641,
+            "fault": "none",
+            "source": "cwru:99.mat",
+            "window": "6.00..8.00",
+            "file": "99.mat",
+            "channel": "X099_DE_time",
+            "engine": "cwru-normal",
+            "rpm": 1750.0
+          },
+          "rms": 0.0641,
+          "window": "6.00..8.00",
+          "file": "99.mat",
+          "fault": "none"
         },
         "B4": {
           "part": "belt",
@@ -2677,7 +3071,21 @@
           "tags": {
             "belt_m_s": 0.152,
             "motor_a": 1.13
-          }
+          },
+          "vibration": {
+            "rms": 0.066,
+            "fault": "none",
+            "source": "cwru:100.mat",
+            "window": "6.00..8.00",
+            "file": "100.mat",
+            "channel": "X100_DE_time",
+            "engine": "cwru-normal",
+            "rpm": 1730.0
+          },
+          "rms": 0.066,
+          "window": "6.00..8.00",
+          "file": "100.mat",
+          "fault": "none"
         },
         "C1": {
           "part": "Cs_Camera",
@@ -2689,18 +3097,6 @@
             "cycle_s": 2.0,
             "busy": 1,
             "lux": 1202
-          }
-        },
-        "MTR07-CAD": {
-          "part": "1LE1003-1EB23-4JA4",
-          "source": "synthetic:siemens-1le1003",
-          "current_a": 2.98,
-          "winding_c": 81.7,
-          "rpm": 1432,
-          "tags": {
-            "current_a": 2.98,
-            "winding_c": 81.7,
-            "rpm": 1432
           }
         }
       }
@@ -2927,7 +3323,21 @@
             "cycle_s": 2.0,
             "busy": 0,
             "vac_kpa": 0.0
-          }
+          },
+          "vibration": {
+            "rms": 1.352,
+            "fault": "inner_race",
+            "source": "mendeley:0Nm_BPFI_10__ch0.mat",
+            "window": "0.00..2.00",
+            "file": "0Nm_BPFI_10__ch0.mat",
+            "channel": null,
+            "engine": "mendeley-seed",
+            "rpm": 3010
+          },
+          "rms": 1.352,
+          "window": "0.00..2.00",
+          "file": "0Nm_BPFI_10__ch0.mat",
+          "fault": "inner_race"
         },
         "PPW1": {
           "part": "WC1_Static",
@@ -2995,7 +3405,21 @@
           "tags": {
             "belt_m_s": 0.143,
             "motor_a": 1.15
-          }
+          },
+          "vibration": {
+            "rms": 0.0729,
+            "fault": "none",
+            "source": "cwru:97.mat",
+            "window": "0.84..2.84",
+            "file": "97.mat",
+            "channel": "X097_DE_time",
+            "engine": "cwru-normal",
+            "rpm": 1797.0
+          },
+          "rms": 0.0729,
+          "window": "0.84..2.84",
+          "file": "97.mat",
+          "fault": "none"
         },
         "B2": {
           "part": "belt",
@@ -3005,7 +3429,21 @@
           "tags": {
             "belt_m_s": 0.143,
             "motor_a": 1.19
-          }
+          },
+          "vibration": {
+            "rms": 0.0665,
+            "fault": "none",
+            "source": "cwru:98.mat",
+            "window": "7.00..9.00",
+            "file": "98.mat",
+            "channel": "X098_DE_time",
+            "engine": "cwru-normal",
+            "rpm": 1772.0
+          },
+          "rms": 0.0665,
+          "window": "7.00..9.00",
+          "file": "98.mat",
+          "fault": "none"
         },
         "B3": {
           "part": "belt",
@@ -3015,7 +3453,21 @@
           "tags": {
             "belt_m_s": 0.154,
             "motor_a": 1.18
-          }
+          },
+          "vibration": {
+            "rms": 0.0642,
+            "fault": "none",
+            "source": "cwru:99.mat",
+            "window": "7.00..9.00",
+            "file": "99.mat",
+            "channel": "X099_DE_time",
+            "engine": "cwru-normal",
+            "rpm": 1750.0
+          },
+          "rms": 0.0642,
+          "window": "7.00..9.00",
+          "file": "99.mat",
+          "fault": "none"
         },
         "B4": {
           "part": "belt",
@@ -3025,7 +3477,21 @@
           "tags": {
             "belt_m_s": 0.15,
             "motor_a": 1.17
-          }
+          },
+          "vibration": {
+            "rms": 0.0662,
+            "fault": "none",
+            "source": "cwru:100.mat",
+            "window": "7.00..9.00",
+            "file": "100.mat",
+            "channel": "X100_DE_time",
+            "engine": "cwru-normal",
+            "rpm": 1730.0
+          },
+          "rms": 0.0662,
+          "window": "7.00..9.00",
+          "file": "100.mat",
+          "fault": "none"
         },
         "C1": {
           "part": "Cs_Camera",
@@ -3037,18 +3503,6 @@
             "cycle_s": 2.0,
             "busy": 1,
             "lux": 1417
-          }
-        },
-        "MTR07-CAD": {
-          "part": "1LE1003-1EB23-4JA4",
-          "source": "synthetic:siemens-1le1003",
-          "current_a": 3.17,
-          "winding_c": 72.0,
-          "rpm": 1450,
-          "tags": {
-            "current_a": 3.17,
-            "winding_c": 72.0,
-            "rpm": 1450
           }
         }
       }
@@ -3275,7 +3729,21 @@
             "cycle_s": 2.0,
             "busy": 1,
             "vac_kpa": 72.9
-          }
+          },
+          "vibration": {
+            "rms": 1.352,
+            "fault": "inner_race",
+            "source": "mendeley:0Nm_BPFI_10__ch0.mat",
+            "window": "0.00..2.00",
+            "file": "0Nm_BPFI_10__ch0.mat",
+            "channel": null,
+            "engine": "mendeley-seed",
+            "rpm": 3010
+          },
+          "rms": 1.352,
+          "window": "0.00..2.00",
+          "file": "0Nm_BPFI_10__ch0.mat",
+          "fault": "inner_race"
         },
         "PPW1": {
           "part": "WC1_Static",
@@ -3343,7 +3811,21 @@
           "tags": {
             "belt_m_s": 0.144,
             "motor_a": 1.2
-          }
+          },
+          "vibration": {
+            "rms": 0.0738,
+            "fault": "none",
+            "source": "cwru:97.mat",
+            "window": "1.84..3.84",
+            "file": "97.mat",
+            "channel": "X097_DE_time",
+            "engine": "cwru-normal",
+            "rpm": 1797.0
+          },
+          "rms": 0.0738,
+          "window": "1.84..3.84",
+          "file": "97.mat",
+          "fault": "none"
         },
         "B2": {
           "part": "belt",
@@ -3353,7 +3835,21 @@
           "tags": {
             "belt_m_s": 0.158,
             "motor_a": 1.18
-          }
+          },
+          "vibration": {
+            "rms": 0.0661,
+            "fault": "none",
+            "source": "cwru:98.mat",
+            "window": "8.00..10.00",
+            "file": "98.mat",
+            "channel": "X098_DE_time",
+            "engine": "cwru-normal",
+            "rpm": 1772.0
+          },
+          "rms": 0.0661,
+          "window": "8.00..10.00",
+          "file": "98.mat",
+          "fault": "none"
         },
         "B3": {
           "part": "belt",
@@ -3363,7 +3859,21 @@
           "tags": {
             "belt_m_s": 0.16,
             "motor_a": 1.23
-          }
+          },
+          "vibration": {
+            "rms": 0.0644,
+            "fault": "none",
+            "source": "cwru:99.mat",
+            "window": "8.00..10.00",
+            "file": "99.mat",
+            "channel": "X099_DE_time",
+            "engine": "cwru-normal",
+            "rpm": 1750.0
+          },
+          "rms": 0.0644,
+          "window": "8.00..10.00",
+          "file": "99.mat",
+          "fault": "none"
         },
         "B4": {
           "part": "belt",
@@ -3373,7 +3883,21 @@
           "tags": {
             "belt_m_s": 0.156,
             "motor_a": 1.13
-          }
+          },
+          "vibration": {
+            "rms": 0.0661,
+            "fault": "none",
+            "source": "cwru:100.mat",
+            "window": "8.00..10.00",
+            "file": "100.mat",
+            "channel": "X100_DE_time",
+            "engine": "cwru-normal",
+            "rpm": 1730.0
+          },
+          "rms": 0.0661,
+          "window": "8.00..10.00",
+          "file": "100.mat",
+          "fault": "none"
         },
         "C1": {
           "part": "Cs_Camera",
@@ -3385,18 +3909,6 @@
             "cycle_s": 2.0,
             "busy": 0,
             "lux": 893
-          }
-        },
-        "MTR07-CAD": {
-          "part": "1LE1003-1EB23-4JA4",
-          "source": "synthetic:siemens-1le1003",
-          "current_a": 2.9,
-          "winding_c": 84.7,
-          "rpm": 1417,
-          "tags": {
-            "current_a": 2.9,
-            "winding_c": 84.7,
-            "rpm": 1417
           }
         }
       }
@@ -3623,7 +4135,21 @@
             "cycle_s": 2.0,
             "busy": 1,
             "vac_kpa": 74.0
-          }
+          },
+          "vibration": {
+            "rms": 1.352,
+            "fault": "inner_race",
+            "source": "mendeley:0Nm_BPFI_10__ch0.mat",
+            "window": "0.00..2.00",
+            "file": "0Nm_BPFI_10__ch0.mat",
+            "channel": null,
+            "engine": "mendeley-seed",
+            "rpm": 3010
+          },
+          "rms": 1.352,
+          "window": "0.00..2.00",
+          "file": "0Nm_BPFI_10__ch0.mat",
+          "fault": "inner_race"
         },
         "PPW1": {
           "part": "WC1_Static",
@@ -3691,7 +4217,21 @@
           "tags": {
             "belt_m_s": 0.147,
             "motor_a": 1.22
-          }
+          },
+          "vibration": {
+            "rms": 0.0749,
+            "fault": "none",
+            "source": "cwru:97.mat",
+            "window": "2.84..4.84",
+            "file": "97.mat",
+            "channel": "X097_DE_time",
+            "engine": "cwru-normal",
+            "rpm": 1797.0
+          },
+          "rms": 0.0749,
+          "window": "2.84..4.84",
+          "file": "97.mat",
+          "fault": "none"
         },
         "B2": {
           "part": "belt",
@@ -3701,7 +4241,21 @@
           "tags": {
             "belt_m_s": 0.154,
             "motor_a": 1.09
-          }
+          },
+          "vibration": {
+            "rms": 0.0661,
+            "fault": "none",
+            "source": "cwru:98.mat",
+            "window": "0.92..2.92",
+            "file": "98.mat",
+            "channel": "X098_DE_time",
+            "engine": "cwru-normal",
+            "rpm": 1772.0
+          },
+          "rms": 0.0661,
+          "window": "0.92..2.92",
+          "file": "98.mat",
+          "fault": "none"
         },
         "B3": {
           "part": "belt",
@@ -3711,7 +4265,21 @@
           "tags": {
             "belt_m_s": 0.144,
             "motor_a": 1.16
-          }
+          },
+          "vibration": {
+            "rms": 0.0642,
+            "fault": "none",
+            "source": "cwru:99.mat",
+            "window": "0.89..2.89",
+            "file": "99.mat",
+            "channel": "X099_DE_time",
+            "engine": "cwru-normal",
+            "rpm": 1750.0
+          },
+          "rms": 0.0642,
+          "window": "0.89..2.89",
+          "file": "99.mat",
+          "fault": "none"
         },
         "B4": {
           "part": "belt",
@@ -3721,7 +4289,21 @@
           "tags": {
             "belt_m_s": 0.146,
             "motor_a": 1.12
-          }
+          },
+          "vibration": {
+            "rms": 0.0658,
+            "fault": "none",
+            "source": "cwru:100.mat",
+            "window": "0.88..2.88",
+            "file": "100.mat",
+            "channel": "X100_DE_time",
+            "engine": "cwru-normal",
+            "rpm": 1730.0
+          },
+          "rms": 0.0658,
+          "window": "0.88..2.88",
+          "file": "100.mat",
+          "fault": "none"
         },
         "C1": {
           "part": "Cs_Camera",
@@ -3733,18 +4315,6 @@
             "cycle_s": 2.0,
             "busy": 0,
             "lux": 899
-          }
-        },
-        "MTR07-CAD": {
-          "part": "1LE1003-1EB23-4JA4",
-          "source": "synthetic:siemens-1le1003",
-          "current_a": 3.0,
-          "winding_c": 80.0,
-          "rpm": 1433,
-          "tags": {
-            "current_a": 3.0,
-            "winding_c": 80.0,
-            "rpm": 1433
           }
         }
       }
@@ -3971,7 +4541,21 @@
             "cycle_s": 2.0,
             "busy": 0,
             "vac_kpa": 0.0
-          }
+          },
+          "vibration": {
+            "rms": 1.352,
+            "fault": "inner_race",
+            "source": "mendeley:0Nm_BPFI_10__ch0.mat",
+            "window": "0.00..2.00",
+            "file": "0Nm_BPFI_10__ch0.mat",
+            "channel": null,
+            "engine": "mendeley-seed",
+            "rpm": 3010
+          },
+          "rms": 1.352,
+          "window": "0.00..2.00",
+          "file": "0Nm_BPFI_10__ch0.mat",
+          "fault": "inner_race"
         },
         "PPW1": {
           "part": "WC1_Static",
@@ -4039,7 +4623,21 @@
           "tags": {
             "belt_m_s": 0.155,
             "motor_a": 1.26
-          }
+          },
+          "vibration": {
+            "rms": 0.0728,
+            "fault": "none",
+            "source": "cwru:97.mat",
+            "window": "0.75..2.75",
+            "file": "97.mat",
+            "channel": "X097_DE_time",
+            "engine": "cwru-normal",
+            "rpm": 1797.0
+          },
+          "rms": 0.0728,
+          "window": "0.75..2.75",
+          "file": "97.mat",
+          "fault": "none"
         },
         "B2": {
           "part": "belt",
@@ -4049,7 +4647,21 @@
           "tags": {
             "belt_m_s": 0.151,
             "motor_a": 1.23
-          }
+          },
+          "vibration": {
+            "rms": 0.0664,
+            "fault": "none",
+            "source": "cwru:98.mat",
+            "window": "1.92..3.92",
+            "file": "98.mat",
+            "channel": "X098_DE_time",
+            "engine": "cwru-normal",
+            "rpm": 1772.0
+          },
+          "rms": 0.0664,
+          "window": "1.92..3.92",
+          "file": "98.mat",
+          "fault": "none"
         },
         "B3": {
           "part": "belt",
@@ -4059,7 +4671,21 @@
           "tags": {
             "belt_m_s": 0.163,
             "motor_a": 1.15
-          }
+          },
+          "vibration": {
+            "rms": 0.0642,
+            "fault": "none",
+            "source": "cwru:99.mat",
+            "window": "1.89..3.89",
+            "file": "99.mat",
+            "channel": "X099_DE_time",
+            "engine": "cwru-normal",
+            "rpm": 1750.0
+          },
+          "rms": 0.0642,
+          "window": "1.89..3.89",
+          "file": "99.mat",
+          "fault": "none"
         },
         "B4": {
           "part": "belt",
@@ -4069,7 +4695,21 @@
           "tags": {
             "belt_m_s": 0.151,
             "motor_a": 1.17
-          }
+          },
+          "vibration": {
+            "rms": 0.0654,
+            "fault": "none",
+            "source": "cwru:100.mat",
+            "window": "1.88..3.88",
+            "file": "100.mat",
+            "channel": "X100_DE_time",
+            "engine": "cwru-normal",
+            "rpm": 1730.0
+          },
+          "rms": 0.0654,
+          "window": "1.88..3.88",
+          "file": "100.mat",
+          "fault": "none"
         },
         "C1": {
           "part": "Cs_Camera",
@@ -4081,18 +4721,6 @@
             "cycle_s": 2.0,
             "busy": 0,
             "lux": 891
-          }
-        },
-        "MTR07-CAD": {
-          "part": "1LE1003-1EB23-4JA4",
-          "source": "synthetic:siemens-1le1003",
-          "current_a": 3.24,
-          "winding_c": 79.4,
-          "rpm": 1463,
-          "tags": {
-            "current_a": 3.24,
-            "winding_c": 79.4,
-            "rpm": 1463
           }
         }
       }
@@ -4319,7 +4947,21 @@
             "cycle_s": 2.0,
             "busy": 0,
             "vac_kpa": 0.0
-          }
+          },
+          "vibration": {
+            "rms": 1.352,
+            "fault": "inner_race",
+            "source": "mendeley:0Nm_BPFI_10__ch0.mat",
+            "window": "0.00..2.00",
+            "file": "0Nm_BPFI_10__ch0.mat",
+            "channel": null,
+            "engine": "mendeley-seed",
+            "rpm": 3010
+          },
+          "rms": 1.352,
+          "window": "0.00..2.00",
+          "file": "0Nm_BPFI_10__ch0.mat",
+          "fault": "inner_race"
         },
         "PPW1": {
           "part": "WC1_Static",
@@ -4387,7 +5029,21 @@
           "tags": {
             "belt_m_s": 0.146,
             "motor_a": 1.15
-          }
+          },
+          "vibration": {
+            "rms": 0.074,
+            "fault": "none",
+            "source": "cwru:97.mat",
+            "window": "1.75..3.75",
+            "file": "97.mat",
+            "channel": "X097_DE_time",
+            "engine": "cwru-normal",
+            "rpm": 1797.0
+          },
+          "rms": 0.074,
+          "window": "1.75..3.75",
+          "file": "97.mat",
+          "fault": "none"
         },
         "B2": {
           "part": "belt",
@@ -4397,7 +5053,21 @@
           "tags": {
             "belt_m_s": 0.16,
             "motor_a": 1.25
-          }
+          },
+          "vibration": {
+            "rms": 0.0669,
+            "fault": "none",
+            "source": "cwru:98.mat",
+            "window": "2.92..4.92",
+            "file": "98.mat",
+            "channel": "X098_DE_time",
+            "engine": "cwru-normal",
+            "rpm": 1772.0
+          },
+          "rms": 0.0669,
+          "window": "2.92..4.92",
+          "file": "98.mat",
+          "fault": "none"
         },
         "B3": {
           "part": "belt",
@@ -4407,7 +5077,21 @@
           "tags": {
             "belt_m_s": 0.162,
             "motor_a": 1.2
-          }
+          },
+          "vibration": {
+            "rms": 0.0643,
+            "fault": "none",
+            "source": "cwru:99.mat",
+            "window": "2.89..4.89",
+            "file": "99.mat",
+            "channel": "X099_DE_time",
+            "engine": "cwru-normal",
+            "rpm": 1750.0
+          },
+          "rms": 0.0643,
+          "window": "2.89..4.89",
+          "file": "99.mat",
+          "fault": "none"
         },
         "B4": {
           "part": "belt",
@@ -4417,7 +5101,21 @@
           "tags": {
             "belt_m_s": 0.156,
             "motor_a": 1.23
-          }
+          },
+          "vibration": {
+            "rms": 0.0654,
+            "fault": "none",
+            "source": "cwru:100.mat",
+            "window": "2.88..4.88",
+            "file": "100.mat",
+            "channel": "X100_DE_time",
+            "engine": "cwru-normal",
+            "rpm": 1730.0
+          },
+          "rms": 0.0654,
+          "window": "2.88..4.88",
+          "file": "100.mat",
+          "fault": "none"
         },
         "C1": {
           "part": "Cs_Camera",
@@ -4429,18 +5127,6 @@
             "cycle_s": 2.0,
             "busy": 0,
             "lux": 903
-          }
-        },
-        "MTR07-CAD": {
-          "part": "1LE1003-1EB23-4JA4",
-          "source": "synthetic:siemens-1le1003",
-          "current_a": 3.0,
-          "winding_c": 74.3,
-          "rpm": 1483,
-          "tags": {
-            "current_a": 3.0,
-            "winding_c": 74.3,
-            "rpm": 1483
           }
         }
       }
@@ -4667,7 +5353,21 @@
             "cycle_s": 2.0,
             "busy": 0,
             "vac_kpa": 0.0
-          }
+          },
+          "vibration": {
+            "rms": 1.352,
+            "fault": "inner_race",
+            "source": "mendeley:0Nm_BPFI_10__ch0.mat",
+            "window": "0.00..2.00",
+            "file": "0Nm_BPFI_10__ch0.mat",
+            "channel": null,
+            "engine": "mendeley-seed",
+            "rpm": 3010
+          },
+          "rms": 1.352,
+          "window": "0.00..2.00",
+          "file": "0Nm_BPFI_10__ch0.mat",
+          "fault": "inner_race"
         },
         "PPW1": {
           "part": "WC1_Static",
@@ -4735,7 +5435,21 @@
           "tags": {
             "belt_m_s": 0.149,
             "motor_a": 1.3
-          }
+          },
+          "vibration": {
+            "rms": 0.0749,
+            "fault": "none",
+            "source": "cwru:97.mat",
+            "window": "2.75..4.75",
+            "file": "97.mat",
+            "channel": "X097_DE_time",
+            "engine": "cwru-normal",
+            "rpm": 1797.0
+          },
+          "rms": 0.0749,
+          "window": "2.75..4.75",
+          "file": "97.mat",
+          "fault": "none"
         },
         "B2": {
           "part": "belt",
@@ -4745,7 +5459,21 @@
           "tags": {
             "belt_m_s": 0.153,
             "motor_a": 1.18
-          }
+          },
+          "vibration": {
+            "rms": 0.0667,
+            "fault": "none",
+            "source": "cwru:98.mat",
+            "window": "3.92..5.92",
+            "file": "98.mat",
+            "channel": "X098_DE_time",
+            "engine": "cwru-normal",
+            "rpm": 1772.0
+          },
+          "rms": 0.0667,
+          "window": "3.92..5.92",
+          "file": "98.mat",
+          "fault": "none"
         },
         "B3": {
           "part": "belt",
@@ -4755,7 +5483,21 @@
           "tags": {
             "belt_m_s": 0.161,
             "motor_a": 1.29
-          }
+          },
+          "vibration": {
+            "rms": 0.0645,
+            "fault": "none",
+            "source": "cwru:99.mat",
+            "window": "3.89..5.89",
+            "file": "99.mat",
+            "channel": "X099_DE_time",
+            "engine": "cwru-normal",
+            "rpm": 1750.0
+          },
+          "rms": 0.0645,
+          "window": "3.89..5.89",
+          "file": "99.mat",
+          "fault": "none"
         },
         "B4": {
           "part": "belt",
@@ -4765,7 +5507,21 @@
           "tags": {
             "belt_m_s": 0.152,
             "motor_a": 1.25
-          }
+          },
+          "vibration": {
+            "rms": 0.0658,
+            "fault": "none",
+            "source": "cwru:100.mat",
+            "window": "3.88..5.88",
+            "file": "100.mat",
+            "channel": "X100_DE_time",
+            "engine": "cwru-normal",
+            "rpm": 1730.0
+          },
+          "rms": 0.0658,
+          "window": "3.88..5.88",
+          "file": "100.mat",
+          "fault": "none"
         },
         "C1": {
           "part": "Cs_Camera",
@@ -4777,18 +5533,6 @@
             "cycle_s": 2.0,
             "busy": 1,
             "lux": 1098
-          }
-        },
-        "MTR07-CAD": {
-          "part": "1LE1003-1EB23-4JA4",
-          "source": "synthetic:siemens-1le1003",
-          "current_a": 3.11,
-          "winding_c": 90.8,
-          "rpm": 1505,
-          "tags": {
-            "current_a": 3.11,
-            "winding_c": 90.8,
-            "rpm": 1505
           }
         }
       }
@@ -5015,7 +5759,21 @@
             "cycle_s": 2.0,
             "busy": 0,
             "vac_kpa": 0.0
-          }
+          },
+          "vibration": {
+            "rms": 1.352,
+            "fault": "inner_race",
+            "source": "mendeley:0Nm_BPFI_10__ch0.mat",
+            "window": "0.00..2.00",
+            "file": "0Nm_BPFI_10__ch0.mat",
+            "channel": null,
+            "engine": "mendeley-seed",
+            "rpm": 3010
+          },
+          "rms": 1.352,
+          "window": "0.00..2.00",
+          "file": "0Nm_BPFI_10__ch0.mat",
+          "fault": "inner_race"
         },
         "PPW1": {
           "part": "WC1_Static",
@@ -5083,7 +5841,21 @@
           "tags": {
             "belt_m_s": 0.151,
             "motor_a": 1.15
-          }
+          },
+          "vibration": {
+            "rms": 0.0727,
+            "fault": "none",
+            "source": "cwru:97.mat",
+            "window": "0.67..2.67",
+            "file": "97.mat",
+            "channel": "X097_DE_time",
+            "engine": "cwru-normal",
+            "rpm": 1797.0
+          },
+          "rms": 0.0727,
+          "window": "0.67..2.67",
+          "file": "97.mat",
+          "fault": "none"
         },
         "B2": {
           "part": "belt",
@@ -5093,7 +5865,21 @@
           "tags": {
             "belt_m_s": 0.154,
             "motor_a": 1.13
-          }
+          },
+          "vibration": {
+            "rms": 0.0661,
+            "fault": "none",
+            "source": "cwru:98.mat",
+            "window": "4.92..6.92",
+            "file": "98.mat",
+            "channel": "X098_DE_time",
+            "engine": "cwru-normal",
+            "rpm": 1772.0
+          },
+          "rms": 0.0661,
+          "window": "4.92..6.92",
+          "file": "98.mat",
+          "fault": "none"
         },
         "B3": {
           "part": "belt",
@@ -5103,7 +5889,21 @@
           "tags": {
             "belt_m_s": 0.152,
             "motor_a": 1.15
-          }
+          },
+          "vibration": {
+            "rms": 0.0643,
+            "fault": "none",
+            "source": "cwru:99.mat",
+            "window": "4.89..6.89",
+            "file": "99.mat",
+            "channel": "X099_DE_time",
+            "engine": "cwru-normal",
+            "rpm": 1750.0
+          },
+          "rms": 0.0643,
+          "window": "4.89..6.89",
+          "file": "99.mat",
+          "fault": "none"
         },
         "B4": {
           "part": "belt",
@@ -5113,7 +5913,21 @@
           "tags": {
             "belt_m_s": 0.158,
             "motor_a": 1.25
-          }
+          },
+          "vibration": {
+            "rms": 0.066,
+            "fault": "none",
+            "source": "cwru:100.mat",
+            "window": "4.88..6.88",
+            "file": "100.mat",
+            "channel": "X100_DE_time",
+            "engine": "cwru-normal",
+            "rpm": 1730.0
+          },
+          "rms": 0.066,
+          "window": "4.88..6.88",
+          "file": "100.mat",
+          "fault": "none"
         },
         "C1": {
           "part": "Cs_Camera",
@@ -5125,18 +5939,6 @@
             "cycle_s": 2.0,
             "busy": 1,
             "lux": 1321
-          }
-        },
-        "MTR07-CAD": {
-          "part": "1LE1003-1EB23-4JA4",
-          "source": "synthetic:siemens-1le1003",
-          "current_a": 3.09,
-          "winding_c": 88.1,
-          "rpm": 1465,
-          "tags": {
-            "current_a": 3.09,
-            "winding_c": 88.1,
-            "rpm": 1465
           }
         }
       }
@@ -5363,7 +6165,21 @@
             "cycle_s": 2.0,
             "busy": 1,
             "vac_kpa": 76.7
-          }
+          },
+          "vibration": {
+            "rms": 1.352,
+            "fault": "inner_race",
+            "source": "mendeley:0Nm_BPFI_10__ch0.mat",
+            "window": "0.00..2.00",
+            "file": "0Nm_BPFI_10__ch0.mat",
+            "channel": null,
+            "engine": "mendeley-seed",
+            "rpm": 3010
+          },
+          "rms": 1.352,
+          "window": "0.00..2.00",
+          "file": "0Nm_BPFI_10__ch0.mat",
+          "fault": "inner_race"
         },
         "PPW1": {
           "part": "WC1_Static",
@@ -5431,7 +6247,21 @@
           "tags": {
             "belt_m_s": 0.149,
             "motor_a": 1.16
-          }
+          },
+          "vibration": {
+            "rms": 0.0739,
+            "fault": "none",
+            "source": "cwru:97.mat",
+            "window": "1.67..3.67",
+            "file": "97.mat",
+            "channel": "X097_DE_time",
+            "engine": "cwru-normal",
+            "rpm": 1797.0
+          },
+          "rms": 0.0739,
+          "window": "1.67..3.67",
+          "file": "97.mat",
+          "fault": "none"
         },
         "B2": {
           "part": "belt",
@@ -5441,7 +6271,21 @@
           "tags": {
             "belt_m_s": 0.159,
             "motor_a": 1.18
-          }
+          },
+          "vibration": {
+            "rms": 0.0665,
+            "fault": "none",
+            "source": "cwru:98.mat",
+            "window": "5.92..7.92",
+            "file": "98.mat",
+            "channel": "X098_DE_time",
+            "engine": "cwru-normal",
+            "rpm": 1772.0
+          },
+          "rms": 0.0665,
+          "window": "5.92..7.92",
+          "file": "98.mat",
+          "fault": "none"
         },
         "B3": {
           "part": "belt",
@@ -5451,7 +6295,21 @@
           "tags": {
             "belt_m_s": 0.156,
             "motor_a": 1.26
-          }
+          },
+          "vibration": {
+            "rms": 0.0642,
+            "fault": "none",
+            "source": "cwru:99.mat",
+            "window": "5.89..7.89",
+            "file": "99.mat",
+            "channel": "X099_DE_time",
+            "engine": "cwru-normal",
+            "rpm": 1750.0
+          },
+          "rms": 0.0642,
+          "window": "5.89..7.89",
+          "file": "99.mat",
+          "fault": "none"
         },
         "B4": {
           "part": "belt",
@@ -5461,7 +6319,21 @@
           "tags": {
             "belt_m_s": 0.155,
             "motor_a": 1.27
-          }
+          },
+          "vibration": {
+            "rms": 0.066,
+            "fault": "none",
+            "source": "cwru:100.mat",
+            "window": "5.88..7.88",
+            "file": "100.mat",
+            "channel": "X100_DE_time",
+            "engine": "cwru-normal",
+            "rpm": 1730.0
+          },
+          "rms": 0.066,
+          "window": "5.88..7.88",
+          "file": "100.mat",
+          "fault": "none"
         },
         "C1": {
           "part": "Cs_Camera",
@@ -5473,18 +6345,6 @@
             "cycle_s": 2.0,
             "busy": 0,
             "lux": 914
-          }
-        },
-        "MTR07-CAD": {
-          "part": "1LE1003-1EB23-4JA4",
-          "source": "synthetic:siemens-1le1003",
-          "current_a": 3.1,
-          "winding_c": 85.4,
-          "rpm": 1512,
-          "tags": {
-            "current_a": 3.1,
-            "winding_c": 85.4,
-            "rpm": 1512
           }
         }
       }
@@ -5711,7 +6571,21 @@
             "cycle_s": 2.0,
             "busy": 1,
             "vac_kpa": 74.4
-          }
+          },
+          "vibration": {
+            "rms": 1.352,
+            "fault": "inner_race",
+            "source": "mendeley:0Nm_BPFI_10__ch0.mat",
+            "window": "0.00..2.00",
+            "file": "0Nm_BPFI_10__ch0.mat",
+            "channel": null,
+            "engine": "mendeley-seed",
+            "rpm": 3010
+          },
+          "rms": 1.352,
+          "window": "0.00..2.00",
+          "file": "0Nm_BPFI_10__ch0.mat",
+          "fault": "inner_race"
         },
         "PPW1": {
           "part": "WC1_Static",
@@ -5779,7 +6653,21 @@
           "tags": {
             "belt_m_s": 0.148,
             "motor_a": 1.19
-          }
+          },
+          "vibration": {
+            "rms": 0.0749,
+            "fault": "none",
+            "source": "cwru:97.mat",
+            "window": "2.67..4.67",
+            "file": "97.mat",
+            "channel": "X097_DE_time",
+            "engine": "cwru-normal",
+            "rpm": 1797.0
+          },
+          "rms": 0.0749,
+          "window": "2.67..4.67",
+          "file": "97.mat",
+          "fault": "none"
         },
         "B2": {
           "part": "belt",
@@ -5789,7 +6677,21 @@
           "tags": {
             "belt_m_s": 0.16,
             "motor_a": 1.16
-          }
+          },
+          "vibration": {
+            "rms": 0.0666,
+            "fault": "none",
+            "source": "cwru:98.mat",
+            "window": "6.92..8.92",
+            "file": "98.mat",
+            "channel": "X098_DE_time",
+            "engine": "cwru-normal",
+            "rpm": 1772.0
+          },
+          "rms": 0.0666,
+          "window": "6.92..8.92",
+          "file": "98.mat",
+          "fault": "none"
         },
         "B3": {
           "part": "belt",
@@ -5799,7 +6701,21 @@
           "tags": {
             "belt_m_s": 0.163,
             "motor_a": 1.19
-          }
+          },
+          "vibration": {
+            "rms": 0.0642,
+            "fault": "none",
+            "source": "cwru:99.mat",
+            "window": "6.89..8.89",
+            "file": "99.mat",
+            "channel": "X099_DE_time",
+            "engine": "cwru-normal",
+            "rpm": 1750.0
+          },
+          "rms": 0.0642,
+          "window": "6.89..8.89",
+          "file": "99.mat",
+          "fault": "none"
         },
         "B4": {
           "part": "belt",
@@ -5809,7 +6725,21 @@
           "tags": {
             "belt_m_s": 0.146,
             "motor_a": 1.21
-          }
+          },
+          "vibration": {
+            "rms": 0.0661,
+            "fault": "none",
+            "source": "cwru:100.mat",
+            "window": "6.88..8.88",
+            "file": "100.mat",
+            "channel": "X100_DE_time",
+            "engine": "cwru-normal",
+            "rpm": 1730.0
+          },
+          "rms": 0.0661,
+          "window": "6.88..8.88",
+          "file": "100.mat",
+          "fault": "none"
         },
         "C1": {
           "part": "Cs_Camera",
@@ -5821,18 +6751,6 @@
             "cycle_s": 2.0,
             "busy": 0,
             "lux": 907
-          }
-        },
-        "MTR07-CAD": {
-          "part": "1LE1003-1EB23-4JA4",
-          "source": "synthetic:siemens-1le1003",
-          "current_a": 3.21,
-          "winding_c": 85.1,
-          "rpm": 1475,
-          "tags": {
-            "current_a": 3.21,
-            "winding_c": 85.1,
-            "rpm": 1475
           }
         }
       }
@@ -6059,7 +6977,21 @@
             "cycle_s": 2.0,
             "busy": 0,
             "vac_kpa": 0.0
-          }
+          },
+          "vibration": {
+            "rms": 1.352,
+            "fault": "inner_race",
+            "source": "mendeley:0Nm_BPFI_10__ch0.mat",
+            "window": "0.00..2.00",
+            "file": "0Nm_BPFI_10__ch0.mat",
+            "channel": null,
+            "engine": "mendeley-seed",
+            "rpm": 3010
+          },
+          "rms": 1.352,
+          "window": "0.00..2.00",
+          "file": "0Nm_BPFI_10__ch0.mat",
+          "fault": "inner_race"
         },
         "PPW1": {
           "part": "WC1_Static",
@@ -6127,7 +7059,21 @@
           "tags": {
             "belt_m_s": 0.146,
             "motor_a": 1.23
-          }
+          },
+          "vibration": {
+            "rms": 0.0726,
+            "fault": "none",
+            "source": "cwru:97.mat",
+            "window": "0.59..2.59",
+            "file": "97.mat",
+            "channel": "X097_DE_time",
+            "engine": "cwru-normal",
+            "rpm": 1797.0
+          },
+          "rms": 0.0726,
+          "window": "0.59..2.59",
+          "file": "97.mat",
+          "fault": "none"
         },
         "B2": {
           "part": "belt",
@@ -6137,7 +7083,21 @@
           "tags": {
             "belt_m_s": 0.155,
             "motor_a": 1.15
-          }
+          },
+          "vibration": {
+            "rms": 0.0661,
+            "fault": "none",
+            "source": "cwru:98.mat",
+            "window": "7.92..9.92",
+            "file": "98.mat",
+            "channel": "X098_DE_time",
+            "engine": "cwru-normal",
+            "rpm": 1772.0
+          },
+          "rms": 0.0661,
+          "window": "7.92..9.92",
+          "file": "98.mat",
+          "fault": "none"
         },
         "B3": {
           "part": "belt",
@@ -6147,7 +7107,21 @@
           "tags": {
             "belt_m_s": 0.164,
             "motor_a": 1.25
-          }
+          },
+          "vibration": {
+            "rms": 0.0645,
+            "fault": "none",
+            "source": "cwru:99.mat",
+            "window": "7.89..9.89",
+            "file": "99.mat",
+            "channel": "X099_DE_time",
+            "engine": "cwru-normal",
+            "rpm": 1750.0
+          },
+          "rms": 0.0645,
+          "window": "7.89..9.89",
+          "file": "99.mat",
+          "fault": "none"
         },
         "B4": {
           "part": "belt",
@@ -6157,7 +7131,21 @@
           "tags": {
             "belt_m_s": 0.147,
             "motor_a": 1.18
-          }
+          },
+          "vibration": {
+            "rms": 0.0661,
+            "fault": "none",
+            "source": "cwru:100.mat",
+            "window": "7.88..9.88",
+            "file": "100.mat",
+            "channel": "X100_DE_time",
+            "engine": "cwru-normal",
+            "rpm": 1730.0
+          },
+          "rms": 0.0661,
+          "window": "7.88..9.88",
+          "file": "100.mat",
+          "fault": "none"
         },
         "C1": {
           "part": "Cs_Camera",
@@ -6169,18 +7157,6 @@
             "cycle_s": 2.0,
             "busy": 0,
             "lux": 882
-          }
-        },
-        "MTR07-CAD": {
-          "part": "1LE1003-1EB23-4JA4",
-          "source": "synthetic:siemens-1le1003",
-          "current_a": 3.25,
-          "winding_c": 84.7,
-          "rpm": 1491,
-          "tags": {
-            "current_a": 3.25,
-            "winding_c": 84.7,
-            "rpm": 1491
           }
         }
       }
@@ -6407,7 +7383,21 @@
             "cycle_s": 2.0,
             "busy": 0,
             "vac_kpa": 0.0
-          }
+          },
+          "vibration": {
+            "rms": 1.352,
+            "fault": "inner_race",
+            "source": "mendeley:0Nm_BPFI_10__ch0.mat",
+            "window": "0.00..2.00",
+            "file": "0Nm_BPFI_10__ch0.mat",
+            "channel": null,
+            "engine": "mendeley-seed",
+            "rpm": 3010
+          },
+          "rms": 1.352,
+          "window": "0.00..2.00",
+          "file": "0Nm_BPFI_10__ch0.mat",
+          "fault": "inner_race"
         },
         "PPW1": {
           "part": "WC1_Static",
@@ -6475,7 +7465,21 @@
           "tags": {
             "belt_m_s": 0.147,
             "motor_a": 1.19
-          }
+          },
+          "vibration": {
+            "rms": 0.0738,
+            "fault": "none",
+            "source": "cwru:97.mat",
+            "window": "1.59..3.59",
+            "file": "97.mat",
+            "channel": "X097_DE_time",
+            "engine": "cwru-normal",
+            "rpm": 1797.0
+          },
+          "rms": 0.0738,
+          "window": "1.59..3.59",
+          "file": "97.mat",
+          "fault": "none"
         },
         "B2": {
           "part": "belt",
@@ -6485,7 +7489,21 @@
           "tags": {
             "belt_m_s": 0.147,
             "motor_a": 1.18
-          }
+          },
+          "vibration": {
+            "rms": 0.0661,
+            "fault": "none",
+            "source": "cwru:98.mat",
+            "window": "0.84..2.84",
+            "file": "98.mat",
+            "channel": "X098_DE_time",
+            "engine": "cwru-normal",
+            "rpm": 1772.0
+          },
+          "rms": 0.0661,
+          "window": "0.84..2.84",
+          "file": "98.mat",
+          "fault": "none"
         },
         "B3": {
           "part": "belt",
@@ -6495,7 +7513,21 @@
           "tags": {
             "belt_m_s": 0.156,
             "motor_a": 1.18
-          }
+          },
+          "vibration": {
+            "rms": 0.0643,
+            "fault": "none",
+            "source": "cwru:99.mat",
+            "window": "0.79..2.79",
+            "file": "99.mat",
+            "channel": "X099_DE_time",
+            "engine": "cwru-normal",
+            "rpm": 1750.0
+          },
+          "rms": 0.0643,
+          "window": "0.79..2.79",
+          "file": "99.mat",
+          "fault": "none"
         },
         "B4": {
           "part": "belt",
@@ -6505,7 +7537,21 @@
           "tags": {
             "belt_m_s": 0.158,
             "motor_a": 1.24
-          }
+          },
+          "vibration": {
+            "rms": 0.0658,
+            "fault": "none",
+            "source": "cwru:100.mat",
+            "window": "0.76..2.76",
+            "file": "100.mat",
+            "channel": "X100_DE_time",
+            "engine": "cwru-normal",
+            "rpm": 1730.0
+          },
+          "rms": 0.0658,
+          "window": "0.76..2.76",
+          "file": "100.mat",
+          "fault": "none"
         },
         "C1": {
           "part": "Cs_Camera",
@@ -6517,18 +7563,6 @@
             "cycle_s": 2.0,
             "busy": 0,
             "lux": 903
-          }
-        },
-        "MTR07-CAD": {
-          "part": "1LE1003-1EB23-4JA4",
-          "source": "synthetic:siemens-1le1003",
-          "current_a": 3.14,
-          "winding_c": 80.9,
-          "rpm": 1505,
-          "tags": {
-            "current_a": 3.14,
-            "winding_c": 80.9,
-            "rpm": 1505
           }
         }
       }
@@ -6755,7 +7789,21 @@
             "cycle_s": 2.0,
             "busy": 0,
             "vac_kpa": 0.0
-          }
+          },
+          "vibration": {
+            "rms": 1.352,
+            "fault": "inner_race",
+            "source": "mendeley:0Nm_BPFI_10__ch0.mat",
+            "window": "0.00..2.00",
+            "file": "0Nm_BPFI_10__ch0.mat",
+            "channel": null,
+            "engine": "mendeley-seed",
+            "rpm": 3010
+          },
+          "rms": 1.352,
+          "window": "0.00..2.00",
+          "file": "0Nm_BPFI_10__ch0.mat",
+          "fault": "inner_race"
         },
         "PPW1": {
           "part": "WC1_Static",
@@ -6823,7 +7871,21 @@
           "tags": {
             "belt_m_s": 0.16,
             "motor_a": 1.24
-          }
+          },
+          "vibration": {
+            "rms": 0.0749,
+            "fault": "none",
+            "source": "cwru:97.mat",
+            "window": "2.59..4.59",
+            "file": "97.mat",
+            "channel": "X097_DE_time",
+            "engine": "cwru-normal",
+            "rpm": 1797.0
+          },
+          "rms": 0.0749,
+          "window": "2.59..4.59",
+          "file": "97.mat",
+          "fault": "none"
         },
         "B2": {
           "part": "belt",
@@ -6833,7 +7895,21 @@
           "tags": {
             "belt_m_s": 0.159,
             "motor_a": 1.25
-          }
+          },
+          "vibration": {
+            "rms": 0.0665,
+            "fault": "none",
+            "source": "cwru:98.mat",
+            "window": "1.84..3.84",
+            "file": "98.mat",
+            "channel": "X098_DE_time",
+            "engine": "cwru-normal",
+            "rpm": 1772.0
+          },
+          "rms": 0.0665,
+          "window": "1.84..3.84",
+          "file": "98.mat",
+          "fault": "none"
         },
         "B3": {
           "part": "belt",
@@ -6843,7 +7919,21 @@
           "tags": {
             "belt_m_s": 0.153,
             "motor_a": 1.26
-          }
+          },
+          "vibration": {
+            "rms": 0.0641,
+            "fault": "none",
+            "source": "cwru:99.mat",
+            "window": "1.79..3.79",
+            "file": "99.mat",
+            "channel": "X099_DE_time",
+            "engine": "cwru-normal",
+            "rpm": 1750.0
+          },
+          "rms": 0.0641,
+          "window": "1.79..3.79",
+          "file": "99.mat",
+          "fault": "none"
         },
         "B4": {
           "part": "belt",
@@ -6853,7 +7943,21 @@
           "tags": {
             "belt_m_s": 0.147,
             "motor_a": 1.23
-          }
+          },
+          "vibration": {
+            "rms": 0.0654,
+            "fault": "none",
+            "source": "cwru:100.mat",
+            "window": "1.76..3.76",
+            "file": "100.mat",
+            "channel": "X100_DE_time",
+            "engine": "cwru-normal",
+            "rpm": 1730.0
+          },
+          "rms": 0.0654,
+          "window": "1.76..3.76",
+          "file": "100.mat",
+          "fault": "none"
         },
         "C1": {
           "part": "Cs_Camera",
@@ -6865,18 +7969,6 @@
             "cycle_s": 2.0,
             "busy": 1,
             "lux": 924
-          }
-        },
-        "MTR07-CAD": {
-          "part": "1LE1003-1EB23-4JA4",
-          "source": "synthetic:siemens-1le1003",
-          "current_a": 3.23,
-          "winding_c": 89.8,
-          "rpm": 1487,
-          "tags": {
-            "current_a": 3.23,
-            "winding_c": 89.8,
-            "rpm": 1487
           }
         }
       }
@@ -7103,7 +8195,21 @@
             "cycle_s": 2.0,
             "busy": 0,
             "vac_kpa": 0.0
-          }
+          },
+          "vibration": {
+            "rms": 1.352,
+            "fault": "inner_race",
+            "source": "mendeley:0Nm_BPFI_10__ch0.mat",
+            "window": "0.00..2.00",
+            "file": "0Nm_BPFI_10__ch0.mat",
+            "channel": null,
+            "engine": "mendeley-seed",
+            "rpm": 3010
+          },
+          "rms": 1.352,
+          "window": "0.00..2.00",
+          "file": "0Nm_BPFI_10__ch0.mat",
+          "fault": "inner_race"
         },
         "PPW1": {
           "part": "WC1_Static",
@@ -7171,7 +8277,21 @@
           "tags": {
             "belt_m_s": 0.163,
             "motor_a": 1.19
-          }
+          },
+          "vibration": {
+            "rms": 0.0727,
+            "fault": "none",
+            "source": "cwru:97.mat",
+            "window": "0.51..2.51",
+            "file": "97.mat",
+            "channel": "X097_DE_time",
+            "engine": "cwru-normal",
+            "rpm": 1797.0
+          },
+          "rms": 0.0727,
+          "window": "0.51..2.51",
+          "file": "97.mat",
+          "fault": "none"
         },
         "B2": {
           "part": "belt",
@@ -7181,7 +8301,21 @@
           "tags": {
             "belt_m_s": 0.146,
             "motor_a": 1.2
-          }
+          },
+          "vibration": {
+            "rms": 0.0669,
+            "fault": "none",
+            "source": "cwru:98.mat",
+            "window": "2.84..4.84",
+            "file": "98.mat",
+            "channel": "X098_DE_time",
+            "engine": "cwru-normal",
+            "rpm": 1772.0
+          },
+          "rms": 0.0669,
+          "window": "2.84..4.84",
+          "file": "98.mat",
+          "fault": "none"
         },
         "B3": {
           "part": "belt",
@@ -7191,7 +8325,21 @@
           "tags": {
             "belt_m_s": 0.156,
             "motor_a": 1.24
-          }
+          },
+          "vibration": {
+            "rms": 0.0642,
+            "fault": "none",
+            "source": "cwru:99.mat",
+            "window": "2.79..4.79",
+            "file": "99.mat",
+            "channel": "X099_DE_time",
+            "engine": "cwru-normal",
+            "rpm": 1750.0
+          },
+          "rms": 0.0642,
+          "window": "2.79..4.79",
+          "file": "99.mat",
+          "fault": "none"
         },
         "B4": {
           "part": "belt",
@@ -7201,7 +8349,21 @@
           "tags": {
             "belt_m_s": 0.146,
             "motor_a": 1.16
-          }
+          },
+          "vibration": {
+            "rms": 0.0655,
+            "fault": "none",
+            "source": "cwru:100.mat",
+            "window": "2.76..4.76",
+            "file": "100.mat",
+            "channel": "X100_DE_time",
+            "engine": "cwru-normal",
+            "rpm": 1730.0
+          },
+          "rms": 0.0655,
+          "window": "2.76..4.76",
+          "file": "100.mat",
+          "fault": "none"
         },
         "C1": {
           "part": "Cs_Camera",
@@ -7213,18 +8375,6 @@
             "cycle_s": 2.0,
             "busy": 1,
             "lux": 986
-          }
-        },
-        "MTR07-CAD": {
-          "part": "1LE1003-1EB23-4JA4",
-          "source": "synthetic:siemens-1le1003",
-          "current_a": 3.19,
-          "winding_c": 77.1,
-          "rpm": 1506,
-          "tags": {
-            "current_a": 3.19,
-            "winding_c": 77.1,
-            "rpm": 1506
           }
         }
       }
@@ -7278,5 +8428,83 @@
       "parts": "6205-2RS",
       "source": "cmms:data/history/work-orders.csv"
     }
-  ]
+  ],
+  "condition": {
+    "motors": [
+      "RPP1",
+      "PP5",
+      "B1",
+      "B2",
+      "B3",
+      "B4"
+    ],
+    "flag_assets": [
+      "RPP1",
+      "PP5"
+    ],
+    "belts": [
+      "B1",
+      "B2",
+      "B3",
+      "B4"
+    ],
+    "bindings": {
+      "B1": {
+        "fault": "none",
+        "source": "cwru:97.mat",
+        "file": "97.mat",
+        "channel": "X097_DE_time",
+        "engine": "cwru-normal",
+        "window": "0.00..2.00",
+        "rms": 0.0732,
+        "rpm": 1797.0,
+        "fs_hz": 48000.0
+      },
+      "B2": {
+        "fault": "none",
+        "source": "cwru:98.mat",
+        "file": "98.mat",
+        "channel": "X098_DE_time",
+        "engine": "cwru-normal",
+        "window": "0.00..2.00",
+        "rms": 0.0658,
+        "rpm": 1772.0,
+        "fs_hz": 48000.0
+      },
+      "B3": {
+        "fault": "none",
+        "source": "cwru:99.mat",
+        "file": "99.mat",
+        "channel": "X099_DE_time",
+        "engine": "cwru-normal",
+        "window": "0.00..2.00",
+        "rms": 0.0645,
+        "rpm": 1750.0,
+        "fs_hz": 48000.0
+      },
+      "B4": {
+        "fault": "none",
+        "source": "cwru:100.mat",
+        "file": "100.mat",
+        "channel": "X100_DE_time",
+        "engine": "cwru-normal",
+        "window": "0.00..2.00",
+        "rms": 0.0661,
+        "rpm": 1730.0,
+        "fs_hz": 48000.0
+      },
+      "PP5": {
+        "fault": "inner_race",
+        "source": "mendeley:0Nm_BPFI_10__ch0.mat",
+        "file": "0Nm_BPFI_10__ch0.mat",
+        "window": "0.00..2.00",
+        "rms": 1.352,
+        "rpm": 3010,
+        "engine": "mendeley-seed"
+      }
+    },
+    "iso": "context only \u2014 all 6 << 15 kW (iso20816.py:294)",
+    "honesty": "B1\u2013B4 persist fault=none from cited CWRU normals 97\u2013100.mat. Hop loop writes RMS only. Flags stay on RPP1 / PP5. PMMCP not invoked on this host; fault=none cited as CWRU normal.",
+    "pmmcp_invoked": false
+  }
 }

@@ -28,6 +28,7 @@ test("incident preview uses the incident snapshot, not the moving hop", () => {
   }
   assert.match(incidentBranch, /const source = incident\.source/);
   assert.match(incidentBranch, /const window = incident\.window/);
+  assert.match(incidentBranch, /citationButton\("signal", "Open Signal"/);
   assert.match(incidentBranch, /incident\.rms/);
   assert.doesNotMatch(incidentBranch, /now\.rpp1/, "incident branch must not substitute current-hop measurements");
 });
@@ -52,10 +53,48 @@ test("signal citations carry incident context into the evidence viewer", () => {
   assert.match(prototype, /current-hop values are not substituted/);
 });
 
+test("opening an incident shows 3D inspection by default", () => {
+  const openIncident = prototype.split("function openIncident")[1].split("function activeModule")[0];
+  assert.match(openIncident, /hashFor\(`\/incidents\/\$\{id\}`, \{ incident: id \}\)/);
+  assert.doesNotMatch(openIncident, /inspection:\s*"off"/);
+  assert.match(prototype, /data-incident-overview/);
+});
+
+test("opening an incident or asset page closes the object preview rail", () => {
+  const openIncident = prototype.split("if (target.dataset.openIncident)")[1].split("if (target.dataset.selectAsset)")[0];
+  const openOnEnter = prototype.split("row.dataset.selectIncident && event.key === \"Enter\"")[1].split("else row.click()")[0];
+  const openAsset = prototype.split("if (target.dataset.openAsset)")[1].split("if (target.dataset.openIncident)")[0];
+  assert.doesNotMatch(openIncident, /rail:\s*"preview"/);
+  assert.doesNotMatch(openOnEnter, /rail:\s*"preview"/);
+  assert.doesNotMatch(openAsset, /rail:\s*"preview"/);
+  assert.match(prototype, /startsWith\("\/incidents\/"\) \|\| route\.path\.startsWith\("\/assets"\)/);
+  assert.match(prototype, /railMode === "preview" && !hidePreview/);
+  assert.match(prototype, /function dropFullPagePreview\(/);
+  assert.match(prototype, /rail: null \}/);
+});
+
 test("object preview actions stay pinned beneath a scrolling body", () => {
   assert.match(styles, /\.object-preview-rail\s*\{\s*grid-template-rows:\s*52px minmax\(0,\s*1fr\) auto/);
   assert.match(styles, /\.preview-actions\s*\{/);
   assert.match(styles, /\.preview-actions-secondary\s*\{/);
+});
+
+test("details toggles survive innerHTML rerenders", () => {
+  assert.match(prototype, /function snapshotDetails\(/);
+  assert.match(prototype, /function restoreDetails\(/);
+  assert.match(prototype, /data-action="toggle-context"/);
+  assert.match(prototype, /data-open-key="tree-\$\{esc\(cell\.id\)\}"/);
+  assert.match(prototype, /data-open-key="preview-details"/);
+  assert.match(prototype, /data-open-key="assist-details"/);
+  assert.match(prototype, /data-open-key="trace-fleet"/);
+  assert.match(prototype, /addEventListener\("toggle", event => \{/);
+  assert.match(prototype, /\}, true\);/);
+  assert.doesNotMatch(prototype, /let contextOpen/);
+  assert.match(prototype, /if \(persistLock\) return;/);
+  assert.match(prototype, /function renderSoon\(/);
+  assert.match(prototype, /function applyContextOpen\(/);
+  assert.match(prototype, /action === "toggle-context"/);
+  assert.match(prototype, /lastContextToggle/);
 });
 
 test("assist composer survives live rerenders and stays above the twin overlay", () => {

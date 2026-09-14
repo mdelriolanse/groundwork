@@ -6,7 +6,11 @@
   <meta name="color-scheme" content="light">
   <title>Groundwork</title>
   <link rel="icon" href="/landing/groundwork-mark.svg" type="image/svg+xml">
-  <link rel="stylesheet" href="/landing/styles.css">
+  <link rel="preload" href="/landing/fonts/instrument-serif-400.ttf" as="font" type="font/ttf" crossorigin>
+  <link rel="preload" href="/landing/fonts/geist-400.ttf" as="font" type="font/ttf" crossorigin>
+  <link rel="preload" href="/landing/fonts/geist-mono-400.ttf" as="font" type="font/ttf" crossorigin>
+  <link rel="stylesheet" href="/landing/fonts/fonts.css?v=foit1">
+  <link rel="stylesheet" href="/landing/styles.css?v=foit1">
   <script type="importmap">
   {
     "imports": {
@@ -17,41 +21,99 @@
   </script>
 </head>
 <body>
-  <header class="bar">
-    <a class="mark" href="#top"><img src="/landing/groundwork-mark.svg" alt="Groundwork" width="28" height="28"></a>
-    <a class="btn primary demo-now" href="/prototype/" aria-label="Open the Board">Demo Now</a>
-  </header>
-  <main id="top">
-    <section class="hero">
-      <p class="kicker">01</p>
-      <h1>Catches equipment failures before they happen. Proves it never left the plant.</h1>
-      <a class="btn primary demo-now" href="/prototype/" aria-label="Open the Board">Demo Now</a>
-    </section>
+  <a class="skip" href="#content">Skip to content</a>
+  <section class="hero" id="top">
+    <p class="hero-brand"><img class="hero-mark" src="/landing/groundwork-mark.svg" alt="" width="40" height="40">Groundwork</p>
+    <h1>Catches equipment failures before they happen. Proves it never left the plant.</h1>
+    <a class="btn primary demo-now" href="/prototype/#/floor" aria-label="Open the Board">Demo Now</a>
+    <a class="hero-more" href="#content" aria-label="More below">
+      <svg viewBox="0 0 24 24" width="28" height="28" aria-hidden="true"><path d="M6 9l6 6 6-6" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </a>
+  </section>
+  <main id="content">
     <section class="problem">
-      <p class="kicker">02</p>
-      <p class="lead">Sensors detect the anomaly. Then someone still has to figure it out.</p>
+      <p class="kicker">THE GAP BETWEEN DETECTION AND ACTION</p>
+      <div><h2>Sensors detect the anomaly. Then someone still has to figure it out.</h2>
+      <p class="body-copy">Which asset? Which part? What changed? Groundwork brings the floor, the signal, and the maintenance evidence into one place — so a flag has somewhere to go.</p></div>
     </section>
     <section class="how">
-      <p class="kicker">03</p>
+      <p class="kicker">FROM THE FLOOR TO THE WORK ORDER</p>
       <h2>Always on. Two layers. One cited work order.</h2>
-      <ol class="stepper">
-        <li>Screen</li>
-        <li>Flag</li>
-        <li>Draft</li>
-        <li>Verify</li>
-      </ol>
+      <ol class="stepper"><li>Screen</li><li>Flag</li><li>Draft</li><li>Verify</li></ol>
     </section>
-    <section class="concepts" aria-hidden="true">
-      <div class="concept" data-concept="PP1"></div>
-      <div class="concept" data-concept="RPP1"></div>
-      <div class="concept" data-concept="T1"></div>
+    <section class="concepts" aria-label="Inside Groundwork">
+      <article class="product-row">
+        <div class="story">
+          <p class="kicker">01 / FLOOR CONTEXT</p>
+          <h3>The whole line.<br>The exact asset.</h3>
+          <p class="body-copy">Start with the bird’s-eye view. Switch to isometric to read the line, then open an asset to inspect its condition and sensor-bound parts. The evidence stays attached as you move closer.</p>
+          <div class="concept" data-concept="PP1" aria-hidden="true"></div>
+        </div>
+        <div class="floor-preview">
+          <figure class="app-preview iso-preview">
+            <figcaption><span>GROUNDWORK / FLOOR</span></figcaption>
+            <div class="line-view"><canvas role="img" aria-label="Animated asset line: green stations are running, red stations are flagged."></canvas></div>
+            <div class="line-toolbar"><span class="line-legend"><span class="running">Running</span><span class="flagged">Flagged</span><span>Gray: idle</span></span></div>
+
+          </figure>
+          <figure class="app-preview top-preview">
+            <figcaption><span>THE SAME LINE</span><span>BIRD’S-EYE</span></figcaption>
+            <img src="/landing/images/floor-top.jpg" alt="The same Groundwork Floor in top-down view." width="1280" height="800" loading="lazy">
+          </figure>
+        </div>
+      </article>
+      <article class="product-row reverse scroll-diagnostic">
+        <div class="diagnostic-stage">
+        <div class="story">
+          <p class="kicker">02 / L1 SCREENING</p>
+          <h3>From the asset.<br>To the source of the flag.</h3>
+          <p class="body-copy">Scroll closer to the sensor-bound joint. The highlighted part and the diagnostic share the same asset, part, and evidence window.</p>
+          <div class="concept" data-concept="RPP1" aria-hidden="true"></div>
+        </div>
+        <figure class="report-preview">
+          <figcaption><span>GROUNDWORK / INTELLIGENCE</span><span>L1 REPORT</span></figcaption>
+          <div class="report-body">
+            <div class="report-heading"><span class="kicker">CONDITION FEATURES</span><span class="chip">TAPE PREVIEW</span></div>
+            <h4>Inner-race flag.</h4>
+            <p class="report-subtitle">RPP1 <span>/</span> URjoint1</p>
+            <div class="report-metrics"><div><span>RMS</span><strong>0.289 <small>g</small></strong></div><div><span>SPEED</span><strong>1,797 <small>rpm</small></strong></div></div>
+            <dl class="report-fields"><div><dt>BPFI</dt><dd class="fault-indicator">Flagged</dd></div><div><dt>Window</dt><dd>0.00..2.00 s</dd></div><div><dt>Source</dt><dd>cwru:105.mat:X105_DE_time</dd></div></dl>
+            <div class="report-note"><span class="kicker">RETAINED AT THE SOURCE</span><p>The measurement and its exact window travel together.</p></div>
+          </div>
+          <div class="preview-foot">Recorded flag · not live telemetry</div>
+        </figure>
+        </div>
+      </article>
+      <article class="product-row">
+        <div class="story">
+          <p class="kicker">03 / L2 EVIDENCE SYNTHESIS</p>
+          <h3>A repair plan.<br>With its reasoning attached.</h3>
+          <p class="body-copy">A flag wakes L2. The local model brings together the screening result, manual passages, and maintenance history to draft a work order. Review the recommended action, candidate parts, and citations before anyone acts.</p>
+          <div class="concept" data-concept="T1" aria-hidden="true"></div>
+        </div>
+        <figure class="report-preview l2-preview">
+          <figcaption><span>GROUNDWORK / WORK ORDER</span><span>L2 REPORT</span></figcaption>
+          <div class="report-body">
+            <div class="report-heading"><span class="kicker">EVIDENCE SYNTHESIS</span><span class="chip">LOCAL</span></div>
+            <h4>From finding to next action.</h4>
+            <p class="report-subtitle">Draft · human review required</p>
+            <div class="report-block"><span class="kicker">RECOMMENDED ACTION</span><p>Inspection and repair guidance, grounded in the available evidence.</p></div>
+            <dl class="report-fields"><div><dt>Incident binding</dt><dd>Asset + part + source window</dd></div><div><dt>Candidate parts</dt><dd>From the cited references</dd></div></dl>
+            <div class="citation-stack"><span class="kicker">ARTIFACT CITATIONS</span><div><span>01</span> Signal evidence <span>Window</span></div><div><span>02</span> Manual reference <span>Page</span></div><div><span>03</span> Maintenance history <span>Record</span></div></div>
+          </div>
+          <div class="preview-foot">Report structure preview · no maintenance action authorized</div>
+        </figure>
+      </article>
     </section>
     <section class="close">
-      <p class="kicker">04</p>
+      <p class="kicker">EVERY CLAIM HAS A TRAIL</p>
       <p class="lead">We didn't rebuild diagnosis. We built the proof around it.</p>
-      <a class="btn primary demo-now" href="/prototype/" aria-label="Open the Board">Demo Now</a>
+      <p class="body-copy">Inspect the evidence. Review the draft. Check the containment audit. Groundwork keeps the work inside the plant — and makes the proof inspectable.</p>
+      <a class="btn primary demo-now" href="/prototype/#/floor" aria-label="Open the Board">Demo Now</a>
     </section>
   </main>
   <script type="module" src="/landing/orbit-view.js"></script>
+  <script type="module" src="/landing/line-view.js"></script>
+  <script type="module" src="/landing/demo-now.js"></script>
 </body>
 </html>

@@ -32,11 +32,6 @@
       "url": "https://www.dornerconveyors.com/wp-content/uploads/2017/09/851-522f.pdf",
       "note": "0.19 kW 3φ ~1.2 A; light pallet belt speeds"
     },
-    "siemens-1le1003": {
-      "title": "Siemens 1LE1003-0EB4 SIMOTICS GP",
-      "url": "https://www.k-drives.eu/goods/index/id/1811",
-      "note": "1.5 kW, 1445 rpm, 3.15 A, 9.9 Nm, 6205 DE/NDE"
-    },
     "vlft-line": {
       "title": "VLFT VFLab hinge assembly line",
       "url": "https://virtualfactory.gitbook.io/vlft/use-cases/assembly-line",
@@ -161,17 +156,6 @@
         "lux": { "unit": "lx", "idle": 900, "busy_lo": 800, "busy_hi": 1500, "cite": "aoi-lux" }
       },
       "source": "synthetic:aoi-lux"
-    },
-    "siemens_motor": {
-      "part": "1LE1003-1EB23-4JA4",
-      "always_on": true,
-      "tags": {
-        "current_a": { "unit": "A", "idle": 2.8, "busy_lo": 2.9, "busy_hi": 3.15, "cite": "siemens-1le1003" },
-        "winding_c": { "unit": "C", "idle": 72, "busy_lo": 70, "busy_hi": 90, "cite": "siemens-1le1003" },
-        "rpm": { "unit": "rpm", "idle": 1440, "busy_lo": 1435, "busy_hi": 1450, "cite": "siemens-1le1003" }
-      },
-      "source": "synthetic:siemens-1le1003",
-      "note": "Electrical/thermal sidecar. Seeded outer_race binds cwru:130.mat (OR007) for demo — 1.5 kW << 15 kW ISO floor, context only."
     }
   },
   "assets": {
@@ -188,7 +172,7 @@
     "PP2": { "class": "cartesian_pp", "phase": 2, "glb": "Pick_and_Place_Station.glb", "click_nodes": ["PP2", "PP_Static", "PP_Floating_X", "PP_Floating_Y"], "name": "Pick & place 2" },
     "PP3": { "class": "cartesian_pp", "phase": 2, "glb": "Pick_and_Place_Station.glb", "click_nodes": ["PP3", "PP_Static", "PP_Floating_X", "PP_Floating_Y"], "name": "Pick & place 3" },
     "PP4": { "class": "cartesian_pp", "phase": 3, "glb": "Pick_and_Place_Station.glb", "click_nodes": ["PP4", "PP_Static", "PP_Floating_X", "PP_Floating_Y"], "name": "Pick & place 4" },
-    "PP5": { "class": "cartesian_pp", "phase": 4, "glb": "Pick_and_Place_Station_Box.glb", "click_nodes": ["PP5", "PP_Static", "PP_Floating_X", "PP_Floating_Y"], "name": "Pick & place box" },
+    "PP5": { "class": "cartesian_pp", "phase": 4, "glb": "Pick_and_Place_Station_Box.glb", "click_nodes": ["PP5", "PP_Static", "PP_Floating_X", "PP_Floating_Y", "AC motor"], "name": "Pick & place box" },
     "PPW1": { "class": "wing_pp", "phase": 0, "part": "WC1_Static", "glb": "Wing_Conveyor_1_Station.glb", "click_nodes": ["PPW1", "WC1_Static", "WC1_Floating_X", "WC1_Floating_Y"], "name": "Wing conveyor 1" },
     "PPH1": { "class": "wing_pp", "phase": 0, "part": "WC2_Static", "glb": "Wing_Conveyor_2_Station.glb", "click_nodes": ["PPH1", "WC2_Static", "WC2_Floating_X", "WC2_Floating_Y"], "name": "Wing conveyor 2" },
     "CB1": { "class": "collection_pp", "phase": 5, "glb": "Collection_Box_Station.glb", "click_nodes": ["CB1", "CB_Static", "CB_Floating_X", "CB_Floating_Y"], "name": "Collection box" },
@@ -198,8 +182,7 @@
     "B2": { "class": "conveyor", "phase": 2, "glb": "Conveyor_Main.glb", "click_nodes": ["B2", "belt"], "name": "Conveyor buffer 2" },
     "B3": { "class": "conveyor", "phase": 3, "glb": "Conveyor_Main.glb", "click_nodes": ["B3", "belt"], "name": "Conveyor buffer 3" },
     "B4": { "class": "conveyor", "phase": 4, "glb": "Conveyor_Main.glb", "click_nodes": ["B4", "belt"], "name": "Conveyor buffer 4" },
-    "C1": { "class": "inspect", "phase": 5, "glb": "Inspection_Camera_Station.glb", "click_nodes": ["C1", "Cs_Camera"], "name": "Inspection camera" },
-    "MTR07-CAD": { "class": "siemens_motor", "phase": 0, "glb": "Siemens_1LE1003_Motor.glb", "click_nodes": ["MTR07-CAD", "1LE1003-1EB23-4JA4"], "name": "Siemens 1LE1003" }
+    "C1": { "class": "inspect", "phase": 5, "glb": "Inspection_Camera_Station.glb", "click_nodes": ["C1", "Cs_Camera"], "name": "Inspection camera" }
   },
   "line": {
     "takt_s": 2.0,

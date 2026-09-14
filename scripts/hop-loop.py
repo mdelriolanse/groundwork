@@ -23,7 +23,7 @@ from pathlib import Path
 REPO = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(REPO / "scripts"))
 
-from hop_catalog import resolve_entry  # noqa: E402
+from hop_catalog import BELT_BINDINGS, resolve_entry  # noqa: E402
 
 _spec = importlib.util.spec_from_file_location("bpf", REPO / "scripts" / "build-prototype-feed.py")
 bpf = importlib.util.module_from_spec(_spec)
@@ -298,6 +298,47 @@ def one_hop(conn: sqlite3.Connection, hop_i: int, last_fault: str | None) -> str
         write_feature(conn, ASSET, "bpfo_hz", float(feat["bpfo"]["hz"]), "Hz", source, ts)
 
     assets = write_process_tags(conn, hop_i, ts) or {}
+    for belt_id, fname in BELT_BINDINGS.items():
+        try:
+            belt_entry = resolve_entry(fname)
+            belt_mat = CWRU / belt_entry["file"]
+            if not belt_mat.is_file():
+                continue
+            bt0, bt1 = advance_t0(belt_entry, hop_i)
+            belt_samples = bpf.window_samples(belt_mat, belt_entry["channel"], belt_entry["fs_hz"], bt0, bt1)
+            belt_rms = sig3(bpf.rms_of(belt_samples))
+            belt_source = f"cwru:{belt_entry['file']}"
+            belt_window = f"{bt0:.2f}..{bt1:.2f}"
+            write_feature(conn, belt_id, "rms", belt_rms, "g", belt_source, ts)
+            slot = dict(assets.get(belt_id) or {"part": "belt", "source": "synthetic:dorner-gearmotor", "tags": {}})
+            slot["rms"] = belt_rms
+            slot["fault"] = "none"
+            slot["file"] = belt_entry["file"]
+            slot["window"] = belt_window
+            slot["vibration"] = {
+                "rms": belt_rms,
+                "fault": "none",
+                "source": belt_source,
+                "window": belt_window,
+                "file": belt_entry["file"],
+                "channel": belt_entry["channel"],
+                "engine": "cwru-normal",
+                "rpm": belt_entry["rpm"],
+            }
+            assets[belt_id] = slot
+        except Exception as err:
+            print(f"belt {belt_id} rms skipped: {err}", file=sys.stderr)
+    for mendeley_id, mendeley in (
+        ("PP5", {"rms": 1.352, "fault": "inner_race", "source": "mendeley:0Nm_BPFI_10__ch0.mat", "window": "0.00..2.00", "file": "0Nm_BPFI_10__ch0.mat", "rpm": 3010}),
+    ):
+        write_feature(conn, mendeley_id, "rms", mendeley["rms"], "g", mendeley["source"], ts)
+        slot = dict(assets.get(mendeley_id) or {"part": mendeley_id, "tags": {}})
+        slot["rms"] = mendeley["rms"]
+        slot["fault"] = mendeley["fault"]
+        slot["window"] = mendeley["window"]
+        slot["file"] = mendeley["file"]
+        slot["vibration"] = {**mendeley, "engine": "mendeley-seed"}
+        assets[mendeley_id] = slot
     rpp1 = {
         "part": PART,
         "source": source,

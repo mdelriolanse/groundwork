@@ -1,4 +1,4 @@
-const ALLOWED = new Set(["/api/board", "/api/detect", "/api/incidents", "/api/hops/latest", "/api/demo/inject", "/api/questions"]);
+const ALLOWED = new Set(["/api/board", "/api/detect", "/api/incidents", "/api/hops/latest", "/api/demo/inject", "/api/demo/seed", "/api/questions"]);
 
 function sameHostPrototype({ host, origin }) {
   if (!host || !origin) return null;
@@ -33,6 +33,7 @@ export function boardCorsHeaders({ method, pathname, host, origin }) {
   if (pathname === "/api/incidents" && method === "GET") return { "Access-Control-Allow-Origin": allowedOrigin, Vary: "Origin" };
   if (pathname === "/api/hops/latest" && method === "GET") return { "Access-Control-Allow-Origin": allowedOrigin, Vary: "Origin" };
   if (pathname === "/api/demo/inject" && method === "POST") return { "Access-Control-Allow-Origin": allowedOrigin, Vary: "Origin" };
+  if (pathname === "/api/demo/seed" && method === "POST") return { "Access-Control-Allow-Origin": allowedOrigin, Vary: "Origin" };
   if (pathname === "/api/questions" && method === "POST") return { "Access-Control-Allow-Origin": allowedOrigin, Vary: "Origin" };
   return {};
 }

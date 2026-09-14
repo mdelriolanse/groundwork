@@ -11,7 +11,7 @@
   width: auto;
   height: auto;
   min-height: 44px;
-  z-index: 8;
+  z-index: 50;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -29,19 +29,15 @@
   box-shadow: var(--shadow-overlay);
 }
 .rail-trigger:hover { background: var(--primary-hover); border-color: var(--primary-hover); }
-.workspace-body.has-rail .rail-trigger { display: none; }
+.workspace-body.has-left-rail .rail-trigger { display: inline-flex; }
+.workspace-body.has-right-rail .rail-trigger { display: none; }
 .workspace-body:not(.has-rail) .page-inner { padding-right: 16px; }
 
 @media (max-width: 720px) {
   .rail-trigger { display: inline-flex; right: 12px; bottom: 12px; }
 }
 
-.filter-panel .filter-group,
-.filter-panel .filter-group:last-child,
-.filter-panel fieldset.filter-group {
-  margin: 0;
-  border: 0;
-  border-bottom: 0;
-  box-shadow: none;
-  background: transparent;
-}
+.filter-applied, .filter-check { border-radius: 0; }
+.suggestion, .assist-message, .assist-message.user, .assist-message .key-grid,
+.citation-link, .assist-state, .composer-box, .composer textarea, .composer-box .btn,
+.assist-rail .context-capsule, .assist-rail .context-trigger { border-radius: 0; }

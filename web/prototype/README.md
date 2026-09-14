@@ -1,6 +1,6 @@
 # Plant-floor operations prototype
 
-Static chrome on `:4173` (or board `:8765/prototype/`). Live numbers from hop-loop → sqlite → `/api/hops/latest` + `/api/incidents`. `feed.json` remains the offline fallback (healthy hops 0–9 loop).
+Static chrome on `:4173` (or board `:8765/prototype/`). Live numbers from the board's 1 Hz mock hop loop (catalog process tags + recorded healthy RPP1 RMS) → sqlite `latest_hop` → `/api/hops/latest` + `/api/incidents`. Real `hop-loop.py` still wins when it is posting.
 
 ## Build the feed (on GB10)
 
@@ -32,10 +32,10 @@ Replay is replaced by the always-on hop loop (`scripts/hop-loop.py`). UI shows a
 ## Required direct URLs
 
 - Inbox (empty until flag): `http://127.0.0.1:4173/#/incidents`
-- Incident after flag: `http://127.0.0.1:4173/#/incidents/INC-RPP1?incident=INC-RPP1&rail=preview`
+- Incident after flag: `http://127.0.0.1:4173/#/incidents/INC-RPP1?incident=INC-RPP1`
 - Floor, whole line (nav default): `http://127.0.0.1:4173/#/floor?rail=preview` — add `&view=top` for the top-down toggle
 - Floor RPP1 (cell framed, as from `View on floor`): `http://127.0.0.1:4173/#/floor?asset=RPP1&rail=preview`
-- Asset 360: `http://127.0.0.1:4173/#/assets/RPP1` — `?render=3d` opens the single-station grayscale render (click a part for its facts); works for any station id, e.g. `#/assets/B3?render=3d`
+- Asset 360: `http://127.0.0.1:4173/#/assets/RPP1` — 3D render is open by default (`?render=off` closes); works for any station id, e.g. `#/assets/B3`
 - Intelligence: `http://127.0.0.1:4173/#/intelligence`
 - Signal evidence: `http://127.0.0.1:4173/#/incidents/INC-RPP1?incident=INC-RPP1&rail=evidence&evidence=signal`
 
@@ -70,6 +70,6 @@ node scripts/inject-fault.mjs ir 30
 # curl -s -X POST http://127.0.0.1:8765/api/demo/inject -H 'content-type: application/json' -d '{"source":"ir","hops":30}'
 ```
 
-Seeded inbox (High OR on `MTR07-CAD`, Medium process drop on `T1`): loaded from `data/demo/seed-incidents.json` on `store.seed()`. Re-run with `node scripts/seed-demo-incidents.mjs` after clearing `demo_seeded` (script does that).
+Seeded inbox (`data/demo/seed-incidents.json` on `store.seed()`): vibration only on `PP5` AC motor; process tags on other named click-nodes. Priorities cover critical / high / medium / low. Re-run `node scripts/seed-demo-incidents.mjs` to upsert.
 
-Prototype polls `/api/incidents` + `/api/hops/latest` at 1 Hz. No auto `flag_hop`. Healthy tape hops 0–9 loop only if hop-loop is down.
+Prototype polls `/api/incidents` + `/api/hops/latest` at 1 Hz. No auto `flag_hop`. Tape hops 0–9 are the RPP1 RMS palette only — hop index does not wrap.

@@ -76,9 +76,6 @@ ts,asset_id,part,tag,value,unit,quality,source
 2026-09-12T13:57:50.000-04:00,C1,Cs_Camera,cycle_s,2.0,s,192,synthetic:aoi-lux
 2026-09-12T13:57:50.000-04:00,C1,Cs_Camera,busy,1,bool,192,synthetic:aoi-lux
 2026-09-12T13:57:50.000-04:00,C1,Cs_Camera,lux,1308,lx,192,synthetic:aoi-lux
-2026-09-12T13:57:50.000-04:00,MTR07-CAD,1LE1003-1EB23-4JA4,current_a,3.05,A,192,synthetic:siemens-1le1003
-2026-09-12T13:57:50.000-04:00,MTR07-CAD,1LE1003-1EB23-4JA4,winding_c,89.4,C,192,synthetic:siemens-1le1003
-2026-09-12T13:57:50.000-04:00,MTR07-CAD,1LE1003-1EB23-4JA4,rpm,1473,rpm,192,synthetic:siemens-1le1003
 2026-09-12T13:57:51.000-04:00,T1,T_Machine_Static,cycle_s,2.0,s,192,vlft:process
 2026-09-12T13:57:51.000-04:00,T1,T_Machine_Static,busy,0,bool,192,vlft:process
 2026-09-12T13:57:51.000-04:00,T1,T_Machine_Static,job_id,79,id,192,vlft:process
@@ -156,9 +153,6 @@ ts,asset_id,part,tag,value,unit,quality,source
 2026-09-12T13:57:51.000-04:00,C1,Cs_Camera,cycle_s,2.0,s,192,synthetic:aoi-lux
 2026-09-12T13:57:51.000-04:00,C1,Cs_Camera,busy,1,bool,192,synthetic:aoi-lux
 2026-09-12T13:57:51.000-04:00,C1,Cs_Camera,lux,1040,lx,192,synthetic:aoi-lux
-2026-09-12T13:57:51.000-04:00,MTR07-CAD,1LE1003-1EB23-4JA4,current_a,3.01,A,192,synthetic:siemens-1le1003
-2026-09-12T13:57:51.000-04:00,MTR07-CAD,1LE1003-1EB23-4JA4,winding_c,71.8,C,192,synthetic:siemens-1le1003
-2026-09-12T13:57:51.000-04:00,MTR07-CAD,1LE1003-1EB23-4JA4,rpm,1421,rpm,192,synthetic:siemens-1le1003
 2026-09-12T13:57:52.000-04:00,T1,T_Machine_Static,cycle_s,2.0,s,192,vlft:process
 2026-09-12T13:57:52.000-04:00,T1,T_Machine_Static,busy,0,bool,192,vlft:process
 2026-09-12T13:57:52.000-04:00,T1,T_Machine_Static,job_id,79,id,192,vlft:process
@@ -236,9 +230,6 @@ ts,asset_id,part,tag,value,unit,quality,source
 2026-09-12T13:57:52.000-04:00,C1,Cs_Camera,cycle_s,2.0,s,192,synthetic:aoi-lux
 2026-09-12T13:57:52.000-04:00,C1,Cs_Camera,busy,0,bool,192,synthetic:aoi-lux
 2026-09-12T13:57:52.000-04:00,C1,Cs_Camera,lux,905,lx,192,synthetic:aoi-lux
-2026-09-12T13:57:52.000-04:00,MTR07-CAD,1LE1003-1EB23-4JA4,current_a,3.1,A,192,synthetic:siemens-1le1003
-2026-09-12T13:57:52.000-04:00,MTR07-CAD,1LE1003-1EB23-4JA4,winding_c,88.6,C,192,synthetic:siemens-1le1003
-2026-09-12T13:57:52.000-04:00,MTR07-CAD,1LE1003-1EB23-4JA4,rpm,1452,rpm,192,synthetic:siemens-1le1003
 2026-09-12T13:57:53.000-04:00,T1,T_Machine_Static,cycle_s,2.0,s,192,vlft:process
 2026-09-12T13:57:53.000-04:00,T1,T_Machine_Static,busy,0,bool,192,vlft:process
 2026-09-12T13:57:53.000-04:00,T1,T_Machine_Static,job_id,79,id,192,vlft:process
@@ -316,9 +307,6 @@ ts,asset_id,part,tag,value,unit,quality,source
 2026-09-12T13:57:53.000-04:00,C1,Cs_Camera,cycle_s,2.0,s,192,synthetic:aoi-lux
 2026-09-12T13:57:53.000-04:00,C1,Cs_Camera,busy,0,bool,192,synthetic:aoi-lux
 2026-09-12T13:57:53.000-04:00,C1,Cs_Camera,lux,907,lx,192,synthetic:aoi-lux
-2026-09-12T13:57:53.000-04:00,MTR07-CAD,1LE1003-1EB23-4JA4,current_a,2.92,A,192,synthetic:siemens-1le1003
-2026-09-12T13:57:53.000-04:00,MTR07-CAD,1LE1003-1EB23-4JA4,winding_c,72.5,C,192,synthetic:siemens-1le1003
-2026-09-12T13:57:53.000-04:00,MTR07-CAD,1LE1003-1EB23-4JA4,rpm,1443,rpm,192,synthetic:siemens-1le1003
 2026-09-12T13:57:54.000-04:00,T1,T_Machine_Static,cycle_s,2.0,s,192,vlft:process
 2026-09-12T13:57:54.000-04:00,T1,T_Machine_Static,busy,1,bool,192,vlft:process
 2026-09-12T13:57:54.000-04:00,T1,T_Machine_Static,job_id,80,id,192,vlft:process
@@ -396,9 +384,6 @@ ts,asset_id,part,tag,value,unit,quality,source
 2026-09-12T13:57:54.000-04:00,C1,Cs_Camera,cycle_s,2.0,s,192,synthetic:aoi-lux
 2026-09-12T13:57:54.000-04:00,C1,Cs_Camera,busy,0,bool,192,synthetic:aoi-lux
 2026-09-12T13:57:54.000-04:00,C1,Cs_Camera,lux,904,lx,192,synthetic:aoi-lux
-2026-09-12T13:57:54.000-04:00,MTR07-CAD,1LE1003-1EB23-4JA4,current_a,2.86,A,192,synthetic:siemens-1le1003
-2026-09-12T13:57:54.000-04:00,MTR07-CAD,1LE1003-1EB23-4JA4,winding_c,74.9,C,192,synthetic:siemens-1le1003
-2026-09-12T13:57:54.000-04:00,MTR07-CAD,1LE1003-1EB23-4JA4,rpm,1449,rpm,192,synthetic:siemens-1le1003
 2026-09-12T13:57:55.000-04:00,T1,T_Machine_Static,cycle_s,2.0,s,192,vlft:process
 2026-09-12T13:57:55.000-04:00,T1,T_Machine_Static,busy,1,bool,192,vlft:process
 2026-09-12T13:57:55.000-04:00,T1,T_Machine_Static,job_id,80,id,192,vlft:process
@@ -476,9 +461,6 @@ ts,asset_id,part,tag,value,unit,quality,source
 2026-09-12T13:57:55.000-04:00,C1,Cs_Camera,cycle_s,2.0,s,192,synthetic:aoi-lux
 2026-09-12T13:57:55.000-04:00,C1,Cs_Camera,busy,0,bool,192,synthetic:aoi-lux
 2026-09-12T13:57:55.000-04:00,C1,Cs_Camera,lux,900,lx,192,synthetic:aoi-lux
-2026-09-12T13:57:55.000-04:00,MTR07-CAD,1LE1003-1EB23-4JA4,current_a,3.02,A,192,synthetic:siemens-1le1003
-2026-09-12T13:57:55.000-04:00,MTR07-CAD,1LE1003-1EB23-4JA4,winding_c,71.0,C,192,synthetic:siemens-1le1003
-2026-09-12T13:57:55.000-04:00,MTR07-CAD,1LE1003-1EB23-4JA4,rpm,1408,rpm,192,synthetic:siemens-1le1003
 2026-09-12T13:57:56.000-04:00,T1,T_Machine_Static,cycle_s,2.0,s,192,vlft:process
 2026-09-12T13:57:56.000-04:00,T1,T_Machine_Static,busy,0,bool,192,vlft:process
 2026-09-12T13:57:56.000-04:00,T1,T_Machine_Static,job_id,80,id,192,vlft:process
@@ -556,9 +538,6 @@ ts,asset_id,part,tag,value,unit,quality,source
 2026-09-12T13:57:56.000-04:00,C1,Cs_Camera,cycle_s,2.0,s,192,synthetic:aoi-lux
 2026-09-12T13:57:56.000-04:00,C1,Cs_Camera,busy,1,bool,192,synthetic:aoi-lux
 2026-09-12T13:57:56.000-04:00,C1,Cs_Camera,lux,1202,lx,192,synthetic:aoi-lux
-2026-09-12T13:57:56.000-04:00,MTR07-CAD,1LE1003-1EB23-4JA4,current_a,2.98,A,192,synthetic:siemens-1le1003
-2026-09-12T13:57:56.000-04:00,MTR07-CAD,1LE1003-1EB23-4JA4,winding_c,81.7,C,192,synthetic:siemens-1le1003
-2026-09-12T13:57:56.000-04:00,MTR07-CAD,1LE1003-1EB23-4JA4,rpm,1432,rpm,192,synthetic:siemens-1le1003
 2026-09-12T13:57:57.000-04:00,T1,T_Machine_Static,cycle_s,2.0,s,192,vlft:process
 2026-09-12T13:57:57.000-04:00,T1,T_Machine_Static,busy,0,bool,192,vlft:process
 2026-09-12T13:57:57.000-04:00,T1,T_Machine_Static,job_id,80,id,192,vlft:process
@@ -636,9 +615,6 @@ ts,asset_id,part,tag,value,unit,quality,source
 2026-09-12T13:57:57.000-04:00,C1,Cs_Camera,cycle_s,2.0,s,192,synthetic:aoi-lux
 2026-09-12T13:57:57.000-04:00,C1,Cs_Camera,busy,1,bool,192,synthetic:aoi-lux
 2026-09-12T13:57:57.000-04:00,C1,Cs_Camera,lux,1417,lx,192,synthetic:aoi-lux
-2026-09-12T13:57:57.000-04:00,MTR07-CAD,1LE1003-1EB23-4JA4,current_a,3.17,A,192,synthetic:siemens-1le1003
-2026-09-12T13:57:57.000-04:00,MTR07-CAD,1LE1003-1EB23-4JA4,winding_c,72.0,C,192,synthetic:siemens-1le1003
-2026-09-12T13:57:57.000-04:00,MTR07-CAD,1LE1003-1EB23-4JA4,rpm,1450,rpm,192,synthetic:siemens-1le1003
 2026-09-12T13:57:58.000-04:00,T1,T_Machine_Static,cycle_s,2.0,s,192,vlft:process
 2026-09-12T13:57:58.000-04:00,T1,T_Machine_Static,busy,0,bool,192,vlft:process
 2026-09-12T13:57:58.000-04:00,T1,T_Machine_Static,job_id,80,id,192,vlft:process
@@ -716,9 +692,6 @@ ts,asset_id,part,tag,value,unit,quality,source
 2026-09-12T13:57:58.000-04:00,C1,Cs_Camera,cycle_s,2.0,s,192,synthetic:aoi-lux
 2026-09-12T13:57:58.000-04:00,C1,Cs_Camera,busy,0,bool,192,synthetic:aoi-lux
 2026-09-12T13:57:58.000-04:00,C1,Cs_Camera,lux,893,lx,192,synthetic:aoi-lux
-2026-09-12T13:57:58.000-04:00,MTR07-CAD,1LE1003-1EB23-4JA4,current_a,2.9,A,192,synthetic:siemens-1le1003
-2026-09-12T13:57:58.000-04:00,MTR07-CAD,1LE1003-1EB23-4JA4,winding_c,84.7,C,192,synthetic:siemens-1le1003
-2026-09-12T13:57:58.000-04:00,MTR07-CAD,1LE1003-1EB23-4JA4,rpm,1417,rpm,192,synthetic:siemens-1le1003
 2026-09-12T13:57:59.000-04:00,T1,T_Machine_Static,cycle_s,2.0,s,192,vlft:process
 2026-09-12T13:57:59.000-04:00,T1,T_Machine_Static,busy,0,bool,192,vlft:process
 2026-09-12T13:57:59.000-04:00,T1,T_Machine_Static,job_id,80,id,192,vlft:process
@@ -796,9 +769,6 @@ ts,asset_id,part,tag,value,unit,quality,source
 2026-09-12T13:57:59.000-04:00,C1,Cs_Camera,cycle_s,2.0,s,192,synthetic:aoi-lux
 2026-09-12T13:57:59.000-04:00,C1,Cs_Camera,busy,0,bool,192,synthetic:aoi-lux
 2026-09-12T13:57:59.000-04:00,C1,Cs_Camera,lux,899,lx,192,synthetic:aoi-lux
-2026-09-12T13:57:59.000-04:00,MTR07-CAD,1LE1003-1EB23-4JA4,current_a,3.0,A,192,synthetic:siemens-1le1003
-2026-09-12T13:57:59.000-04:00,MTR07-CAD,1LE1003-1EB23-4JA4,winding_c,80.0,C,192,synthetic:siemens-1le1003
-2026-09-12T13:57:59.000-04:00,MTR07-CAD,1LE1003-1EB23-4JA4,rpm,1433,rpm,192,synthetic:siemens-1le1003
 2026-09-12T13:58:00.000-04:00,T1,T_Machine_Static,cycle_s,2.0,s,192,vlft:process
 2026-09-12T13:58:00.000-04:00,T1,T_Machine_Static,busy,1,bool,192,vlft:process
 2026-09-12T13:58:00.000-04:00,T1,T_Machine_Static,job_id,81,id,192,vlft:process
@@ -876,9 +846,6 @@ ts,asset_id,part,tag,value,unit,quality,source
 2026-09-12T13:58:00.000-04:00,C1,Cs_Camera,cycle_s,2.0,s,192,synthetic:aoi-lux
 2026-09-12T13:58:00.000-04:00,C1,Cs_Camera,busy,0,bool,192,synthetic:aoi-lux
 2026-09-12T13:58:00.000-04:00,C1,Cs_Camera,lux,891,lx,192,synthetic:aoi-lux
-2026-09-12T13:58:00.000-04:00,MTR07-CAD,1LE1003-1EB23-4JA4,current_a,3.24,A,192,synthetic:siemens-1le1003
-2026-09-12T13:58:00.000-04:00,MTR07-CAD,1LE1003-1EB23-4JA4,winding_c,79.4,C,192,synthetic:siemens-1le1003
-2026-09-12T13:58:00.000-04:00,MTR07-CAD,1LE1003-1EB23-4JA4,rpm,1463,rpm,192,synthetic:siemens-1le1003
 2026-09-12T13:58:01.000-04:00,T1,T_Machine_Static,cycle_s,2.0,s,192,vlft:process
 2026-09-12T13:58:01.000-04:00,T1,T_Machine_Static,busy,1,bool,192,vlft:process
 2026-09-12T13:58:01.000-04:00,T1,T_Machine_Static,job_id,81,id,192,vlft:process
@@ -956,9 +923,6 @@ ts,asset_id,part,tag,value,unit,quality,source
 2026-09-12T13:58:01.000-04:00,C1,Cs_Camera,cycle_s,2.0,s,192,synthetic:aoi-lux
 2026-09-12T13:58:01.000-04:00,C1,Cs_Camera,busy,0,bool,192,synthetic:aoi-lux
 2026-09-12T13:58:01.000-04:00,C1,Cs_Camera,lux,903,lx,192,synthetic:aoi-lux
-2026-09-12T13:58:01.000-04:00,MTR07-CAD,1LE1003-1EB23-4JA4,current_a,3.0,A,192,synthetic:siemens-1le1003
-2026-09-12T13:58:01.000-04:00,MTR07-CAD,1LE1003-1EB23-4JA4,winding_c,74.3,C,192,synthetic:siemens-1le1003
-2026-09-12T13:58:01.000-04:00,MTR07-CAD,1LE1003-1EB23-4JA4,rpm,1483,rpm,192,synthetic:siemens-1le1003
 2026-09-12T13:58:02.000-04:00,T1,T_Machine_Static,cycle_s,2.0,s,192,vlft:process
 2026-09-12T13:58:02.000-04:00,T1,T_Machine_Static,busy,0,bool,192,vlft:process
 2026-09-12T13:58:02.000-04:00,T1,T_Machine_Static,job_id,81,id,192,vlft:process
@@ -1036,9 +1000,6 @@ ts,asset_id,part,tag,value,unit,quality,source
 2026-09-12T13:58:02.000-04:00,C1,Cs_Camera,cycle_s,2.0,s,192,synthetic:aoi-lux
 2026-09-12T13:58:02.000-04:00,C1,Cs_Camera,busy,1,bool,192,synthetic:aoi-lux
 2026-09-12T13:58:02.000-04:00,C1,Cs_Camera,lux,1098,lx,192,synthetic:aoi-lux
-2026-09-12T13:58:02.000-04:00,MTR07-CAD,1LE1003-1EB23-4JA4,current_a,3.11,A,192,synthetic:siemens-1le1003
-2026-09-12T13:58:02.000-04:00,MTR07-CAD,1LE1003-1EB23-4JA4,winding_c,90.8,C,192,synthetic:siemens-1le1003
-2026-09-12T13:58:02.000-04:00,MTR07-CAD,1LE1003-1EB23-4JA4,rpm,1505,rpm,192,synthetic:siemens-1le1003
 2026-09-12T13:58:03.000-04:00,T1,T_Machine_Static,cycle_s,2.0,s,192,vlft:process
 2026-09-12T13:58:03.000-04:00,T1,T_Machine_Static,busy,0,bool,192,vlft:process
 2026-09-12T13:58:03.000-04:00,T1,T_Machine_Static,job_id,81,id,192,vlft:process
@@ -1116,9 +1077,6 @@ ts,asset_id,part,tag,value,unit,quality,source
 2026-09-12T13:58:03.000-04:00,C1,Cs_Camera,cycle_s,2.0,s,192,synthetic:aoi-lux
 2026-09-12T13:58:03.000-04:00,C1,Cs_Camera,busy,1,bool,192,synthetic:aoi-lux
 2026-09-12T13:58:03.000-04:00,C1,Cs_Camera,lux,1321,lx,192,synthetic:aoi-lux
-2026-09-12T13:58:03.000-04:00,MTR07-CAD,1LE1003-1EB23-4JA4,current_a,3.09,A,192,synthetic:siemens-1le1003
-2026-09-12T13:58:03.000-04:00,MTR07-CAD,1LE1003-1EB23-4JA4,winding_c,88.1,C,192,synthetic:siemens-1le1003
-2026-09-12T13:58:03.000-04:00,MTR07-CAD,1LE1003-1EB23-4JA4,rpm,1465,rpm,192,synthetic:siemens-1le1003
 2026-09-12T13:58:04.000-04:00,T1,T_Machine_Static,cycle_s,2.0,s,192,vlft:process
 2026-09-12T13:58:04.000-04:00,T1,T_Machine_Static,busy,0,bool,192,vlft:process
 2026-09-12T13:58:04.000-04:00,T1,T_Machine_Static,job_id,81,id,192,vlft:process
@@ -1196,9 +1154,6 @@ ts,asset_id,part,tag,value,unit,quality,source
 2026-09-12T13:58:04.000-04:00,C1,Cs_Camera,cycle_s,2.0,s,192,synthetic:aoi-lux
 2026-09-12T13:58:04.000-04:00,C1,Cs_Camera,busy,0,bool,192,synthetic:aoi-lux
 2026-09-12T13:58:04.000-04:00,C1,Cs_Camera,lux,914,lx,192,synthetic:aoi-lux
-2026-09-12T13:58:04.000-04:00,MTR07-CAD,1LE1003-1EB23-4JA4,current_a,3.1,A,192,synthetic:siemens-1le1003
-2026-09-12T13:58:04.000-04:00,MTR07-CAD,1LE1003-1EB23-4JA4,winding_c,85.4,C,192,synthetic:siemens-1le1003
-2026-09-12T13:58:04.000-04:00,MTR07-CAD,1LE1003-1EB23-4JA4,rpm,1512,rpm,192,synthetic:siemens-1le1003
 2026-09-12T13:58:05.000-04:00,T1,T_Machine_Static,cycle_s,2.0,s,192,vlft:process
 2026-09-12T13:58:05.000-04:00,T1,T_Machine_Static,busy,0,bool,192,vlft:process
 2026-09-12T13:58:05.000-04:00,T1,T_Machine_Static,job_id,81,id,192,vlft:process
@@ -1276,9 +1231,6 @@ ts,asset_id,part,tag,value,unit,quality,source
 2026-09-12T13:58:05.000-04:00,C1,Cs_Camera,cycle_s,2.0,s,192,synthetic:aoi-lux
 2026-09-12T13:58:05.000-04:00,C1,Cs_Camera,busy,0,bool,192,synthetic:aoi-lux
 2026-09-12T13:58:05.000-04:00,C1,Cs_Camera,lux,907,lx,192,synthetic:aoi-lux
-2026-09-12T13:58:05.000-04:00,MTR07-CAD,1LE1003-1EB23-4JA4,current_a,3.21,A,192,synthetic:siemens-1le1003
-2026-09-12T13:58:05.000-04:00,MTR07-CAD,1LE1003-1EB23-4JA4,winding_c,85.1,C,192,synthetic:siemens-1le1003
-2026-09-12T13:58:05.000-04:00,MTR07-CAD,1LE1003-1EB23-4JA4,rpm,1475,rpm,192,synthetic:siemens-1le1003
 2026-09-12T13:58:06.000-04:00,T1,T_Machine_Static,cycle_s,2.0,s,192,vlft:process
 2026-09-12T13:58:06.000-04:00,T1,T_Machine_Static,busy,1,bool,192,vlft:process
 2026-09-12T13:58:06.000-04:00,T1,T_Machine_Static,job_id,82,id,192,vlft:process
@@ -1356,9 +1308,6 @@ ts,asset_id,part,tag,value,unit,quality,source
 2026-09-12T13:58:06.000-04:00,C1,Cs_Camera,cycle_s,2.0,s,192,synthetic:aoi-lux
 2026-09-12T13:58:06.000-04:00,C1,Cs_Camera,busy,0,bool,192,synthetic:aoi-lux
 2026-09-12T13:58:06.000-04:00,C1,Cs_Camera,lux,882,lx,192,synthetic:aoi-lux
-2026-09-12T13:58:06.000-04:00,MTR07-CAD,1LE1003-1EB23-4JA4,current_a,3.25,A,192,synthetic:siemens-1le1003
-2026-09-12T13:58:06.000-04:00,MTR07-CAD,1LE1003-1EB23-4JA4,winding_c,84.7,C,192,synthetic:siemens-1le1003
-2026-09-12T13:58:06.000-04:00,MTR07-CAD,1LE1003-1EB23-4JA4,rpm,1491,rpm,192,synthetic:siemens-1le1003
 2026-09-12T13:58:07.000-04:00,T1,T_Machine_Static,cycle_s,2.0,s,192,vlft:process
 2026-09-12T13:58:07.000-04:00,T1,T_Machine_Static,busy,1,bool,192,vlft:process
 2026-09-12T13:58:07.000-04:00,T1,T_Machine_Static,job_id,82,id,192,vlft:process
@@ -1436,9 +1385,6 @@ ts,asset_id,part,tag,value,unit,quality,source
 2026-09-12T13:58:07.000-04:00,C1,Cs_Camera,cycle_s,2.0,s,192,synthetic:aoi-lux
 2026-09-12T13:58:07.000-04:00,C1,Cs_Camera,busy,0,bool,192,synthetic:aoi-lux
 2026-09-12T13:58:07.000-04:00,C1,Cs_Camera,lux,903,lx,192,synthetic:aoi-lux
-2026-09-12T13:58:07.000-04:00,MTR07-CAD,1LE1003-1EB23-4JA4,current_a,3.14,A,192,synthetic:siemens-1le1003
-2026-09-12T13:58:07.000-04:00,MTR07-CAD,1LE1003-1EB23-4JA4,winding_c,80.9,C,192,synthetic:siemens-1le1003
-2026-09-12T13:58:07.000-04:00,MTR07-CAD,1LE1003-1EB23-4JA4,rpm,1505,rpm,192,synthetic:siemens-1le1003
 2026-09-12T13:58:08.000-04:00,T1,T_Machine_Static,cycle_s,2.0,s,192,vlft:process
 2026-09-12T13:58:08.000-04:00,T1,T_Machine_Static,busy,0,bool,192,vlft:process
 2026-09-12T13:58:08.000-04:00,T1,T_Machine_Static,job_id,82,id,192,vlft:process
@@ -1516,9 +1462,6 @@ ts,asset_id,part,tag,value,unit,quality,source
 2026-09-12T13:58:08.000-04:00,C1,Cs_Camera,cycle_s,2.0,s,192,synthetic:aoi-lux
 2026-09-12T13:58:08.000-04:00,C1,Cs_Camera,busy,1,bool,192,synthetic:aoi-lux
 2026-09-12T13:58:08.000-04:00,C1,Cs_Camera,lux,924,lx,192,synthetic:aoi-lux
-2026-09-12T13:58:08.000-04:00,MTR07-CAD,1LE1003-1EB23-4JA4,current_a,3.23,A,192,synthetic:siemens-1le1003
-2026-09-12T13:58:08.000-04:00,MTR07-CAD,1LE1003-1EB23-4JA4,winding_c,89.8,C,192,synthetic:siemens-1le1003
-2026-09-12T13:58:08.000-04:00,MTR07-CAD,1LE1003-1EB23-4JA4,rpm,1487,rpm,192,synthetic:siemens-1le1003
 2026-09-12T13:58:09.000-04:00,T1,T_Machine_Static,cycle_s,2.0,s,192,vlft:process
 2026-09-12T13:58:09.000-04:00,T1,T_Machine_Static,busy,0,bool,192,vlft:process
 2026-09-12T13:58:09.000-04:00,T1,T_Machine_Static,job_id,82,id,192,vlft:process
@@ -1596,6 +1539,3 @@ ts,asset_id,part,tag,value,unit,quality,source
 2026-09-12T13:58:09.000-04:00,C1,Cs_Camera,cycle_s,2.0,s,192,synthetic:aoi-lux
 2026-09-12T13:58:09.000-04:00,C1,Cs_Camera,busy,1,bool,192,synthetic:aoi-lux
 2026-09-12T13:58:09.000-04:00,C1,Cs_Camera,lux,986,lx,192,synthetic:aoi-lux
-2026-09-12T13:58:09.000-04:00,MTR07-CAD,1LE1003-1EB23-4JA4,current_a,3.19,A,192,synthetic:siemens-1le1003
-2026-09-12T13:58:09.000-04:00,MTR07-CAD,1LE1003-1EB23-4JA4,winding_c,77.1,C,192,synthetic:siemens-1le1003
-2026-09-12T13:58:09.000-04:00,MTR07-CAD,1LE1003-1EB23-4JA4,rpm,1506,rpm,192,synthetic:siemens-1le1003

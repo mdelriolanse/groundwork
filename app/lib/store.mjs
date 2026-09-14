@@ -43,7 +43,7 @@ export function createStore(filename = path.resolve("data/plant-floor.db")) {
   if (!incidentCols.includes("part")) db.exec("ALTER TABLE incidents ADD COLUMN part TEXT");
   if (!incidentCols.includes("priority")) db.exec("ALTER TABLE incidents ADD COLUMN priority TEXT DEFAULT 'high'");
 
-  const PART_FALLBACK = { RPP1: "URjoint1", T1: "T_Machine_Static", "MTR07-CAD": "1LE1003-1EB23-4JA4", PP5: "AC motor" };
+  const PART_FALLBACK = { RPP1: "URjoint1", T1: "T_Machine_Static", PP5: "AC motor" };
   const PRIORITY_RANK = { critical: 0, high: 1, medium: 2, low: 3 };
   const titleCase = (s) => (s || "").replaceAll("_", " ").replace(/\b\w/g, (c) => c.toUpperCase());
   const statusLabel = { new: "New", acknowledged: "Acknowledged", in_progress: "In progress", resolved: "Resolved" };
@@ -98,7 +98,7 @@ export function createStore(filename = path.resolve("data/plant-floor.db")) {
       if (seen.has(key)) continue;
       seen.add(key);
       const pri = row.priority || "high";
-      issues.push({ asset_id: row.asset_id, part, fault: row.fault, status: row.status, priority: pri, severity: pri === "critical" ? "critical" : pri === "medium" || pri === "low" ? "warning" : "critical", incident_id: row.incident_id });
+      issues.push({ asset_id: row.asset_id, part, fault: row.fault, status: row.status, priority: pri, severity: pri, incident_id: row.incident_id });
     }
     const pending = db.prepare("SELECT id,asset_id,part,fault,status FROM flags WHERE status='pending' AND part IS NOT NULL AND part!='' ORDER BY id").all();
     for (const row of pending) {
@@ -142,11 +142,7 @@ export function createStore(filename = path.resolve("data/plant-floor.db")) {
           ins.run("T1","cycle_s",now(),2.0,"s","vlft:process");
           ins.run("T1","busy",now(),0,"bool","vlft:process");
         }
-        // Not in the L1 tape (that's VLFT process data) - MTR07-CAD's own healthy baseline, real RMS
-        // computed from the converted Mendeley 0Nm_Normal recording (scripts/convert-mendeley.py).
-        ins.run("MTR07-CAD","rms",now(),0.102329,"g","mendeley:0Nm_Normal__ch0.mat");
-        ins.run("MTR07-CAD","rpm",now(),3010,"rpm","mendeley:0Nm_Normal__ch0.mat");
-        // PP5's AC motor (Body-14 in the station GLB) - same real Mendeley recording, second binding.
+        // PP5's AC motor (Body-14 in the station GLB) - real Mendeley recording.
         ins.run("PP5","rms",now(),0.102329,"g","mendeley:0Nm_Normal__ch0.mat");
         ins.run("PP5","rpm",now(),3010,"rpm","mendeley:0Nm_Normal__ch0.mat");
       }
@@ -156,16 +152,24 @@ export function createStore(filename = path.resolve("data/plant-floor.db")) {
       this.seedDemoIncidents();
     },
     seedDemoIncidents() {
-      if (db.prepare("SELECT 1 FROM state WHERE key='demo_seeded'").get()) return;
       const fixturesPath = path.resolve(path.dirname(filename), "demo/seed-incidents.json");
-      const alt = path.resolve("data/demo/seed-incidents.json");
-      const fixtureFile = [fixturesPath, alt].find((p) => fs.existsSync(p));
+      const fixtureFile = fs.existsSync(fixturesPath) ? fixturesPath : null;
       if (!fixtureFile) return;
       const fixtures = JSON.parse(fs.readFileSync(fixtureFile, "utf8"));
+      const insertWorkOrder = (wo) => {
+        if (!wo) return;
+        const open = db.prepare("SELECT 1 FROM work_orders WHERE asset_id=? AND fault=? AND status='open'").get(wo.asset_id, wo.fault);
+        if (open) return;
+        db.prepare("INSERT INTO work_orders VALUES(?,?,?,?,?,?)").run(wo.wo_id, wo.asset_id, wo.fault, "open", wo.opened, JSON.stringify(wo));
+      };
       for (const fix of fixtures.incidents || []) {
         const part = resolvePart(fix.asset_id, fix.part);
         const existing = db.prepare("SELECT incident_id FROM incidents WHERE asset_id=? AND fault=? AND status!='resolved'").get(fix.asset_id, fix.fault);
-        if (existing) continue;
+        if (existing) {
+          db.prepare("UPDATE incidents SET part=?, priority=? WHERE incident_id=?").run(part, fix.priority || "high", existing.incident_id);
+          insertWorkOrder(fix.work_order);
+          continue;
+        }
         const inserted = db.prepare("INSERT INTO incidents(asset_id,fault,status,previous_incident_id,part,priority) VALUES(?,?,?,?,?,?)")
           .run(fix.asset_id, fix.fault, "new", null, part, fix.priority || "high");
         const incidentId = Number(inserted.lastInsertRowid);
@@ -181,10 +185,7 @@ export function createStore(filename = path.resolve("data/plant-floor.db")) {
         const flagStatus = fix.flag_status || "processed";
         db.prepare("INSERT INTO flags(asset_id,part,fault,source,window,rpm,rms,status,ts) VALUES(?,?,?,?,?,?,?,?,?)")
           .run(fix.asset_id, part, fix.fault, fix.source || null, fix.window || null, fix.rpm ?? null, fix.rms ?? null, flagStatus, detectedAt);
-        if (fix.work_order) {
-          const wo = fix.work_order;
-          db.prepare("INSERT INTO work_orders VALUES(?,?,?,?,?,?)").run(wo.wo_id, wo.asset_id, wo.fault, "open", wo.opened, JSON.stringify(wo));
-        }
+        insertWorkOrder(fix.work_order);
       }
       setState("demo_seeded", { at: now(), file: fixtureFile });
     },
@@ -198,6 +199,50 @@ export function createStore(filename = path.resolve("data/plant-floor.db")) {
       return value;
     },
     latestHop() { return getState("latest_hop", null); },
+    recordHop(hop) {
+      if (!hop || typeof hop !== "object") return null;
+      setState("latest_hop", hop);
+      const hist = db.prepare("INSERT INTO historian VALUES(?,?,?,?,?,?)");
+      if (hop.rpp1?.rms != null) {
+        hist.run("RPP1", "rms", hop.ts || now(), Number(hop.rpp1.rms), "g", hop.rpp1.source || "cwru:97.mat");
+      }
+      for (const [assetId, slot] of Object.entries(hop.assets || {})) {
+        const rms = slot?.vibration?.rms ?? slot?.rms;
+        if (rms == null || assetId === "RPP1") continue;
+        hist.run(assetId, "rms", hop.ts || now(), Number(rms), "g", slot.vibration?.source || slot.source || "");
+      }
+      return hop;
+    },
+    seedHopsFromFeed(feed, { hopIndex, force = false } = {}) {
+      const latest = this.latestHop();
+      const fresh = latest && Date.parse(latest.ts) > Date.now() - 3000;
+      if (!force && fresh) return { skipped: true, latest };
+      const hops = Array.isArray(feed?.hops) ? feed.hops : [];
+      if (!hops.length) return null;
+      const healthyEnd = Math.min(9, hops.length - 1);
+      const end = hopIndex == null ? healthyEnd : Math.min(Math.max(0, hopIndex), hops.length - 1);
+      const hist = db.prepare("INSERT INTO historian VALUES(?,?,?,?,?,?)");
+      const origin = Date.now() - end * 1000;
+      for (let i = 0; i < end; i++) {
+        const raw = hops[i];
+        if (raw.rpp1?.rms != null) {
+          hist.run("RPP1", "rms", new Date(origin + i * 1000).toISOString(), Number(raw.rpp1.rms), "g", raw.rpp1.source || "cwru:97.mat");
+        }
+        for (const [assetId, slot] of Object.entries(raw.assets || {})) {
+          const rms = slot?.vibration?.rms ?? slot?.rms;
+          if (rms == null || assetId === "RPP1") continue;
+          hist.run(assetId, "rms", new Date(origin + i * 1000).toISOString(), Number(rms), "g", slot.vibration?.source || slot.source || "");
+        }
+      }
+      const raw = hops[end];
+      return this.recordHop({
+        ts: now(),
+        hop: raw.i ?? end,
+        rpp1: raw.rpp1,
+        assets: raw.assets || {},
+        seeded: true,
+      });
+    },
     listIncidents({ status } = {}) {
       const rows = status === "resolved"
         ? db.prepare("SELECT incident_id FROM incidents WHERE status='resolved' ORDER BY incident_id DESC").all()
@@ -228,7 +273,7 @@ export function createStore(filename = path.resolve("data/plant-floor.db")) {
         age_ms: inc.age_ms,
         ageMin: Math.floor((inc.age_ms || 0) / 60000),
         detections: inc.detection_count,
-        signal: inc.fault === "process_drop" ? "Process" : (inc.rms != null && inc.rms > 0.15 ? "Elevated" : "Normal"),
+        signal: inc.rms == null ? "Process" : (inc.rms > 0.15 ? "Elevated" : "Normal"),
         fault: inc.fault,
         source: inc.source,
         window: inc.window,
@@ -246,6 +291,8 @@ export function createStore(filename = path.resolve("data/plant-floor.db")) {
     hopsLatest(limit = 20) {
       const latest = this.latestHop();
       const rms = this.historianSeries("RPP1", "rms", limit);
+      const vibrationIds = ["RPP1", "PP5", "B1", "B2", "B3", "B4"];
+      const vibration = Object.fromEntries(vibrationIds.map((id) => [id, this.historianSeries(id, "rms", limit)]));
       const processAssets = {};
       const fromHop = latest?.assets && typeof latest.assets === "object" ? latest.assets : null;
       if (fromHop) {
@@ -258,6 +305,7 @@ export function createStore(filename = path.resolve("data/plant-floor.db")) {
         live: Boolean(latest),
         latest,
         rms,
+        vibration,
         assets: processAssets,
         hop_override: this.hopOverride(),
       };

@@ -10,8 +10,10 @@ import { RunManager } from "./lib/runs.mjs";
 import { askAssist } from "./lib/assist.mjs";
 import { containmentEvidence, attemptExfil } from "./lib/openshell.mjs";
 import { boardCorsHeaders } from "./lib/board-cors.mjs";
+import { inferenceTarget } from "./lib/local-infer.mjs";
+import { mockHop } from "./lib/mock-hops.mjs";
 
-const ALLOWED_CORS = new Set(["/api/board", "/api/detect", "/api/incidents", "/api/hops/latest", "/api/demo/inject", "/api/questions"]);
+const ALLOWED_CORS = new Set(["/api/board", "/api/detect", "/api/incidents", "/api/hops/latest", "/api/demo/inject", "/api/demo/seed", "/api/questions"]);
 const ROOT=path.resolve(path.dirname(fileURLToPath(import.meta.url)),"..");
 const PORT=Number(process.env.PORT||8765), HOST=process.env.HOST||"0.0.0.0";
 const store=createStore(path.join(ROOT,"data/plant-floor.db")); store.seed();
@@ -19,11 +21,11 @@ const rag=createRag(ROOT), agents=loadAgents(ROOT);
 let gateway;
 try { gateway=new GatewayClient({credential:gatewayCredential()}); } catch(error) { console.error("gateway credential unavailable:",error.message); }
 const runs=gateway?new RunManager({store,rag,gateway,agents}):null;
-const MIME={".html":"text/html; charset=utf-8",".js":"text/javascript; charset=utf-8",".mjs":"text/javascript; charset=utf-8",".css":"text/css; charset=utf-8",".json":"application/json; charset=utf-8",".glb":"model/gltf-binary",".woff2":"font/woff2",".png":"image/png",".svg":"image/svg+xml"};
+const MIME={".html":"text/html; charset=utf-8",".js":"text/javascript; charset=utf-8",".mjs":"text/javascript; charset=utf-8",".css":"text/css; charset=utf-8",".json":"application/json; charset=utf-8",".glb":"model/gltf-binary",".ttf":"font/ttf",".woff2":"font/woff2",".png":"image/png",".svg":"image/svg+xml"};
 const json=(res,status,body,headers={})=>{res.writeHead(status,{"content-type":"application/json; charset=utf-8","cache-control":"no-store",...headers});res.end(JSON.stringify(body));};
 const safeBase=(value)=>path.basename(decodeURIComponent(value||""));
 async function body(req,max=8192){let text="";for await(const chunk of req){text+=chunk;if(text.length>max)throw new Error("request too large");}return text?JSON.parse(text):{};}
-function staticFile(res,file){if(!fs.existsSync(file)||!fs.statSync(file).isFile())return false;res.writeHead(200,{"content-type":MIME[path.extname(file)]||"application/octet-stream","cache-control":path.extname(file)===".glb"?"public, max-age=3600":"no-cache",...(path.extname(file)===".json"?{"access-control-allow-origin":"*"}:{})});fs.createReadStream(file).pipe(res);return true;}
+function staticFile(res,file){if(!fs.existsSync(file)||!fs.statSync(file).isFile())return false;const ext=path.extname(file);const cache=ext===".glb"||file.includes(`${path.sep}vendor${path.sep}`)?"public, max-age=86400":"no-cache";res.writeHead(200,{"content-type":MIME[ext]||"application/octet-stream","cache-control":cache,...(ext===".json"?{"access-control-allow-origin":"*"}:{})});fs.createReadStream(file).pipe(res);return true;}
 // Containment evidence comes from the OpenShell gateway, never from a seed.
 let containmentRefresh=null;
 function refreshContainment(){
@@ -54,6 +56,24 @@ const INJECT_CATALOG = {
   ball: { file: "118.mat", channel: "X118_DE_time", fs_hz: 12000, rpm: 1797, expected_fault: "ball" },
 };
 const INJECT_ALIASES = { "97": "clear", "105": "ir", "118": "ball", "130": "or", "cwru:97.mat": "clear", "cwru:105.mat": "ir", "cwru:118.mat": "ball", "cwru:130.mat": "or" };
+const FEED_PATH = path.join(ROOT, "web/prototype/feed.json");
+const CATALOG_PATH = path.join(ROOT, "data/sensors/catalog.json");
+function loadFeed() { return JSON.parse(fs.readFileSync(FEED_PATH, "utf8")); }
+function loadCatalog() { return JSON.parse(fs.readFileSync(CATALOG_PATH, "utf8")); }
+let seedReplay = null;
+function startSeedReplay() {
+  if (seedReplay) return;
+  const feed = loadFeed();
+  const catalog = loadCatalog();
+  let i = (store.latestHop()?.hop ?? -1) + 1;
+  seedReplay = setInterval(() => {
+    const current = store.latestHop();
+    if (current && !current.seeded && Date.parse(current.ts) > Date.now() - 2500) return;
+    store.recordHop(mockHop(i, { feed, catalog }));
+    i += 1;
+  }, 1000);
+  seedReplay.unref();
+}
 
 function resolveInject(source) {
   const raw = String(source || "ir").trim().toLowerCase();
@@ -71,8 +91,8 @@ const server=http.createServer(async(req,res)=>{
       if(!cors["Access-Control-Allow-Origin"])return json(res,403,{error:"cors denied"});
       res.writeHead(204,cors);return res.end();
     }
-    if(req.method==="GET"&&url.pathname==="/api/health") return json(res,200,{ok:true,gateway:Boolean(gateway),agent:"maintenance",model:"Qwen3.6-35B-A3B",inference:"http://127.0.0.1:8000",hop_override:store.hopOverride(),latest_hop:Boolean(store.latestHop())});
-    if(req.method==="GET"&&url.pathname==="/api/board") {const asset=url.searchParams.get("asset")||"RPP1";const part=asset==="RPP1"?"URjoint1":asset==="MTR07-CAD"?"1LE1003-1EB23-4JA4":asset==="T1"?"T_Machine_Static":null;const cors=boardCorsHeaders({method:req.method,pathname:url.pathname,host:req.headers.host,origin:req.headers.origin});return json(res,200,store.board({asset_id:asset,part,kind:"asset"}),cors);}
+    if(req.method==="GET"&&url.pathname==="/api/health") return json(res,200,{ok:true,gateway:Boolean(gateway),agent:"maintenance",model:inferenceTarget().model,inference:inferenceTarget().url,hop_override:store.hopOverride(),latest_hop:Boolean(store.latestHop())});
+    if(req.method==="GET"&&url.pathname==="/api/board") {const asset=url.searchParams.get("asset")||"RPP1";const part=asset==="RPP1"?"URjoint1":asset==="PP5"?"AC motor":asset==="T1"?"T_Machine_Static":null;const cors=boardCorsHeaders({method:req.method,pathname:url.pathname,host:req.headers.host,origin:req.headers.origin});return json(res,200,store.board({asset_id:asset,part,kind:"asset"}),cors);}
     if(req.method==="GET"&&url.pathname==="/api/incidents") {
       const cors=boardCorsHeaders({method:req.method,pathname:url.pathname,host:req.headers.host,origin:req.headers.origin});
       return json(res,200,{incidents:store.listIncidents({status:url.searchParams.get("status")||undefined})},cors);
@@ -103,6 +123,13 @@ const server=http.createServer(async(req,res)=>{
       };
       store.setHopOverride(override);
       return json(res,200,{ok:true,hop_override:override},cors);
+    }
+    if(req.method==="POST"&&url.pathname==="/api/demo/seed") {
+      const cors=boardCorsHeaders({method:req.method,pathname:url.pathname,host:req.headers.host,origin:req.headers.origin});
+      store.seed();
+      const hop=store.seedHopsFromFeed(loadFeed());
+      startSeedReplay();
+      return json(res,200,{ok:true,seeded:!hop?.skipped,hop:hop?.latest||hop,hops:store.hopsLatest(20)},cors);
     }
     if(req.method==="POST"&&url.pathname==="/api/detect") {
       const cors=boardCorsHeaders({method:req.method,pathname:url.pathname,host:req.headers.host,origin:req.headers.origin});
@@ -152,5 +179,10 @@ const server=http.createServer(async(req,res)=>{
 
 let watching=false;
 setInterval(async()=>{if(watching||!runs)return;watching=true;try{for(const flag of store.pendingFlags())await runs.processFlag(flag);}catch(error){console.error("automatic run failed:",error.message);}finally{watching=false;}},1000).unref();
-server.listen(PORT,HOST,()=>console.log(`plant-floor board http://${HOST}:${PORT}`));
+server.listen(PORT,HOST,()=>{
+  store.seed();
+  store.seedHopsFromFeed(loadFeed());
+  startSeedReplay();
+  console.log(`plant-floor board http://${HOST}:${PORT}`);
+});
 for(const signal of ["SIGTERM","SIGINT"])process.on(signal,()=>server.close(()=>{gateway?.close();store.close();process.exit(0);}));

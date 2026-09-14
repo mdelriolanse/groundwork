@@ -127,7 +127,7 @@ Already GLB. **No assimp bake.** No LiDAR. Process extract: [`data/vlft/process.
 | Scene | `data/vlft/VFLab.json` → `web/twin/scene.json` via `data/vlft/compose_scene.py` |
 | Hero | `RPP1` (`UR_Pick_and_Place_Station.glb`, named `URjoint1`) — condition is CWRU |
 | Sibling | `T1` tightener + full fleet process tags (`source: vlft:process` / `synthetic:<cite>`) |
-| Stations | 19 tools + 4 buffers + Siemens CAD + warehouse shell |
+| Stations | 19 tools + 4 buffers; warehouse shell omitted |
 | Alias | packed CMMS `MTR-07` → `RPP1` in `data/asset-map.json` |
 
 IRIS-v2 (EDF Saclay water room) is retired. Do not load `cad_model.fbx` / `iris-room.glb`. Do not run jsimIO. Do not play `VFLab_anim.json`.

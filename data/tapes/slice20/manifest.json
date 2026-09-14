@@ -10,7 +10,7 @@
   "window_s": 2.0,
   "flag_at": "2026-09-12T13:58:00.000-04:00",
   "flag_hop": 10,
-  "honesty": "Window pointers only. No invented RMS. Flip is hop 10 / flag_at.",
+  "honesty": "Window pointers only. No invented RMS. Flip is hop 10 / flag_at. L1 fleet tags are synthetic cites from data/sensors/catalog.json.",
   "files": {
     "l0": "l0/rpp1-de.jsonl",
     "l1": "l1/historian.csv",

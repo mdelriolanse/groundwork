@@ -8,6 +8,7 @@ Prefers PMMCP. Fallback is RMS + envelope peak vs SKF 6205 catalog
 from __future__ import annotations
 
 import csv
+import importlib.util
 import json
 import math
 import struct
@@ -391,6 +392,10 @@ def main() -> None:
         "flag": filled,
         "cmms": load_cmms(rpp1_aliases),
     }
+    _bind = importlib.util.spec_from_file_location("bind_belt_normals", REPO / "scripts" / "bind-belt-normals.py")
+    _bind_mod = importlib.util.module_from_spec(_bind)
+    _bind.loader.exec_module(_bind_mod)
+    _bind_mod.patch_feed(feed)
     OUT.parent.mkdir(parents=True, exist_ok=True)
     OUT.write_text(json.dumps(feed, indent=2) + "\n", encoding="utf-8")
     engines = sorted({h["rpp1"]["engine"] for h in hops})

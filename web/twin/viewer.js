@@ -22,7 +22,15 @@ const partAsset = partMode ? (queryAsset || "RPP1") : null;
 const soloAsset = planMode ? null : (partMode ? partAsset : queryAsset);
 
 const canvas = document.getElementById("c");
-const parentOrigin = `${location.protocol}//${location.hostname}:4173`;
+const parentOrigin = (() => {
+  try {
+    if (document.referrer) {
+      const ref = new URL(document.referrer);
+      if (ref.hostname === location.hostname) return ref.origin;
+    }
+  } catch {}
+  return location.origin;
+})();
 const hud = {
   asset: document.getElementById("asset"),
   part: document.getElementById("part"),
@@ -30,15 +38,23 @@ const hud = {
 };
 if (grayMode) document.body.classList.add("plan");
 
-const renderer = new THREE.WebGLRenderer({ canvas, antialias: grayMode });
+const renderer = new THREE.WebGLRenderer({ canvas, antialias: grayMode, alpha: grayMode });
 renderer.setPixelRatio(Math.min(window.devicePixelRatio, grayMode ? 1.5 : 1.25));
 renderer.shadowMap.enabled = false;
+if (grayMode && THREE.ACESFilmicToneMapping) {
+  renderer.toneMapping = THREE.ACESFilmicToneMapping;
+  renderer.toneMappingExposure = 1.12;
+}
 
 const scene = new THREE.Scene();
 scene.background = new THREE.Color(grayMode ? 0xe6eaf0 : 0xf4f4f2);
+renderer.setClearColor(scene.background, 1);
+renderer.setSize(Math.max(1, canvas.clientWidth), Math.max(1, canvas.clientHeight), false);
+renderer.clear();
 const groundGrid = new THREE.GridHelper(planMode ? 40 : 24, planMode ? 40 : 24, grayMode ? 0xb6c0cc : 0x94a3b8, grayMode ? 0xd3d9e1 : 0xcbd5e1);
+groundGrid.position.y = grayMode ? -0.005 : 0;
 scene.add(groundGrid);
-scene.add(new THREE.HemisphereLight(0xc8d4e8, 0x3a3228, 1.0));
+scene.add(new THREE.HemisphereLight(0xe8e8e8, 0x3a3228, 1.0));
 scene.add(new THREE.AmbientLight(0xffffff, grayMode ? 0.7 : 0.45));
 const sun = new THREE.DirectionalLight(0xffffff, grayMode ? 0.9 : 1.1);
 sun.position.set(6, 12, 4);
@@ -97,17 +113,29 @@ let bridgeReady = false;
 let inset = { left: 0, top: 0, right: 0, bottom: 0 };
 let layoutDirty = true;
 
-// One Lambert family for plan + part: healthy gray, sensor slate, issue red, selection blue.
-const neutralMat = new THREE.MeshLambertMaterial({ color: 0xe8ecef, vertexColors: false });
-const dimMat = new THREE.MeshLambertMaterial({ color: 0xd0d6dc, transparent: true, opacity: 0.32, depthWrite: false, vertexColors: false });
-const outlineMat = new THREE.LineBasicMaterial({ color: 0x1d4ed8 });
+// One Standard family for plan + part: healthy gray, sensor slate, issue, selection.
+// Flat Lambert black was the v0 void — no specular, reads black on Asset 360.
+function studioMat(color, extra = {}) {
+  return new THREE.MeshStandardMaterial({
+    color,
+    roughness: 0.46,
+    metalness: 0.14,
+    vertexColors: false,
+    ...extra,
+  });
+}
+const neutralMat = studioMat(0xe8ecef);
+const dimMat = studioMat(0xd0d6dc, { transparent: true, opacity: 0.32, depthWrite: false });
+const outlineMat = new THREE.LineBasicMaterial({ color: 0x000000 });
 /** Sensor-/process-bound part — still neutral, distinct from bare metal. */
-const sensorMat = new THREE.MeshLambertMaterial({ color: 0xb8c5d4, vertexColors: false });
-const partMat = new THREE.MeshLambertMaterial({ color: 0x5b7fc7, vertexColors: false });
-const issueCriticalMat = new THREE.MeshLambertMaterial({ color: 0xc62828, vertexColors: false });
-const issueWarningMat = new THREE.MeshLambertMaterial({ color: 0xf9a825, vertexColors: false });
+const sensorMat = studioMat(0xb8c5d4);
+const partMat = studioMat(0x5b6570);
+const issueCriticalMat = studioMat(0xc62828);
+const issueHighMat = studioMat(0xef6c00);
+const issueWarningMat = studioMat(0xf9a825);
+const issueLowMat = studioMat(0xfdd835);
 /** Plan-view only: stations currently "busy" per the live hop-loop process feed. */
-const busyMat = new THREE.MeshLambertMaterial({ color: 0x86efac, vertexColors: false });
+const busyMat = studioMat(0x86efac);
 let busyAssets = new Set();
 /** Plan-view only: assetId -> severity for stations with an open issue (whole-station tint). */
 let issueAssets = new Map();
@@ -119,8 +147,19 @@ const reduceMotion = matchMedia("(prefers-reduced-motion: reduce)").matches;
 
 function issueMaterial(severity) {
   const s = String(severity || "critical").toLowerCase();
-  if (s === "warning" || s === "medium" || s === "low") return issueWarningMat;
-  return issueCriticalMat; // critical | high | default
+  if (s === "low") return issueLowMat;
+  if (s === "warning" || s === "medium") return issueWarningMat;
+  if (s === "high") return issueHighMat;
+  return issueCriticalMat;
+}
+
+function issueRank(severity) {
+  const s = String(severity || "critical").toLowerCase();
+  if (s === "critical") return 0;
+  if (s === "high") return 1;
+  if (s === "warning" || s === "medium") return 2;
+  if (s === "low") return 3;
+  return 0;
 }
 
 function paintMesh(mesh, mat) {
@@ -251,6 +290,7 @@ async function mountPlacement(p) {
   });
   line.add(model);
   pickRoots.push(model);
+  if (planMode) paintPlanRoot(model);
   return model;
 }
 
@@ -588,15 +628,19 @@ function setOutline(root) {
   scene.add(outline);
 }
 
+function paintPlanRoot(root) {
+  if (!root) return;
+  const dim = Boolean(focused) && root.userData.asset_id !== focused;
+  const issueSeverity = !dim && issueAssets.get(root.userData.asset_id);
+  const busy = !dim && !issueSeverity && busyAssets.has(root.userData.asset_id);
+  const mat = dim ? dimMat : issueSeverity ? issueMaterial(issueSeverity) : busy ? busyMat : neutralMat;
+  root.traverse((o) => {
+    if (o.isMesh) o.material = mat;
+  });
+}
+
 function applyPlanMaterials() {
-  for (const root of pickRoots) {
-    const dim = Boolean(focused) && root.userData.asset_id !== focused;
-    const issueSeverity = !dim && issueAssets.get(root.userData.asset_id);
-    const busy = !dim && !issueSeverity && busyAssets.has(root.userData.asset_id);
-    root.traverse((o) => {
-      if (o.isMesh) o.material = dim ? dimMat : issueSeverity ? issueMaterial(issueSeverity) : busy ? busyMat : neutralMat;
-    });
-  }
+  for (const root of pickRoots) paintPlanRoot(root);
 }
 
 /** twin:flow {busy:[assetId,...]} - live process state from the fleet's hop loop, plan view only. */
@@ -725,13 +769,17 @@ function lightPart(assetId, part) {
   const root = scene.getObjectByName(assetId);
   if (!root) return false;
   const node = root.getObjectByName(part) || root;
-  if (partMode) return Boolean(highlightPart(node));
+  if (partMode) {
+    const ok = Boolean(highlightPart(node));
+    maybeFramePartFocus();
+    return ok;
+  }
   const mesh = node.isMesh ? node : node.getObjectByProperty("isMesh", true);
   if (mesh) lightMesh(mesh);
   return Boolean(mesh);
 }
 
-/** Boot-time ?component= — blue select only; issues come from twin:issues. */
+/** Boot-time ?component= — black select only; issues come from twin:issues. */
 function applyQueryComponent(assetId) {
   const part = typeof queryComponent === "string" ? queryComponent : "";
   if (!assetId || !part || part.length > 128) return null;
@@ -788,7 +836,7 @@ function applyPartMaterials() {
   }
 }
 
-// part mode: solid blue selection; does not clear issue colour.
+// part mode: solid black selection; does not clear issue colour.
 function highlightPart(node) {
   litPart = node || null;
   applyPartMaterials();
@@ -805,8 +853,9 @@ function setIssues(parts) {
     const assetId = item?.assetId ?? item?.asset_id;
     if (typeof assetId !== "string" || !assetId || assetId.length > 128) continue;
     const severity = item.severity || item.priority || "critical";
-    const isCritical = issueMaterial(severity) === issueCriticalMat;
-    if (!issueAssets.has(assetId) || isCritical) issueAssets.set(assetId, severity);
+    if (!issueAssets.has(assetId) || issueRank(severity) < issueRank(issueAssets.get(assetId))) {
+      issueAssets.set(assetId, severity);
+    }
   }
   if (planMode) {
     applyPlanMaterials();
@@ -841,6 +890,7 @@ function setIssues(parts) {
     if (node) issueNodes.push({ node, severity: item.severity || item.priority || "critical" });
   }
   applyPartMaterials();
+  maybeFramePartFocus();
   return true;
 }
 
@@ -987,6 +1037,66 @@ function hover(ev) {
   if (parent !== window) parent.postMessage({ type: "twin:hover", asset_id: id }, parentOrigin);
 }
 
+async function mapPool(items, limit, fn) {
+  if (!items.length) return;
+  let cursor = 0;
+  await Promise.all(Array.from({ length: Math.min(limit, items.length) }, async () => {
+    while (cursor < items.length) {
+      const item = items[cursor++];
+      await fn(item);
+    }
+  }));
+}
+
+function previewFit() {
+  if (!planMode) return;
+  line.updateMatrixWorld(true);
+  const box = new THREE.Box3();
+  for (const p of sceneSpec.placements) {
+    if (p.kind === "scenery") continue;
+    if (soloAsset && p.asset_id !== soloAsset) continue;
+    const world = new THREE.Vector3(p.position[0], p.position[1], p.position[2]).applyMatrix4(line.matrixWorld);
+    box.expandByPoint(world);
+  }
+  if (box.isEmpty()) return;
+  box.expandByVector(new THREE.Vector3(1.6, 1.4, 1.6));
+  const next = fitState(box, 0.9);
+  camState.target.copy(next.target);
+  camState.halfW = next.halfW;
+  camState.halfH = next.halfH;
+  applyCamState(camState);
+}
+
+function kickFirstPaint() {
+  renderer.setClearColor(scene.background, 1);
+  if (planMode) applyCamState({ target: new THREE.Vector3(), halfW: 14, halfH: 10 });
+  resize();
+  renderer.render(scene, camera);
+}
+
+let loopStarted = false;
+function startLoop() {
+  if (loopStarted) return;
+  loopStarted = true;
+  let last = 0;
+  const minFrameMs = grayMode ? 0 : 1000 / 30;
+  function frame(t) {
+    requestAnimationFrame(frame);
+    if (document.hidden || canvas.clientWidth < 2) return;
+    if (t - last < minFrameMs) return;
+    last = t;
+    if (planMode) stepTween(t);
+    controls.update();
+    resize();
+    renderer.render(scene, camera);
+    if (layoutDirty) {
+      layoutDirty = false;
+      postLayout();
+    }
+  }
+  requestAnimationFrame(frame);
+}
+
 async function boot() {
   const [spec, map] = await Promise.all([
     fetch("/twin/scene.json").then((r) => r.json()),
@@ -994,24 +1104,25 @@ async function boot() {
   ]);
   sceneSpec = spec;
   assetMap = map;
+  previewFit();
   const box = new THREE.Box3();
-
-  for (const p of sceneSpec.placements) {
-    if (p.kind === "scenery") continue;
-    if (soloAsset && p.asset_id !== soloAsset) continue;
+  const wanted = sceneSpec.placements.filter((p) => p.kind !== "scenery" && (!soloAsset || p.asset_id === soloAsset));
+  await mapPool(wanted, 6, async (p) => {
     try {
       const model = await mountPlacement(p);
       if (p.kind === "station") box.expandByObject(model);
+      scene.updateMatrixWorld(true);
+      model.userData.box = new THREE.Box3().setFromObject(model);
+      layoutDirty = true;
     } catch (e) {
       console.warn("skip", p.file, e);
     }
-  }
+  });
   scene.updateMatrixWorld(true);
   for (const root of pickRoots) root.userData.box = new THREE.Box3().setFromObject(root);
 
   if (planMode) {
     applyPlanMaterials();
-    groundGrid.position.y = -0.005;
     resize();
     fitTo(null, false);
   } else if (partMode) {
@@ -1089,23 +1200,9 @@ async function boot() {
     }
   }
 
-  let last = 0;
-  const minFrameMs = grayMode ? 0 : 1000 / 30;
-  function frame(t) {
-    requestAnimationFrame(frame);
-    if (document.hidden || canvas.clientWidth < 2) return;
-    if (t - last < minFrameMs) return;
-    last = t;
-    if (planMode) stepTween(t);
-    controls.update();
-    resize();
-    renderer.render(scene, camera);
-    if (layoutDirty) {
-      layoutDirty = false;
-      postLayout();
-    }
-  }
-  requestAnimationFrame(frame);
+  startLoop();
 }
 
+kickFirstPaint();
+startLoop();
 boot();

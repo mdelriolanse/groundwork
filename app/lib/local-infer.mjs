@@ -1,5 +1,5 @@
-const INFER_URL = process.env.INFERENCE_URL || "http://127.0.0.1:8000/v1/chat/completions";
-const INFER_MODEL = process.env.INFERENCE_MODEL || "Qwen3.6-35B-A3B";
+const INFER_URL = process.env.INFERENCE_URL || "http://127.0.0.1:8080/v1/chat/completions";
+const INFER_MODEL = process.env.INFERENCE_MODEL || "Qwen3-0.6B";
 
 export function inferenceTarget() {
   return { url: INFER_URL, model: INFER_MODEL };

@@ -29,18 +29,24 @@ const FORBIDDEN = [
 test("landing copy contract is present and pitch furniture is absent", () => {
   for (const line of REQUIRED) assert.match(html, new RegExp(line.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")));
   assert.match(html, />Demo Now</g);
-  assert.equal([...html.matchAll(/>Demo Now</g)].length, 3);
+  assert.equal([...html.matchAll(/>Demo Now</g)].length, 2);
   for (const re of FORBIDDEN) assert.doesNotMatch(html, re);
 });
 
-test("landing chrome is mark plus Demo Now and every CTA opens the Board", () => {
-  assert.match(html, /<header\b[^>]*class="[^"]*\bbar\b/);
-  assert.match(html, /<header[\s\S]*?Demo Now[\s\S]*?<\/header>/);
-  assert.doesNotMatch(html.match(/<header[\s\S]*?<\/header>/)[0], /Works|Contact|LinkedIn/i);
+test("landing has no top bar and every Demo Now opens the Board", () => {
+  assert.doesNotMatch(html, /<header\b[^>]*class="[^"]*\bbar\b/);
   const demos = [...html.matchAll(/<a\b[^>]*class="[^"]*\bdemo-now\b[^"]*"[^>]*>/g)].map((m) => m[0]);
-  assert.equal(demos.length, 3);
-  for (const tag of demos) assert.match(tag, /href="\/prototype\/"/);
+  assert.equal(demos.length, 2);
+  for (const tag of demos) assert.match(tag, /href="\/prototype\/#\/floor"/);
   assert.match(html, /aria-label="Open the Board"/);
+  assert.match(html, /src="\/landing\/demo-now.js"/);
+  const demo = fs.readFileSync("web/landing/demo-now.js", "utf8");
+  assert.match(demo, /\/api\/demo\/seed/);
+  assert.match(server, /pathname==="\/api\/demo\/seed"/);
+  assert.match(server, /server\.listen\([\s\S]*startSeedReplay\(\)/);
+  assert.match(server, /mockHop\(/);
+  const proto = fs.readFileSync("web/prototype/app.js", "utf8");
+  assert.match(proto, /\/api\/demo\/seed/);
 });
 
 test("hero is type only and concepts are three mute isolated assets", () => {
@@ -48,7 +54,7 @@ test("hero is type only and concepts are three mute isolated assets", () => {
   assert.doesNotMatch(hero, /data-concept|canvas|<iframe/i);
   const mounts = [...html.matchAll(/data-concept="([^"]+)"/g)].map((m) => m[1]);
   assert.deepEqual(mounts, ["PP1", "RPP1", "T1"]);
-  assert.match(html, /class="[^"]*\bconcepts\b[^"]*"[^>]*aria-hidden="true"/);
+  for (const mount of html.matchAll(/<div[^>]*data-concept="[^"]+"[^>]*>/g)) assert.match(mount[0], /aria-hidden="true"/);
   assert.doesNotMatch(html, /Siemens|MTR07-CAD|WAREHOUSE/);
 });
 
@@ -57,13 +63,69 @@ test("landing uses Workshop industrial tokens with a black accent and no brand g
   assert.match(css, /--primary:\s*#000000/i);
   assert.match(css, /--radius:\s*0/);
   assert.doesNotMatch(css, /#0c1713|#9ebbad|#b1c9bd|#3ecf8e|#1e40af|#ff5900/i);
-  assert.match(css, /position:\s*sticky/);
+});
+
+test("hero is a Gorskikh-scale italic serif manifesto without a 3D object", () => {
+  assert.match(css, /--font-serif:\s*"Instrument Serif"/);
+  assert.match(css, /\.hero h1[\s\S]*font-style:\s*italic/);
+  assert.match(css, /\.hero[\s\S]*min-height:\s*100dvh/);
+  assert.match(html, /<section class="hero"/);
+  assert.doesNotMatch(html.match(/<section class="hero"[\s\S]*?<\/section>/)[0], /data-concept|canvas|<iframe/i);
+});
+
+test("Board nav uses the Landing mark file", () => {
+  const mark = fs.readFileSync("web/landing/groundwork-mark.svg", "utf8");
+  const board = fs.readFileSync("web/prototype/groundwork-mark.svg", "utf8");
+  const app = fs.readFileSync("web/prototype/app.js", "utf8");
+  assert.equal(board, mark);
+  assert.match(app, /class="mark"/);
+  assert.match(app, /src="\/landing\/groundwork-mark.svg"/);
+  assert.doesNotMatch(mark, /#3ecf8e|#0f2318|#eafff3/);
 });
 
 test("root and /landing/ serve the Landing", () => {
   assert.match(server, /pathname==="\/"/);
   assert.match(server, /web\/landing/);
   assert.match(server, /\/landing\//);
-  assert.match(html, /href="\/landing\/styles.css"/);
+  assert.match(html, /href="\/landing\/styles.css\?v=/);
   assert.match(html, /src="\/landing\/orbit-view.js"/);
+});
+
+
+test("product previews and fonts ship locally with honest report labels", () => {
+  assert.match(html, /L1 REPORT/);
+  assert.match(html, /L2 REPORT/);
+  assert.match(html, /Recorded flag/);
+  assert.match(html, /Report structure preview/);
+  assert.doesNotMatch(html, /fonts\.googleapis|fonts\.gstatic/);
+  const fonts = fs.readFileSync("web/landing/fonts/fonts.css", "utf8");
+  assert.match(html, /rel="preload"[^>]*instrument-serif-400\.ttf[^>]*as="font"/);
+  assert.match(html, /rel="preload"[^>]*geist-400\.ttf[^>]*as="font"/);
+  assert.match(html, /rel="preload"[^>]*geist-mono-400\.ttf[^>]*as="font"/);
+  assert.match(fonts, /font-display:\s*block/);
+  assert.doesNotMatch(fonts, /font-display:\s*swap/);
+  const assets = [...html.matchAll(/(?:src|href)="(\/landing\/(?:images|fonts)\/[^"]+)"/g), ...fonts.matchAll(/url\((\/landing\/fonts\/[^)]+)\)/g)];
+  assert.ok(assets.length >= 6);
+  for (const [, asset] of assets) assert.ok(fs.statSync(`web${asset.replace(/\?.*$/, "")}`).size > 0, asset);
+});
+
+
+test("scroll diagnostic stays bound to the recorded RPP1 flag", () => {
+  const flag = JSON.parse(fs.readFileSync("web/prototype/feed.json", "utf8")).flag;
+  for (const value of [flag.asset_id, flag.part, flag.source, flag.window, String(flag.rms_g)]) assert.ok(html.includes(value), value);
+  assert.equal([...html.matchAll(/class="[^"]*scroll-diagnostic/g)].length, 1);
+});
+
+
+test("hero names Groundwork and light field stays compositor-only", () => {
+  assert.match(html, /class="hero-brand"[^>]*>[\s\S]*groundwork-mark\.svg[\s\S]*?Groundwork<\/p>/);
+  assert.doesNotMatch(html, /brand-squares/);
+  assert.match(css, /\.hero h1[\s\S]*max-width:\s*32ch/);
+  assert.doesNotMatch(html, /hero-blocks|title-reveal|scroll-reveal/);
+  assert.doesNotMatch(css, /title-reveal|hero-blocks|--cover|--block-pulse/);
+  assert.match(css, /\.hero::before[\s\S]*will-change:\s*transform/);
+  const motion = css.match(/@keyframes light-drift[\s\S]+?(?=\.hero h1)/)[0];
+  assert.doesNotMatch(motion, /\b(?:rotate|scale)\s*\(/);
+  assert.match(html, /class="hero-more"[^>]*href="#content"/);
+  assert.match(css, /html\s*\{\s*scroll-behavior:\s*smooth/);
 });

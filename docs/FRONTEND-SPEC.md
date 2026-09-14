@@ -138,8 +138,9 @@ Optional mapping from `asset_id` and `component_id` to scene object names. Opera
 | `/incidents` | Default active incident inbox; resolved history is a view of the same registry |
 | `/incidents/:id` | Complete technician case |
 | `/floor` | Spatial factory view with incident overlays |
-| `/assets` | Searchable plant hierarchy and condition registry |
+| `/assets` | Process-tag board: 24 station cards of cited L1 process/electrical tags |
 | `/assets/:id` | Asset 360 view |
+| `/condition` | Vibration diagnosis dashboard: 6 motor tiles (RMS hop historian, PMMCP label, cite) |
 | `/intelligence` | Cross-site AI execution, evidence, model/tool health, and containment |
 | `/intelligence/runs/:id` | Full processing trace |
 
@@ -150,7 +151,7 @@ Deep links preserve selected site/area, filters, object, and utility-rail mode i
 #### Left navigation — 208 px
 
 - Product mark and site name.
-- Incidents, Floor, Assets, Intelligence; icon plus text.
+- Incidents, Floor, Assets, Condition, Intelligence; icon plus text. Assets opens `#/assets` (the 24-card board), not an Asset 360.
 - Active route has both contrast and a left indicator.
 - Bottom: system state and settings/help, not destructive actions.
 
@@ -165,7 +166,7 @@ Deep links preserve selected site/area, filters, object, and utility-rail mode i
 
 Single vertical page scroll. Avoid nested scrolling except the object table and utility rail when viewport height requires it.
 
-#### Right utility rail — 400 px
+#### Right utility rail — 400 px default, user-resizable
 
 One contextual mode at a time:
 
@@ -173,7 +174,7 @@ One contextual mode at a time:
 2. Maintenance Assist.
 3. Evidence Viewer.
 
-Opening one mode replaces the current mode; modes never stack. Rail can collapse to a 44 px trigger strip. This prevents an unusable four-column desktop layout.
+Opening one mode replaces the current mode; modes never stack. Rail can collapse to a 44 px trigger strip. This prevents an unusable four-column desktop layout. Default width 400 px (L2 report left rail 480 px); either overlay rail is user-resizable, with width kept in localStorage, not the URL.
 
 ### Desktop target
 
@@ -321,9 +322,13 @@ Defaults to Object Preview summary. Maintenance Assist and Evidence Viewer are e
 
 ### 5.4 Assets
 
+#### Process-tag board (`/assets`)
+
+24 station cards from `catalog.json` / `asset-map.json`. Each card shows cited L1 process/electrical tags (busy/idle, torque, vac, current). Honesty: synthetic cites, never diagnosed. The six vibration-bound motors may show a small `Open Condition` affordance — not a second diagnosis. Grain is station-level existing catalog tags only. Drill target is `/assets/:id`.
+
 #### Registry
 
-Palantir Object Table pattern with search, hierarchy filter, condition, open-incident count, last scan, and location.
+Palantir Object Table pattern is not the v1 board; v1 is the 24-card process-tag board above.
 
 #### Asset detail / Asset 360
 
@@ -334,18 +339,26 @@ Tabs:
 3. `Evidence`: manuals, signal sources, and cited history.
 4. `Activity`: chronological audit trail.
 
-Header actions: `Open 3D render`, `View on floor`, `Ask Maintenance Assist`. No fake edit or CMMS actions.
+Header actions: `Close 3D render` (open by default), `View on floor`, `Ask Maintenance Assist`. No fake edit or CMMS actions.
 
 #### 3D render (Asset 360)
 
-- `render=3d` opens a **portrait** panel in a sticky left column (render on top, part facts below; the rest of Asset 360 flows beside it) with the same twin in `?view=part`: **only this station**, at the origin, on the same grid, same grayscale material as the Floor. Orbit is allowed here; it is a detail inspection, not navigation. The camera refits to the frame's aspect so the station is never cropped.
+- Open by default on every `/assets/:id`. `render=off` closes it. Portrait panel in a sticky left column (render on top, part facts below; the rest of Asset 360 flows beside it) with the same twin in `?view=part`: **only this station**, at the origin, on the same grid, same grayscale material as the Floor. Orbit is allowed here; it is a detail inspection, not navigation. The camera refits to the frame's aspect so the station is never cropped.
 - Clicking a part highlights that sub-tree and shows part facts beside the render: for the sensor-bound part (`RPP1/URjoint1`) the source, window, RMS, speed, BPFI, current fault, `Open incident`, `Open exact signal`; for other monitored stations the cited process/electrical tags on the bound part; for every other part "No sensor on this part" — never an invented fault.
 - When the asset carries a flag, the bound part is pre-highlighted on open so the fault is visible immediately.
 - Works for all stations (geometry + tags where bound) and survives replay re-renders (persistent iframe).
 
-### 5.5 Intelligence
+### 5.5 Condition
 
-Cross-site trust and execution center, not a feature launcher.
+Vibration diagnosis dashboard. Primary object is the asset: six motor tiles (RPP1, PP5, B1–B4). Each tile: RMS sparkline from the hop historian (~20 cited dots, same 1 Hz clock as process tags), PMMCP label (`inner_race` / `outer_race` / `none` / etc.), incident chip if open, `.mat` cite. Spectrum, envelope, and full L1 dump stay on Asset 360 / incident. No 12 kHz waveform thumbnails.
+
+ISO: one page-level note only — all 6 << 15 kW (`iso20816.py:294`). Context only. No zone letter. No per-tile ISO.
+
+Flags stay on RPP1, PP5. B1–B4 are healthy CWRU normals (`97.mat`–`100.mat`), one unique file each. FPR is a real number from those four true negatives plus existing healthy hops (Decision 11).
+
+### 5.6 Intelligence
+
+Cross-site trust and execution center, not a feature launcher. The Fleet accordion is a pointer into `/assets` and `/condition` — not the process-tag or vibration dashboard.
 
 #### Summary
 
@@ -465,16 +478,16 @@ Avoid:
 | --- | --- | --- |
 | `--surface-app` | `#F8FAFC` | Application background |
 | `--surface-panel` | `#FFFFFF` | Tables, panels, utility rail |
-| `--surface-selected` | `#EFF6FF` | Selected object/row |
+| `--surface-selected` | `#F1F5F9` | Selected object/row |
 | `--text-primary` | `#0F172A` | Main text |
 | `--text-secondary` | `#475569` | Secondary text |
 | `--border` | `#CBD5E1` | Dividers and input borders |
-| `--primary` | `#1E40AF` | Primary action and active navigation |
+| `--primary` | `#000000` | Primary action and active navigation |
 | `--critical` | `#B91C1C` | Critical/error |
 | `--warning` | `#B45309` | Warning/aging |
 | `--success` | `#047857` | Completed/contained |
-| `--info` | `#1D4ED8` | Running/information |
-| `--focus` | `#2563EB` | 2–3 px focus ring |
+| `--info` | `#000000` | Running/information |
+| `--focus` | `#000000` | 2–3 px focus ring |
 
 All text/background pairs must meet WCAG AA. Status always includes icon or text.
 

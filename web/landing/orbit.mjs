@@ -15,3 +15,8 @@ export function isolateFiles(scene, assetId) {
 export function shouldAutoOrbit(reducedMotion) {
   return reducedMotion !== true;
 }
+
+// Negative top means the scroll stage has passed its starting position.
+export function focusProgress(top, travel, reducedMotion) {
+  return reducedMotion ? 1 : Math.max(0, Math.min(1, -top / Math.max(travel, 1)));
+}

@@ -111,5 +111,6 @@ _Avoid_: isolate, localize, zoom (localize already means a **Fault** on a **Part
 - "this is a Tesla factory" — resolved: VFLab is a published hinge-assembly cell. Pitch the *buyer* (discrete-manufacturing maintenance), not a fake OEM layout.
 - "landing page" as portfolio case vs product site — resolved: **Landing** is Groundwork's own page. No author, no event. Placement on a personal site does not change the voice.
 - Pitch-deck copy on the **Landing** — resolved: hero tagline plus a short product beat. Not TAM, competitors, team, or stats. Visitor-facing noun is **Work Order**, not ticket. The **Landing** does not link to the pitch deck.
-- **Landing** color — resolved: Palantir industrial / Board Workshop, black accent (the old dark blue). No pitch-site green/forest, no logo-derived green, no Gorskikh orange. Beat order may still follow the reference site; the visual system does not.
+- **Landing** color — resolved: Palantir industrial / Board Workshop chrome, black accent. No pitch-site green/forest, no logo-derived green, no Gorskikh orange.
+- **Landing** hero type — resolved: Gorskikh manifesto (italic Instrument Serif, full-bleed, type only). Not Workshop UI sans. Not a 3D object.
 - how WO output reaches the Board / the next isolated wake — resolved: sqlite is the bus. Model emits JSON; a writer gates cites; Board polls `BoardView`. See [adr/0002-sqlite-is-the-wo-bus.md](adr/0002-sqlite-is-the-wo-bus.md).

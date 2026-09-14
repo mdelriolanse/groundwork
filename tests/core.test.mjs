@@ -4,9 +4,10 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import { createStore } from "../app/lib/store.mjs";
+import { mockHop, processAssets } from "../app/lib/mock-hops.mjs";
 import { createRag } from "../app/lib/rag.mjs";
 import { validateWorkOrder, validateQuestion } from "../app/lib/contracts.mjs";
-import { askAssist, assistPrompt, bindCitations, buildAssistPacket } from "../app/lib/assist.mjs";
+import { askAssist, assistPrompt, bindCitations, buildAssistPacket, packetCitations } from "../app/lib/assist.mjs";
 import { toolCallsFromHistory, retrievalPassagesFromHistory } from "../app/lib/gateway-client.mjs";
 import { RunManager } from "../app/lib/runs.mjs";
 
@@ -25,7 +26,7 @@ test("board issues list lights named parts from open incidents and clears on res
   assert.deepEqual(store.board().issues,[]);
   const detected=store.recordIncidentDetection({asset_id:"RPP1",fault:"inner_race",part:"URjoint1",detected_at:"2026-09-12T12:00:00.000Z"});
   assert.equal(detected.part,"URjoint1");
-  assert.deepEqual(store.board().issues,[{asset_id:"RPP1",part:"URjoint1",fault:"inner_race",status:"new",severity:"critical",incident_id:detected.incident_id}]);
+  assert.deepEqual(store.board().issues,[{asset_id:"RPP1",part:"URjoint1",fault:"inner_race",status:"new",priority:"critical",severity:"critical",incident_id:detected.incident_id}]);
   // Hero fallback when part omitted
   store.transitionIncident(detected.incident_id,"resolved","2026-09-12T12:05:00.000Z");
   assert.deepEqual(store.board().issues,[]);
@@ -45,10 +46,15 @@ test("gateway history exposes actual nested MCP calls without credentials",()=>{
 test("question scope validates bounded input",()=>{assert.equal(validateQuestion("What should I inspect?"),"What should I inspect?");assert.throws(()=>validateQuestion("x"),/3-500/);assert.throws(()=>validateQuestion("x".repeat(501)),/3-500/);});
 
 test("maintenance assist asks for conversational explanations instead of bare fault labels",()=>{
-  const [{content}] = assistPrompt("What is the issue?",{role:"hero"});
+  const messages = assistPrompt("What is the issue?",{role:"hero"});
+  const [{content}] = messages;
   assert.match(content,/2-4 complete sentences/);
   assert.match(content,/Never reply with only a code, label, field value, or fragment/);
   assert.match(content,/inner_race.*inner-race bearing fault/);
+  assert.match(content,/follow-up offer|Want the evidence window/);
+  assert.equal(messages.length,4);
+  assert.match(messages[1].content,/cited fault/);
+  assert.match(messages[2].content,/inner-race bearing fault/);
 });
 
 test("assist packet binds hop facts and rejects geometry-only stations",()=>{
@@ -56,6 +62,8 @@ test("assist packet binds hop facts and rejects geometry-only stations",()=>{
   const hero=buildAssistPacket({hops,board:{work_order:null},incidents:[],assetId:"RPP1"});
   assert.equal(hero.role,"hero");
   assert.equal(hero.rpp1.rms,0.07);
+  assert.equal(hero.work_order,null);
+  assert.equal(hero.l2_report,null);
   const proc=buildAssistPacket({hops,board:{},incidents:[],assetId:"PP3"});
   assert.equal(proc.role,"process");
   assert.equal(proc.tags.busy,1);
@@ -64,11 +72,67 @@ test("assist packet binds hop facts and rejects geometry-only stations",()=>{
   assert.deepEqual(cites,[{type:"signal",source:"cwru:97.mat:X097_DE_time",window:"0.00..1.00"}]);
 });
 
+test("askAssist uses a seeded incident snapshot when hops are missing",async()=>{
+  const dir=fs.mkdtempSync(path.join(os.tmpdir(),"plant-floor-"));
+  fs.mkdirSync(path.join(dir,"demo"));
+  fs.copyFileSync(path.join(root,"data/demo/seed-incidents.json"),path.join(dir,"demo/seed-incidents.json"));
+  const store=createStore(path.join(dir,"test.db"));
+  store.seed();
+  assert.equal(store.latestHop(),null);
+  let seen="";
+  const result=await askAssist({
+    store,
+    question:"What is the work order?",
+    asset_id:"PP5",
+    infer:async({messages})=>{
+      seen=JSON.stringify(messages);
+      return {text:'{"answer":"Inspect the inner-race bearing and schedule a 6205-2RS replace after approval.","out_of_scope":false,"citations":[]}',model:"Qwen3-0.6B"};
+    },
+  });
+  assert.match(seen,/PP5|WO-PP5-IR/);
+  assert.match(seen,/l2_report/);
+  assert.match(seen,/6205-2RS/);
+  assert.match(seen,/Inspect inner race/);
+  assert.equal(result.model,"Qwen3-0.6B");
+  assert.match(result.answer,/6205-2RS|inner-race/);
+  store.close();
+  fs.rmSync(dir,{recursive:true,force:true});
+});
+
+test("assist packet loads work order and L2 report when present",()=>{
+  const wo={
+    wo_id:"WO-PP5-IR",
+    asset_id:"PP5",
+    opened:"2026-09-12T18:05:27+00:00",
+    fault:"inner_race",
+    severity:"iso_context_only",
+    action:"Inspect inner race; schedule bearing replace",
+    parts:["6205-2RS"],
+    priority:"critical",
+    evidence:{source:"mendeley:0Nm_BPFI_10__ch0.mat",window:"0.00..2.00",rpm:3010,part:"AC motor",features:["BPFI label","3010 rpm"]},
+    citations:[{type:"signal",source:"mendeley:0Nm_BPFI_10__ch0.mat",window:"0.00..2.00"},{type:"manual",doc:"skf-bearing-damage-analysis.pdf",page:214}],
+  };
+  const packet=buildAssistPacket({
+    hops:{live:false,latest:null,assets:{}},
+    board:{work_order:wo},
+    incidents:[{asset:"PP5",component:"AC motor",fault:"inner_race",source:"mendeley:0Nm_BPFI_10__ch0.mat",window:"0.00..2.00",rpm:3010,rms:1.352,id:"INC-1",status:"acknowledged",work_order:wo,wo_id:wo.wo_id}],
+    assetId:"PP5",
+  });
+  assert.equal(packet.work_order.wo_id,"WO-PP5-IR");
+  assert.deepEqual(packet.work_order.parts,["6205-2RS"]);
+  assert.equal(packet.l2_report.wo_id,"WO-PP5-IR");
+  assert.equal(packet.l2_report.features.length,2);
+  const cites=packetCitations(packet);
+  assert.equal(cites.some((c)=>c.type==="manual"&&c.doc==="skf-bearing-damage-analysis.pdf"),true);
+  assert.equal(cites.some((c)=>c.type==="history"&&c.wo_id==="WO-PP5-IR"),true);
+});
+
 test("askAssist persists a model answer without requiring a work order",async()=>{
   const dir=fs.mkdtempSync(path.join(os.tmpdir(),"plant-floor-"));
   const store=createStore(path.join(dir,"test.db"));
   store.seed();
   const hops={live:true,latest:{hop:1,ts:"t",rpp1:{source:"cwru:97.mat:X097_DE_time",window:"0..1",rms:0.07,fault:null,file:"97.mat",engine:"pmmcp",part:"URjoint1"},assets:{}},assets:{}};
+  store.latestHop=()=>hops.latest;
   store.hopsLatest=()=>hops;
   store.board=()=>({work_order:null});
   store.listIncidents=()=>[];
@@ -105,6 +169,74 @@ test("processFlag isolates OpenClaw session and idempotency keys per runId",asyn
   assert.equal(calls[1].idempotencyKey,`plant-floor-flag-${flagId}-${second.runId}`);
   assert.notEqual(calls[0].sessionKey,calls[1].sessionKey);
   assert.notEqual(calls[0].idempotencyKey,calls[1].idempotencyKey);
+});
+
+test("demo seed fixtures pin distinct parts across all four priorities",(t)=>{
+  const fixtures=JSON.parse(fs.readFileSync(path.join(root,"data/demo/seed-incidents.json"),"utf8"));
+  const rows=fixtures.incidents;
+  assert.ok(rows.length >= 8);
+  const keys=rows.map((r)=>`${r.asset_id}\0${r.part}`);
+  assert.equal(new Set(keys).size,keys.length);
+  const pris=new Set(rows.map((r)=>r.priority));
+  for (const p of ["critical","high","medium","low"]) assert.ok(pris.has(p),p);
+  assert.equal(rows.some((r)=>r.asset_id==="RPP1"),false);
+  const dir=fs.mkdtempSync(path.join(os.tmpdir(),"plant-floor-"));
+  t.after(()=>{fs.rmSync(dir,{recursive:true,force:true});});
+  fs.mkdirSync(path.join(dir,"demo"));
+  fs.copyFileSync(path.join(root,"data/demo/seed-incidents.json"),path.join(dir,"demo/seed-incidents.json"));
+  const store=createStore(path.join(dir,"test.db"));
+  t.after(()=>{try{store.close();}catch{}});
+  store.seedDemoIncidents();
+  const list=store.listIncidents();
+  assert.equal(list.length,rows.length);
+  const lit=new Set(list.map((i)=>`${i.asset}\0${i.component}`));
+  assert.equal(lit.size,rows.length);
+  const issues=store.board().issues;
+  assert.equal(issues.length,rows.length);
+  const sev=new Set(issues.map((i)=>i.severity));
+  for (const p of ["critical","high","medium","low"]) assert.ok(sev.has(p),p);
+  assert.equal(list.every((i)=>Boolean(i.wo_id && i.work_order)),true);
+  assert.equal(rows.every((r)=>r.work_order && r.work_order.wo_id),true);
+});
+
+test("mock hops keep a monotonic index and evolve process busy without wrapping at 10",(t)=>{
+  const feed=JSON.parse(fs.readFileSync(path.join(root,"web/prototype/feed.json"),"utf8"));
+  const catalog=JSON.parse(fs.readFileSync(path.join(root,"data/sensors/catalog.json"),"utf8"));
+  const a=mockHop(3,{feed,catalog});
+  const b=mockHop(47,{feed,catalog});
+  const c=mockHop(48,{feed,catalog});
+  assert.equal(a.hop,3);
+  assert.equal(b.hop,47);
+  assert.equal(c.hop,48);
+  assert.equal(a.rpp1.fault,null);
+  assert.ok(a.rpp1.rms != null);
+  assert.ok(Object.keys(a.assets).length > 8);
+  const busyAt=(n)=>Object.entries(processAssets(catalog,n)).filter(([,s])=>s.busy===1||s.busy===true).map(([id])=>id).sort().join(",");
+  assert.ok(new Set([0,1,2,3,4,5,6,7].map(busyAt)).size > 1);
+  assert.notEqual(JSON.stringify(b.assets),JSON.stringify(c.assets));
+});
+
+test("seedHopsFromFeed publishes live hops so the Board is not empty",(t)=>{
+  const dir=fs.mkdtempSync(path.join(os.tmpdir(),"plant-floor-"));
+  const store=createStore(path.join(dir,"test.db"));
+  t.after(()=>{try{store.close();}catch{}fs.rmSync(dir,{recursive:true,force:true});});
+  store.seed();
+  assert.equal(store.latestHop(),null);
+  assert.equal(store.hopsLatest().live,false);
+  const feed=JSON.parse(fs.readFileSync(path.join(root,"web/prototype/feed.json"),"utf8"));
+  const hop=store.seedHopsFromFeed(feed);
+  assert.equal(hop.seeded,true);
+  assert.ok(hop.rpp1?.rms != null);
+  assert.ok(Object.keys(hop.assets || {}).length > 0);
+  assert.equal(hop.hop,9);
+  const latest=store.hopsLatest(20);
+  assert.equal(latest.live,true);
+  assert.equal(latest.latest.hop,hop.hop);
+  assert.ok(latest.rms.length >= 10);
+  assert.ok(Object.values(latest.assets).some((slot)=>slot.busy === 1 || slot.busy === true));
+  const again=store.seedHopsFromFeed(feed);
+  assert.equal(again.skipped,true);
+  assert.equal(store.latestHop().hop,hop.hop);
 });
 
 test("PMMCP structured result yields a page-resolvable passage",()=>{const payload={result:{content:[{type:"text",text:'structuredContent:\n{"results":[{"source":"skf-bearing-damage-analysis-p214.txt","text":"Inspect the bearing raceways, cage(s) schedule"}]}\n\ncontent:\n...'}]}};const result=retrievalPassagesFromHistory(payload)[0];assert.equal(result.source,"skf-bearing-damage-analysis-p214.txt");assert.equal(createRag(root).resolvePassage(result.source,result.text).page,214);});

@@ -16,6 +16,34 @@ test("twin importmap is registered before any modulepreload", () => {
   assert.ok(preload < 0 || map < preload, "import map must precede modulepreload or Firefox ignores it");
 });
 
+test("plan twin paints the grid immediately and fetches station GLBs concurrently", () => {
+  const html = fs.readFileSync("web/twin/index.html", "utf8");
+  assert.match(html, /classList\.add\(["']plan["']\)/, "plan backdrop class must apply before viewer.js");
+  assert.match(html, /html\.plan/, "plan CSS must not wait on the module");
+  assert.match(html, /html\.plan\s+#hud/, "HUD hide must key off html.plan, not wait for body.plan");
+  assert.match(html, /#hud\s*\{[^}]*display\s*:\s*none/, "HUD is hidden until inspection; plan/part never flash the panel");
+  assert.match(html, /html:not\(\.plan\)\s+#hud/, "inspection HUD must still show without viewer.js");
+  assert.match(html, /html\.plan\s+#c/, "plan canvas CSS background must apply before WebGL");
+  assert.match(html, /three\.core\.js/, "three.core.js must be modulepreloaded; three.module.js imports it");
+  assert.match(twin, /function mapPool\s*\(/, "unique station GLBs must load through a bounded pool");
+  assert.match(twin, /function kickFirstPaint\s*\(/, "WebGL must clear to the plan backdrop before GLBs arrive");
+  assert.match(twin, /function startLoop\s*\(/, "the render loop must start without waiting on the line");
+  assert.match(twin, /renderer\.clear\s*\(\s*\)/, "the canvas must be cleared as soon as the renderer exists");
+  assert.match(
+    twin,
+    /setClearColor\([^;]+;\s*renderer\.setSize\([\s\S]{0,120}?false\);\s*renderer\.clear\s*\(\s*\)/,
+    "WebGL buffer must be sized and cleared before the first default 300×150 paint",
+  );
+  assert.doesNotMatch(
+    twin,
+    /for\s*\(\s*const p of sceneSpec\.placements\s*\)\s*\{[\s\S]{0,400}?await mountPlacement/,
+    "plan boot must not await each station GLB in scene order",
+  );
+  assert.match(prototype, /prefetchFloorLine|prefetchUrls/, "parent must prefetch the line GLBs for the floor iframe");
+  assert.match(prototype, /three\.core\.js/, "parent prefetch must include three.core.js");
+  assert.match(prototype, /fetchpriority=["']high["']/, "floor iframe is the LCP surface");
+});
+
 test("incident detail embeds an accessible Three.js inspection panel with load states", () => {
   assert.match(twin, /new\s+THREE\.WebGLRenderer\s*\(/, "existing twin must remain a real Three.js renderer");
   assert.ok(
@@ -24,6 +52,9 @@ test("incident detail embeds an accessible Three.js inspection panel with load s
   );
 
   assert.match(incidentDetail, /data-part-mount/, "3D inspection panel must mount the shared part twin");
+  assert.match(incidentDetail, /partPanel\(/, "incident inspection must reuse the Asset 360 part facts panel");
+  assert.match(incidentDetail, /inspection-body/, "issue geometry and part facts must sit in one inspection body");
+  assert.match(prototype, /type === ["']twin:ready["'][\s\S]{0,800}syncPart\(/, "twin:ready must send issues/light without waiting for a click");
   assert.match(prototype, /partRequest[\s\S]{0,400}\/incidents\//, "incident routes must request the part twin");
   assert.match(prototype, /view:\s*["']part["']/, "part twin must load in part mode");
   assert.match(prototype, /twinOrigin.*\/twin\//, "part frame must use the twin origin route");
@@ -35,7 +66,7 @@ test("incident detail embeds an accessible Three.js inspection panel with load s
 
 
 test("3D inspection derives named issue target from board data and hides unmapped markers", () => {
-  assert.match(prototype, /fetch\s*\(\s*["'`]\/api\/board(?:[?"'`])/, "inspection target must come from the SQLite-backed board API");
+  assert.match(prototype, /fetch\s*\(\s*`\$\{\s*apiBase\(\)\s*\}\/api\/board`/, "inspection target must come from the SQLite-backed board API");
   assert.match(prototype, /selection\s*(?:\?\.|\.)\s*asset_id/, "target asset must use board.selection.asset_id");
   assert.match(
     prototype,
@@ -168,12 +199,12 @@ test("cross-origin twin embed uses app port and a validated focus/light/ready me
   assert.ok(incidentStart >= 0 && incidentEnd > incidentStart, "incident-detail inspection source must be discoverable");
 
   assert.ok(
-    /(?:location\.protocol[\s\S]{0,160})?location\.hostname[\s\S]{0,160}(?::|port\s*=\s*["'])8765|8765[\s\S]{0,160}location\.hostname/.test(prototype),
-    "twin URL must preserve the current hostname and use the live app port 8765",
+    /location\.port\s*===\s*["']4173["']/.test(prototype) && /location\.origin/.test(prototype),
+    "twin URL must use the serving origin, with static :4173 falling back to the board",
   );
   assert.match(prototype, /\$\{twinOrigin\}\/twin\/\?/, "part frame must use the cross-origin twin URL");
   assert.doesNotMatch(prototype, /frame\.src\s*=\s*["'][^"']*(?:127\.0\.0\.1|localhost)/i, "iframe hostname must not be hard-coded");
-  assert.match(prototype, /fetch\s*\(\s*["'`]\/api\/board(?:[?"'`])/, "same-origin board API integration must remain relative");
+  assert.match(prototype, /fetch\s*\(\s*`\$\{\s*apiBase\(\)\s*\}\/api\/board`/, "same-origin board API integration must remain relative");
 
   assert.doesNotMatch(prototype, /contentWindow\s*(?:\?\.|\.)\s*__twin/, "parent must not access cross-origin iframe properties");
   assert.match(prototype, /addEventListener\s*\(\s*["']message["']/, "parent must receive twin messages");
@@ -284,6 +315,22 @@ test("parent posts twin:issues from board and twin keeps issues across part:clea
   const aqBlock = twin.slice(aqIdx, aqEnd > aqIdx ? aqEnd : aqIdx + 400);
   assert.match(aqBlock, /lightPart\s*\(/, "boot ?component= selects via lightPart");
   assert.doesNotMatch(aqBlock, /setIssues\s*\(/, "boot ?component= must not invent an issue");
+});
+
+test("asset 360 opens the 3D render by default", () => {
+  assert.match(prototype, /function assetRenderOpen/);
+  assert.match(prototype, /params\.get\(["']render["']\) !== ["']off["']/);
+  assert.match(prototype, /assetRenderOpen\(getRoute\(\)\) \? ["']off["'] : null/);
+  assert.match(prototype, /const renderOpen = assetRenderOpen\(route\)/);
+});
+
+test("asset 360 render stays neutral gray until the technician picks a part", () => {
+  const req = prototype.split("function partRequest")[1].split("function postPartIssues")[0];
+  const sync = prototype.split("function syncPart")[1].split("function handlePartMessage")[0];
+  assert.doesNotMatch(req, /fleet\?\.part/, "Asset 360 must not pre-light the catalog part");
+  assert.doesNotMatch(sync, /fleet\?\.part/, "sync must not fall back to the catalog part as a selection");
+  assert.match(twin, /function studioMat\(/, "plan and part share a Standard gray material");
+  assert.doesNotMatch(twin, /0x111111/, "v0 black is not the default or selection fill");
 });
 
 test("part twin stays on one iframe and swaps stations through twin:asset", () => {

@@ -4,7 +4,7 @@
   "hero": "RPP1",
   "cite": "https://github.com/difactory/repository",
   "license": "CC BY-NC 4.0",
-  "honesty": "All stations monitored with L1 tags. RPP1 carries CWRU-diagnosed vibration; MTR07-CAD and PP5 (AC motor) carry Mendeley (ztmf3m7h5x)-diagnosed vibration. All ISO context only (<< 15 kW, unconfirmed - needs verification). Everyone else is process/electrical - never invented vibration or ISO zones.",
+  "honesty": "All stations monitored with L1 tags. Vibration-bound motors: RPP1 (CWRU IR tape) and PP5 (Mendeley ztmf3m7h5x) may flag; B1–B4 bind unique CWRU healthy normals 97–100.mat and stay fault=none. All ISO context only (<< 15 kW, iso20816.py:294). Everyone else is process/electrical — never diagnosed.",
   "assets": [
     {
       "asset_id": "RPP1",
@@ -91,29 +91,14 @@
       "name": "Wing conveyor 2"
     },
     {
-      "asset_id": "MTR07-CAD",
-      "aliases": [],
-      "role": "condition",
-      "part": "1LE1003-1EB23-4JA4",
-      "source": "mendeley:0Nm_BPFI_10__ch0.mat",
-      "tape": [
-        "0Nm_Normal__ch0.mat",
-        "0Nm_BPFI_10__ch0.mat"
-      ],
-      "glb": "Siemens_1LE1003_Motor.glb",
-      "click_nodes": [
-        "MTR07-CAD",
-        "1LE1003-1EB23-4JA4"
-      ],
-      "name": "Siemens 1LE1003"
-    },
-    {
       "asset_id": "B1",
       "aliases": [],
-      "role": "process",
+      "role": "condition",
       "part": "belt",
-      "source": "synthetic:dorner-gearmotor",
-      "tape": [],
+      "source": "cwru:97.mat",
+      "tape": [
+        "97.mat"
+      ],
       "glb": "Conveyor_Main.glb",
       "click_nodes": [
         "B1",
@@ -124,10 +109,12 @@
     {
       "asset_id": "B2",
       "aliases": [],
-      "role": "process",
+      "role": "condition",
       "part": "belt",
-      "source": "synthetic:dorner-gearmotor",
-      "tape": [],
+      "source": "cwru:98.mat",
+      "tape": [
+        "98.mat"
+      ],
       "glb": "Conveyor_Main.glb",
       "click_nodes": [
         "B2",
@@ -138,10 +125,12 @@
     {
       "asset_id": "B3",
       "aliases": [],
-      "role": "process",
+      "role": "condition",
       "part": "belt",
-      "source": "synthetic:dorner-gearmotor",
-      "tape": [],
+      "source": "cwru:99.mat",
+      "tape": [
+        "99.mat"
+      ],
       "glb": "Conveyor_Main.glb",
       "click_nodes": [
         "B3",
@@ -152,10 +141,12 @@
     {
       "asset_id": "B4",
       "aliases": [],
-      "role": "process",
+      "role": "condition",
       "part": "belt",
-      "source": "synthetic:dorner-gearmotor",
-      "tape": [],
+      "source": "cwru:100.mat",
+      "tape": [
+        "100.mat"
+      ],
       "glb": "Conveyor_Main.glb",
       "click_nodes": [
         "B4",

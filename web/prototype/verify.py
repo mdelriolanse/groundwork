@@ -8,7 +8,7 @@ import sys
 
 ROOT = Path(__file__).resolve().parent
 REQUIRED = [ROOT / name for name in ("index.html", "styles.css", "app.js", "README.md", "feed.json")]
-ROUTES = ("/incidents", "/incidents/INC-RPP1", "/floor", "/assets/RPP1", "/intelligence")
+ROUTES = ("/incidents", "/incidents/INC-RPP1", "/floor", "/assets", "/assets/RPP1", "/condition", "/intelligence")
 STATES = ("closed", "ready", "running", "answered", "unsupported", "failed", "offline")
 BANNED = ("INC-2048", "INC-2045", "MTR-12", "PMP-03", "CNC-07", "FAN-04", "RUN-8821")
 SHOTS = (

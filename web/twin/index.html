@@ -8,18 +8,26 @@
     html, body { margin: 0; height: 100%; background: #111; color: #eee; font: 13px/1.4 ui-sans-serif, system-ui, sans-serif; }
     #c { display: block; width: 100%; height: 100%; }
     #hud {
+      display: none;
       position: absolute; top: 12px; left: 12px; min-width: 260px;
       background: rgba(0,0,0,.72); padding: 10px 12px; border: 1px solid #333;
     }
+    html:not(.plan) #hud { display: block; }
     #hud h1 { margin: 0 0 6px; font-size: 13px; font-weight: 600; }
     #hud dt { color: #9aa; }
     #hud dd { margin: 0 0 4px; }
     #hud .hero { color: #f5c14a; }
-    body.plan { background: #e6eaf0; }
-    body.plan #c { cursor: grab; }
-    body.plan #c:active { cursor: grabbing; }
-    body.plan #hud { display: none; }
+    html.plan, html.plan body, body.plan { background: #e6eaf0; }
+    html.plan #c, body.plan #c { background: #e6eaf0; cursor: grab; }
+    html.plan #c:active, body.plan #c:active { cursor: grabbing; }
+    html.plan #hud, body.plan #hud { display: none; }
   </style>
+  <script>
+    (function () {
+      var v = new URLSearchParams(location.search).get("view");
+      if (v === "plan" || v === "top" || v === "part") document.documentElement.classList.add("plan");
+    })();
+  </script>
   <script type="importmap">
   {
     "imports": {
@@ -28,10 +36,11 @@
     }
   }
   </script>
+  <link rel="modulepreload" href="./vendor/three.core.js">
   <link rel="modulepreload" href="./vendor/three.module.js">
   <link rel="modulepreload" href="./vendor/addons/loaders/GLTFLoader.js">
   <link rel="modulepreload" href="./vendor/addons/controls/OrbitControls.js">
-  <link rel="modulepreload" href="./viewer.js">
+  <link rel="modulepreload" href="./viewer.js?v=planfast3">
 </head>
 <body>
   <canvas id="c"></canvas>
@@ -43,6 +52,6 @@
       <dt>source</dt><dd id="source">—</dd>
     </dl>
   </aside>
-  <script type="module" src="./viewer.js"></script>
+  <script type="module" src="./viewer.js?v=planfast3"></script>
 </body>
 </html>

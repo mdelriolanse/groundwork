@@ -6,7 +6,7 @@ Served by `app/server.mjs` on `:8765` under `/twin/`. One scene graph, two modes
 | --- | --- | --- | --- | --- | --- |
 | inspection (default) | `/twin/?asset=RPP1` | perspective + orbit, hero framing | if `?asset=` is set, only that station GLB is loaded; otherwise hides other stations after load | original VLFT | leftover deep-links |
 | plan | `/twin/?view=plan` (isometric) or `?view=top` | orthographic bird's-eye, line turned left→right; angle locked; wheel zoom + drag pan; `Fit line` / view toggle reset | dims others, outlines footprint, frames the station's cell | neutral grey | prototype Floor page |
-| part | `/twin/?view=part&asset=RPP1&component=URjoint1` | perspective + orbit around one station at the origin; only that GLB is loaded | `?component=` pre-selects a named node if it exists; click a part → highlight sub-tree blue, post `twin:part`; `twin:issues` paints sqlite issues red; `twin:light` pre-selects | neutral grey | Incident detail + Asset 360 “Open 3D render” (any `asset_id`) |
+| part | `/twin/?view=part&asset=RPP1&component=URjoint1` | perspective + orbit around one station at the origin; only that GLB is loaded | `?component=` pre-selects a named node if it exists; click a part → highlight sub-tree blue, post `twin:part`; `twin:issues` paints sqlite issues red; `twin:light` pre-selects | neutral grey | Incident detail + Asset 360 (open by default; any `asset_id`) |
 
 Click a station in plan mode to open its Asset 360 (parent handles `twin:select`). Any detail view with `?asset=` loads one station from `scene.json` — not RPP1-only. Floor stays the full line. Hero `RPP1` / `URjoint1` → `cwru:105.mat`.
 
@@ -25,6 +25,6 @@ The parent draws labels, markers, tree, and legend from `twin:layout`; the twin 
 ## Data
 
 - `scene.json` — placements (position/rotation per station, `kind`: station|scenery) plus `cells` and a `cell` per station used for the Floor tree and cell framing. Hand-maintained; the original `compose_scene.py` is not in this checkout.
-- `asset-map.json` — which stations are monitored (all VLFT stations + `MTR07-CAD`; `RPP1` hero, others process), their clickable nodes and signal source.
+- `asset-map.json` — which stations are monitored (all VLFT stations; `RPP1` hero, others process), their clickable nodes and signal source.
 
 Geometry: VLFT CC BY-NC 4.0 (`https://github.com/difactory/repository`). Warehouse shell is omitted in both modes (occludes the line).

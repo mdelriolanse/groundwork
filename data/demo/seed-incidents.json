@@ -1,88 +1,15 @@
 {
-  "honesty": "Seeded before stage. OR uses measured RMS on cwru:130.mat window 0..2 (CWRU OR007). T1 is process-only, no PMMCP. Flags marked processed so L2 does not re-draft. Live IR on RPP1 is not seeded.",
+  "honesty": "Seeded before a visitor opens the Board. Vibration cases bind Mendeley on PP5 AC motor and keep SKF+Mendeley citations. Process rows get process-tag work orders only — no invented RMS, ISO zones, or SKF pages. Live IR on RPP1 is not seeded. Flags marked processed so L2 does not re-draft.",
   "incidents": [
-    {
-      "asset_id": "MTR07-CAD",
-      "part": "1LE1003-1EB23-4JA4",
-      "fault": "inner_race",
-      "priority": "high",
-      "status": "acknowledged",
-      "detected_at": "2026-09-12T18:00:27+00:00",
-      "acknowledged_at": "2026-09-12T18:20:27+00:00",
-      "detections": [
-        "2026-09-12T18:00:27+00:00",
-        "2026-09-12T18:10:27+00:00"
-      ],
-      "source": "mendeley:0Nm_BPFI_10__ch0.mat",
-      "window": "0.00..2.00",
-      "rpm": 3010,
-      "rms": 1.352,
-      "flag_status": "processed",
-      "work_order": {
-        "wo_id": "WO-MTR07-IR",
-        "asset_id": "MTR07-CAD",
-        "opened": "2026-09-12T18:00:27+00:00",
-        "fault": "inner_race",
-        "severity": "iso_context_only",
-        "evidence": {
-          "source": "mendeley:0Nm_BPFI_10__ch0.mat",
-          "window": "0.00..2.00",
-          "rpm": 3010,
-          "features": [
-            "Mendeley dataset ground-truth BPFI (inner race, 0.3mm fault) label on 0Nm_BPFI_10.mat channel 0; measured RMS 1.352 g vs 0.102 g healthy baseline (0Nm_Normal.mat) - 13x elevation",
-            "Bearing housing operating speed 3010 rpm (2.07x gearbox step-up from 1770 rpm motor shaft, per source paper p.14)",
-            "Siemens 1LE1003 kW rating vs 15 kW ISO 20816 floor: unconfirmed, needs verification before claiming context-only severity"
-          ],
-          "part": "1LE1003-1EB23-4JA4"
-        },
-        "citations": [
-          {
-            "type": "signal",
-            "source": "mendeley:0Nm_BPFI_10__ch0.mat",
-            "window": "0.00..2.00"
-          },
-          {
-            "type": "manual",
-            "doc": "skf-bearing-damage-analysis.pdf",
-            "page": 214
-          }
-        ],
-        "action": "Inspect inner race; schedule bearing replace",
-        "parts": [
-          "6205-2RS"
-        ],
-        "priority": "high"
-      }
-    },
-    {
-      "asset_id": "T1",
-      "part": "T_Machine_Static",
-      "fault": "process_drop",
-      "priority": "medium",
-      "status": "new",
-      "detected_at": "2026-09-12T19:35:27+00:00",
-      "detections": [
-        "2026-09-12T19:35:27+00:00"
-      ],
-      "source": "vlft:process",
-      "window": null,
-      "rpm": null,
-      "rms": null,
-      "flag_status": "processed",
-      "work_order": null
-    },
     {
       "asset_id": "PP5",
       "part": "AC motor",
       "fault": "inner_race",
-      "priority": "high",
+      "priority": "critical",
       "status": "acknowledged",
       "detected_at": "2026-09-12T18:05:27+00:00",
       "acknowledged_at": "2026-09-12T18:25:27+00:00",
-      "detections": [
-        "2026-09-12T18:05:27+00:00",
-        "2026-09-12T18:15:27+00:00"
-      ],
+      "detections": ["2026-09-12T18:05:27+00:00", "2026-09-12T18:15:27+00:00"],
       "source": "mendeley:0Nm_BPFI_10__ch0.mat",
       "window": "0.00..2.00",
       "rpm": 3010,
@@ -100,28 +27,282 @@
           "rpm": 3010,
           "features": [
             "Mendeley dataset ground-truth BPFI (inner race, 0.3mm fault) label on 0Nm_BPFI_10.mat channel 0; measured RMS 1.352 g vs 0.102 g healthy baseline (0Nm_Normal.mat) - 13x elevation",
-            "Bearing housing operating speed 3010 rpm (2.07x gearbox step-up from 1770 rpm motor shaft, per source paper p.14)",
-            "Same Mendeley recording also cited on MTR07-CAD; PP5 AC motor (Body-14 in the station GLB) is a second binding to the same real data, not a separate measurement"
+            "PP5 AC motor (Body-14 in the station GLB) binds the Mendeley recording; 1.5 kW class << 15 kW ISO 20816 floor, context-only severity"
           ],
           "part": "AC motor"
         },
         "citations": [
-          {
-            "type": "signal",
-            "source": "mendeley:0Nm_BPFI_10__ch0.mat",
-            "window": "0.00..2.00"
-          },
-          {
-            "type": "manual",
-            "doc": "skf-bearing-damage-analysis.pdf",
-            "page": 214
-          }
+          { "type": "signal", "source": "mendeley:0Nm_BPFI_10__ch0.mat", "window": "0.00..2.00" },
+          { "type": "manual", "doc": "skf-bearing-damage-analysis.pdf", "page": 214 }
         ],
         "action": "Inspect inner race; schedule bearing replace",
-        "parts": [
-          "6205-2RS"
-        ],
+        "parts": ["6205-2RS"],
+        "priority": "critical"
+      }
+    },
+    {
+      "asset_id": "PP5",
+      "part": "PP_Static",
+      "fault": "vac_loss",
+      "priority": "medium",
+      "status": "new",
+      "detected_at": "2026-09-12T19:10:27+00:00",
+      "detections": ["2026-09-12T19:10:27+00:00"],
+      "source": "synthetic:vac-gripper",
+      "window": null,
+      "rpm": null,
+      "rms": null,
+      "flag_status": "processed",
+      "work_order": {
+        "wo_id": "WO-PP5-VAC",
+        "asset_id": "PP5",
+        "opened": "2026-09-12T19:10:27+00:00",
+        "fault": "vac_loss",
+        "severity": "process_tag",
+        "evidence": {
+          "source": "synthetic:vac-gripper",
+          "window": "process-tag",
+          "features": [
+            "Vacuum tag dropped on PP_Static (box pick-and-place). Process/electrical only — no vibration diagnosis."
+          ],
+          "part": "PP_Static"
+        },
+        "citations": [{ "type": "signal", "source": "synthetic:vac-gripper" }],
+        "action": "Check cup seal and vacuum circuit on the box station; restore vac before the next pick",
+        "parts": ["suction-cup"],
+        "priority": "medium"
+      }
+    },
+    {
+      "asset_id": "T1",
+      "part": "T_Machine_Static",
+      "fault": "process_drop",
+      "priority": "medium",
+      "status": "new",
+      "detected_at": "2026-09-12T19:35:27+00:00",
+      "detections": ["2026-09-12T19:35:27+00:00"],
+      "source": "vlft:process",
+      "window": null,
+      "rpm": null,
+      "rms": null,
+      "flag_status": "processed",
+      "work_order": {
+        "wo_id": "WO-T1-DROP",
+        "asset_id": "T1",
+        "opened": "2026-09-12T19:35:27+00:00",
+        "fault": "process_drop",
+        "severity": "process_tag",
+        "evidence": {
+          "source": "vlft:process",
+          "window": "process-tag",
+          "features": [
+            "Tightener cycle tag dropped on T_Machine_Static. Process only — no vibration diagnosis."
+          ],
+          "part": "T_Machine_Static"
+        },
+        "citations": [{ "type": "signal", "source": "vlft:process" }],
+        "action": "Restore tightener cycle enable; verify the next torque cycle completes",
+        "parts": ["T_Machine_Static"],
+        "priority": "medium"
+      }
+    },
+    {
+      "asset_id": "T1",
+      "part": "T_Machine_Floating_Y",
+      "fault": "cycle_stall",
+      "priority": "low",
+      "status": "new",
+      "detected_at": "2026-09-12T19:48:27+00:00",
+      "detections": ["2026-09-12T19:48:27+00:00"],
+      "source": "vlft:process",
+      "window": null,
+      "rpm": null,
+      "rms": null,
+      "flag_status": "processed",
+      "work_order": {
+        "wo_id": "WO-T1-STALL",
+        "asset_id": "T1",
+        "opened": "2026-09-12T19:48:27+00:00",
+        "fault": "cycle_stall",
+        "severity": "process_tag",
+        "evidence": {
+          "source": "vlft:process",
+          "window": "process-tag",
+          "features": [
+            "Y-axis cycle stall on T_Machine_Floating_Y. Process only — no vibration diagnosis."
+          ],
+          "part": "T_Machine_Floating_Y"
+        },
+        "citations": [{ "type": "signal", "source": "vlft:process" }],
+        "action": "Clear the Y-axis stall and jog one cycle before returning to auto",
+        "parts": ["T_Machine_Floating_Y"],
+        "priority": "low"
+      }
+    },
+    {
+      "asset_id": "PI2",
+      "part": "Vibrating_Bowl_Pins",
+      "fault": "bowl_jam",
+      "priority": "high",
+      "status": "new",
+      "detected_at": "2026-09-12T19:12:27+00:00",
+      "detections": ["2026-09-12T19:12:27+00:00", "2026-09-12T19:22:27+00:00"],
+      "source": "synthetic:vlft-pi",
+      "window": null,
+      "rpm": null,
+      "rms": null,
+      "flag_status": "processed",
+      "work_order": {
+        "wo_id": "WO-PI2-BOWL",
+        "asset_id": "PI2",
+        "opened": "2026-09-12T19:12:27+00:00",
+        "fault": "bowl_jam",
+        "severity": "process_tag",
+        "evidence": {
+          "source": "synthetic:vlft-pi",
+          "window": "process-tag",
+          "features": [
+            "Vibrating bowl jam on Vibrating_Bowl_Pins (PI2). Process only — no vibration diagnosis."
+          ],
+          "part": "Vibrating_Bowl_Pins"
+        },
+        "citations": [{ "type": "signal", "source": "synthetic:vlft-pi" }],
+        "action": "Clear the bowl jam and reset bowl_on before the next insert",
+        "parts": ["Vibrating_Bowl_Pins"],
         "priority": "high"
+      }
+    },
+    {
+      "asset_id": "R2",
+      "part": "R_Machine_Floating_X1",
+      "fault": "set_force_drop",
+      "priority": "critical",
+      "status": "new",
+      "detected_at": "2026-09-12T19:18:27+00:00",
+      "detections": ["2026-09-12T19:18:27+00:00"],
+      "source": "synthetic:baltec-en20",
+      "window": null,
+      "rpm": null,
+      "rms": null,
+      "flag_status": "processed",
+      "work_order": {
+        "wo_id": "WO-R2-FORCE",
+        "asset_id": "R2",
+        "opened": "2026-09-12T19:18:27+00:00",
+        "fault": "set_force_drop",
+        "severity": "process_tag",
+        "evidence": {
+          "source": "synthetic:baltec-en20",
+          "window": "process-tag",
+          "features": [
+            "Rivet set-force tag dropped on R_Machine_Floating_X1. Process only — no vibration diagnosis."
+          ],
+          "part": "R_Machine_Floating_X1"
+        },
+        "citations": [{ "type": "signal", "source": "synthetic:baltec-en20" }],
+        "action": "Hold the station; verify EN-20 set force before the next rivet",
+        "parts": ["R_Machine_Floating_X1"],
+        "priority": "critical"
+      }
+    },
+    {
+      "asset_id": "C1",
+      "part": "Cs_Camera",
+      "fault": "inspect_fail",
+      "priority": "low",
+      "status": "acknowledged",
+      "detected_at": "2026-09-12T19:40:27+00:00",
+      "acknowledged_at": "2026-09-12T19:50:27+00:00",
+      "detections": ["2026-09-12T19:40:27+00:00"],
+      "source": "synthetic:aoi-lux",
+      "window": null,
+      "rpm": null,
+      "rms": null,
+      "flag_status": "processed",
+      "work_order": {
+        "wo_id": "WO-C1-INSP",
+        "asset_id": "C1",
+        "opened": "2026-09-12T19:40:27+00:00",
+        "fault": "inspect_fail",
+        "severity": "process_tag",
+        "evidence": {
+          "source": "synthetic:aoi-lux",
+          "window": "process-tag",
+          "features": [
+            "AOI inspect_fail on Cs_Camera. Process/electrical only — no vibration diagnosis."
+          ],
+          "part": "Cs_Camera"
+        },
+        "citations": [{ "type": "signal", "source": "synthetic:aoi-lux" }],
+        "action": "Check camera illuminance and clean the lens; re-run the inspect cycle",
+        "parts": ["Cs_Camera"],
+        "priority": "low"
+      }
+    },
+    {
+      "asset_id": "B1",
+      "part": "belt",
+      "fault": "belt_slip",
+      "priority": "medium",
+      "status": "new",
+      "detected_at": "2026-09-12T19:28:27+00:00",
+      "detections": ["2026-09-12T19:28:27+00:00"],
+      "source": "synthetic:dorner-gearmotor",
+      "window": null,
+      "rpm": null,
+      "rms": null,
+      "flag_status": "processed",
+      "work_order": {
+        "wo_id": "WO-B1-BELT",
+        "asset_id": "B1",
+        "opened": "2026-09-12T19:28:27+00:00",
+        "fault": "belt_slip",
+        "severity": "process_tag",
+        "evidence": {
+          "source": "synthetic:dorner-gearmotor",
+          "window": "process-tag",
+          "features": [
+            "Belt slip tag on buffer 1. Process only — no vibration diagnosis."
+          ],
+          "part": "belt"
+        },
+        "citations": [{ "type": "signal", "source": "synthetic:dorner-gearmotor" }],
+        "action": "Inspect belt tracking and tension on buffer 1; do not restart loaded",
+        "parts": ["belt"],
+        "priority": "medium"
+      }
+    },
+    {
+      "asset_id": "PP1",
+      "part": "PP_Floating_Y",
+      "fault": "vac_loss",
+      "priority": "low",
+      "status": "new",
+      "detected_at": "2026-09-12T19:55:27+00:00",
+      "detections": ["2026-09-12T19:55:27+00:00"],
+      "source": "synthetic:vac-gripper",
+      "window": null,
+      "rpm": null,
+      "rms": null,
+      "flag_status": "processed",
+      "work_order": {
+        "wo_id": "WO-PP1-VAC",
+        "asset_id": "PP1",
+        "opened": "2026-09-12T19:55:27+00:00",
+        "fault": "vac_loss",
+        "severity": "process_tag",
+        "evidence": {
+          "source": "synthetic:vac-gripper",
+          "window": "process-tag",
+          "features": [
+            "Vacuum tag dropped on PP_Floating_Y. Process/electrical only — no vibration diagnosis."
+          ],
+          "part": "PP_Floating_Y"
+        },
+        "citations": [{ "type": "signal", "source": "synthetic:vac-gripper" }],
+        "action": "Check the Y-axis gripper cup and vacuum line; restore vac before the next pick",
+        "parts": ["suction-cup"],
+        "priority": "low"
       }
     }
   ]
