@@ -110,7 +110,7 @@ function followNavMotion(shellEl) {
   };
   requestAnimationFrame(follow);
   shellEl.addEventListener("transitionend", event => {
-    if (event.propertyName === "grid-template-columns") tick();
+    if (event.propertyName === "width" || event.propertyName === "grid-template-columns") tick();
   }, { once: true });
 }
 

@@ -63,8 +63,11 @@ test("left navigation collapses to an icon rail and persists locally", () => {
   assert.match(styles, /\.app-shell\.is-nav-collapsed/);
   assert.match(styles, /\.nav-toggle/);
   assert.match(styles, /pointer-events:\s*none/);
-  assert.match(styles, /transition:\s*grid-template-columns 240ms ease/);
-  assert.match(styles, /\.nav-toggle \.icon \{[^}]*transition:\s*transform 240ms ease/);
+  assert.match(styles, /\.left-nav \{[^}]*transition:\s*width 240ms cubic-bezier\(\.4, 0, \.2, 1\)/);
+  assert.match(styles, /\.brand \.mark \{[^}]*contain:\s*strict/);
+  assert.match(styles, /\.nav-toggle \.icon \{[^}]*transition:\s*transform 240ms cubic-bezier\(\.4, 0, \.2, 1\)/);
+  assert.doesNotMatch(styles, /is-nav-collapsed \.brand \{[^}]*flex-direction:\s*column/);
+  assert.doesNotMatch(styles, /is-nav-collapsed \.nav-link \{[^}]*justify-content:\s*center/);
 });
 
 test("plant scope lives in header controls, not the left-nav brand", () => {
