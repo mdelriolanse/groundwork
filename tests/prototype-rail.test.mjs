@@ -92,6 +92,14 @@ test("assist holds a Thinking state for 3-6s before the prepared answer", () => 
   assert.match(prototype, /assist-state\[aria-busy\]/);
 });
 
+test("inbox filters fill a toolbar cell closed by a right rule", () => {
+  const trigger = styles.split(".filter-trigger {")[1].split(".filter-trigger:hover")[0];
+  assert.match(trigger, /border:\s*0/);
+  assert.match(trigger, /justify-content:\s*center/);
+  assert.match(styles, /\.filter-menu \{[^}]*border-right:\s*1px solid var\(--border\)/);
+  assert.match(styles, /\.table-toolbar \{[^}]*align-items:\s*stretch/);
+});
+
 test("L2 report overlay fills the workspace body with no header gap", () => {
   assert.match(styles, /\.utility-rail\.l2-report-rail \{ top: 0/);
 });
