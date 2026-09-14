@@ -15,5 +15,5 @@
     <polyline points="38,70 47,46 56,88 65,52 74,78 83,66 92,72 101,69 108,70" fill="none" stroke="#000" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
     <polyline points="38,70 47,46 56,88 65,52 74,78 83,66 92,72 101,69 108,70" fill="none" stroke="#fff" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/>
   </g>
-  <text x="600" y="500" text-anchor="middle" font-family="ui-sans-serif, system-ui, sans-serif" font-size="44" font-weight="650" fill="#0f172a">Groundwork</text>
+  <text x="600" y="500" text-anchor="middle" font-family="Geist" font-size="44" font-weight="500" letter-spacing="-1.76" fill="#0f172a">Groundwork</text>
 </svg>

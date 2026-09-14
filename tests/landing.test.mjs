@@ -94,6 +94,9 @@ test("Landing publishes the mark as the site thumbnail", () => {
   assert.match(html, /property="og:image"/);
   assert.match(html, /get-groundwork\.vercel\.app\/landing\/og\.png/);
   assert.match(fs.readFileSync("scripts/build-demo.mjs", "utf8"), /og\.png/);
+  const ogSvg = fs.readFileSync("web/landing/og.svg", "utf8");
+  assert.match(ogSvg, /font-family="Geist"/);
+  assert.doesNotMatch(ogSvg, /system-ui|ui-sans-serif/);
 });
 
 test("Board nav uses the Landing mark file", () => {
