@@ -14,6 +14,8 @@ The technician board is a live plant view: what needs attention, why it happened
 
 Built for the Dell × NVIDIA AI Hackathon at Cornell, 12 Sep 2026.
 
+Public demo: [get-groundwork.vercel.app](https://get-groundwork.vercel.app). Pushes to `main` deploy it through GitHub Actions. `groundwork.vercel.app` and `try-groundwork.vercel.app` are already taken on other Vercel accounts.
+
 ## How it works
 
 The always-on hop loop writes L1 historian tags (not raw 12 kHz waveforms) into SQLite. Diagnosis goes through [predictive-maintenance-mcp](https://github.com/lgdimaggio/predictive-maintenance-mcp). Groundwork does not rebuild that DSP. Every claim on screen points at a real artifact: a CWRU or Mendeley window, an SKF manual page, or a CMMS row.
