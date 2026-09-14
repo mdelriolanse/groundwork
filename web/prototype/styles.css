@@ -947,3 +947,4 @@ html.is-rail-resizing, html.is-rail-resizing * { cursor: ew-resize !important; u
 
 .demo-disclosure { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .utility-rail { top: 76px; }
+.utility-rail.l2-report-rail { top: 0; left: 0; }

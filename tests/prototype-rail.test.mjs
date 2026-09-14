@@ -77,3 +77,14 @@ test("plant scope lives in header controls, not the left-nav brand", () => {
   assert.equal([...prototype.matchAll(/data-action="toggle-scope"/g)].length, 2);
   assert.doesNotMatch(styles, /header-scope > span \{ display: none/);
 });
+
+test("assist holds a Thinking state for 3-6s before the prepared answer", () => {
+  assert.match(prototype, /assistState: "running"/);
+  assert.match(prototype, /3000 \+ Math\.random\(\) \* 3000/);
+  assert.match(prototype, /<strong>\$\{icon\("spark"\)\}Thinking<\/strong>/);
+  assert.match(prototype, /assist-state\[aria-busy\]/);
+});
+
+test("L2 report overlay fills the workspace body with no header gap", () => {
+  assert.match(styles, /\.utility-rail\.l2-report-rail \{ top: 0/);
+});
