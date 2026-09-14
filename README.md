@@ -55,7 +55,3 @@ npm test
 - `web/prototype/` technician workspace
 - `web/twin/` 3D plant
 - `scripts/hop-loop.py` 1 Hz watcher
-- `documentation/` PRD and box status
-- `AGENTS.md` invariants for agents
-
-Private repo. Add teammates as collaborators.
