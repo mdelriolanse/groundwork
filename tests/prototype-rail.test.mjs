@@ -68,6 +68,7 @@ test("left navigation collapses to an icon rail and persists locally", () => {
   assert.match(prototype, /aria-expanded/);
   assert.match(styles, /\.app-shell\.is-nav-collapsed/);
   assert.match(styles, /\.nav-toggle/);
+  assert.match(styles, /pointer-events:\s*none/);
   assert.match(spec, /collapsible to 56 px/);
   assert.match(spec, /Collapse state lives in localStorage/);
 });
