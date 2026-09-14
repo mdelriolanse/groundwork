@@ -110,7 +110,7 @@ function followNavMotion(shellEl) {
   };
   requestAnimationFrame(follow);
   shellEl.addEventListener("transitionend", event => {
-    if (event.propertyName === "grid-template-columns") tick();
+    if (event.propertyName === "width" || event.propertyName === "grid-template-columns") tick();
   }, { once: true });
 }
 
@@ -1750,9 +1750,11 @@ function assistRail(route) {
   const incident = selectedIncident(route);
   const asset = selectedAsset(route);
   const canAssist = assistable(asset);
-  let state = canAssist ? (lastAssist?.asset_id === asset.id && lastAssist.question === route.params.get("question") ? "answered" : "ready") : "unsupported";
+  const requested = route.params.get("assistState");
+  let state = "ready";
   if (!canAssist) state = "unsupported";
-  else if (state === "unsupported") state = "ready";
+  else if (requested === "running") state = "running";
+  else if (requested === "answered" || (lastAssist?.asset_id === asset.id && lastAssist.question === route.params.get("question"))) state = "answered";
   const question = route.params.get("question") || draftQuestion || (isHeroAsset(asset) ? "What L1 features are on this hop?" : "What L1 tags are on this hop?");
   let body = assistContext(asset, incident);
   let footer = "";
@@ -1795,7 +1797,8 @@ function softLiveTick() {
   const active = document.activeElement;
   return Boolean(app.querySelector("[data-part-mount], [data-floor-mount]"))
     || active?.id === "assist-question"
-    || Boolean(active?.matches?.("[data-global-search]"));
+    || Boolean(active?.matches?.("[data-global-search]"))
+    || Boolean(app.querySelector(".assist-state[aria-busy]"));
 }
 
 function refreshIncidentLive() {
@@ -2005,8 +2008,17 @@ function openEvidence(type, trigger) {
 function startAssist(question) {
   const asset = selectedAsset(getRoute());
   draftQuestion = String(question).trim().slice(0, 500);
-  lastAssist = demo.answer(draftQuestion, asset.id, selectedIncident(getRoute())?.id);
-  updateRoute(persistReport({ rail: "assist", assistState: "answered", question: draftQuestion }));
+  const incidentId = selectedIncident(getRoute())?.id;
+  lastAssist = null;
+  if (assistAbort) clearTimeout(assistAbort);
+  updateRoute(persistReport({ rail: "assist", assistState: "running", question: draftQuestion }));
+  const delay = 3000 + Math.random() * 3000;
+  assistAbort = setTimeout(() => {
+    assistAbort = null;
+    if (getRoute().params.get("assistState") !== "running") return;
+    lastAssist = demo.answer(draftQuestion, asset.id, incidentId);
+    updateRoute(persistReport({ rail: "assist", assistState: "answered", question: draftQuestion }));
+  }, delay);
 }
 
 function onAppClick(event) {
@@ -2096,6 +2108,7 @@ function onAppClick(event) {
     updateRoute(changes);
   }
   if (action === "close-rail") {
+    if (assistAbort) { clearTimeout(assistAbort); assistAbort = null; }
     focusRestoreId = lastTrigger?.dataset.focusId || "rail-trigger";
     updateRoute({ rail: null, evidence: null, returnRail: null, expanded: null });
   }

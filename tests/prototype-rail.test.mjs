@@ -63,8 +63,11 @@ test("left navigation collapses to an icon rail and persists locally", () => {
   assert.match(styles, /\.app-shell\.is-nav-collapsed/);
   assert.match(styles, /\.nav-toggle/);
   assert.match(styles, /pointer-events:\s*none/);
-  assert.match(styles, /transition:\s*grid-template-columns 240ms ease/);
-  assert.match(styles, /\.nav-toggle \.icon \{[^}]*transition:\s*transform 240ms ease/);
+  assert.match(styles, /\.left-nav \{[^}]*transition:\s*width 240ms cubic-bezier\(\.4, 0, \.2, 1\)/);
+  assert.match(styles, /\.brand \.mark \{[^}]*contain:\s*strict/);
+  assert.match(styles, /\.nav-toggle \.icon \{[^}]*transition:\s*transform 240ms cubic-bezier\(\.4, 0, \.2, 1\)/);
+  assert.doesNotMatch(styles, /is-nav-collapsed \.brand \{[^}]*flex-direction:\s*column/);
+  assert.doesNotMatch(styles, /is-nav-collapsed \.nav-link \{[^}]*justify-content:\s*center/);
 });
 
 test("plant scope lives in header controls, not the left-nav brand", () => {
@@ -76,4 +79,15 @@ test("plant scope lives in header controls, not the left-nav brand", () => {
   assert.match(prototype, /class="header-scope"/);
   assert.equal([...prototype.matchAll(/data-action="toggle-scope"/g)].length, 2);
   assert.doesNotMatch(styles, /header-scope > span \{ display: none/);
+});
+
+test("assist holds a Thinking state for 3-6s before the prepared answer", () => {
+  assert.match(prototype, /assistState: "running"/);
+  assert.match(prototype, /3000 \+ Math\.random\(\) \* 3000/);
+  assert.match(prototype, /<strong>\$\{icon\("spark"\)\}Thinking<\/strong>/);
+  assert.match(prototype, /assist-state\[aria-busy\]/);
+});
+
+test("L2 report overlay fills the workspace body with no header gap", () => {
+  assert.match(styles, /\.utility-rail\.l2-report-rail \{ top: 0/);
 });
