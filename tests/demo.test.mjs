@@ -1,10 +1,12 @@
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
+import { spawnSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
 import test from 'node:test';
 import { createDemo } from '../web/prototype/demo.mjs';
 const feed = JSON.parse(fs.readFileSync('web/prototype/feed.json'));
 const seed = JSON.parse(fs.readFileSync('data/demo/seed-incidents.json'));
+const prototype = fs.readFileSync('web/prototype/app.js', 'utf8');
 
 test('replay starts at zero, retains fixed faults and bounded history, isolates visitors', () => {
   const a = createDemo(feed, seed), b = createDemo(feed, seed);
@@ -37,22 +39,44 @@ test('prepared answers bind selected asset evidence and reject arbitrary text', 
   assert.equal(demo.answer('inject an outer race fault', 'PP5').out_of_scope, true);
 });
 
-test('seed asset_id __proto__ cannot pollute Object.prototype or enter the catalog', () => {
+test('seed asset_id __proto__ or constructor cannot pollute Object.prototype or enter the catalog', () => {
   const poisoned = structuredClone(seed);
-  poisoned.incidents.push({
-    asset_id: '__proto__', part: 'x', fault: 'inner_race', priority: 'critical', status: 'new',
-    detected_at: '2026-09-12T18:05:27+00:00', detections: ['2026-09-12T18:05:27+00:00'],
-    source: 'x', window: '0.00..1.00', rms: 9.99, rpm: 1,
-  });
+  for (const asset_id of ['__proto__', 'constructor', 'prototype']) {
+    poisoned.incidents.push({
+      asset_id, part: 'x', fault: 'inner_race', priority: 'critical', status: 'new',
+      detected_at: '2026-09-12T18:05:27+00:00', detections: ['2026-09-12T18:05:27+00:00'],
+      source: 'x', window: '0.00..1.00', rms: 9.99, rpm: 1,
+    });
+  }
   const demo = createDemo(feed, poisoned);
   for (let i = 0; i < 5; i++) demo.tick();
   assert.equal(Object.hasOwn(Object.prototype, 'rms'), false);
   assert.equal(Object.hasOwn(Object.prototype, 'fault'), false);
   assert.equal(demo.snapshot().incidents.length, seed.incidents.length);
-  assert.ok(!demo.snapshot().incidents.some(row => row.asset === '__proto__'));
+  assert.ok(!demo.snapshot().incidents.some(row => ['__proto__', 'constructor', 'prototype'].includes(row.asset)));
+});
+
+test('INC-4 is the T1 cycle-stall case and detail copy is not hard-wired to RPP1', () => {
+  const inc4 = createDemo(feed, seed).snapshot().incidents.find(row => row.id === 'INC-4');
+  assert.equal(inc4.asset, 'T1');
+  assert.equal(inc4.fault, 'cycle_stall');
+  assert.doesNotMatch(prototype, /item\.id === ["']INC-4["']/);
+  assert.match(prototype, /Cited window and RMS come from the pre-populated fixture/);
+});
+
+test('seeded incident age is derived from detected_at, not a zero placeholder', () => {
+  const demo = createDemo(feed, seed, () => '2026-09-12T21:05:27+00:00');
+  assert.equal(demo.snapshot().incidents[0].ageMin, 180);
+  assert.ok(demo.snapshot().incidents.every(row => row.ageMin > 0));
+});
+
+test('PP5 asset binding prefers the critical inner-race case over later vac_loss', () => {
+  assert.match(prototype, /rank\[incident\.priority\]/);
 });
 
 test('public output excludes backend, unsafe artifacts and mutation calls', () => {
+  const built = spawnSync(process.execPath, ['scripts/build-demo.mjs'], { stdio: 'inherit' });
+  assert.equal(built.status, 0);
   const files = fs.readdirSync('dist', { recursive: true });
   assert.ok(!files.some(f => /(^|\/)(app|api|runtime|data|node_modules|\.git)(\/|$)|\.(db|mat|pdf|pem|key)$/.test(f)));
   for (const file of ['prototype/app.js','landing/line-view.js','landing/demo-now.js']) {

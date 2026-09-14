@@ -2,21 +2,26 @@
 export function createDemo(feed, seed, now = () => new Date().toISOString()) {
   const tape = feed.hops.filter(h => h.i <= 9);
   if (!tape.length || !Array.isArray(seed.incidents)) throw new Error('Demo fixtures unavailable');
-  const title = value => value.replaceAll('_', ' ').replace(/^./, c => c.toUpperCase());
-  const assetId = value => typeof value === 'string' && /^[A-Za-z0-9-]{1,40}$/.test(value);
-  const incidents = seed.incidents.filter(row => assetId(row.asset_id)).map((row, index) => ({
-    id: `INC-${index + 1}`, incident_id: index + 1,
-    asset: row.asset_id, component: row.part,
-    title: `${title(row.fault)} on ${row.part}`, fault: row.fault,
-    priority: title(row.priority), priority_key: row.priority,
-    status: title(row.status), status_key: row.status,
-    first: row.detected_at, last: row.detections?.at(-1) || row.detected_at,
-    detections: row.detections?.length || 1, ageMin: 0,
-    source: row.source, window: row.window, rms: row.rms ?? null, rpm: row.rpm ?? null,
-    signal: row.rms == null ? 'Process' : 'Elevated',
-    work_order: structuredClone(row.work_order || null), wo_id: row.work_order?.wo_id || null,
-    ai: row.work_order ? 'Ready' : 'L1', area: feed.cell.name, cell: feed.cell.name,
-  }));
+  const title = value => String(value || '').replaceAll('_', ' ').replace(/^./, c => c.toUpperCase());
+  const allowed = new Set((feed.fleet || []).map(row => row.asset_id));
+  const assetId = value => typeof value === 'string' && allowed.has(value);
+  const incidents = seed.incidents.filter(row => assetId(row.asset_id)).map((row, index) => {
+    const detected = Date.parse(row.detected_at);
+    const ageMin = Number.isFinite(detected) ? Math.max(0, Math.floor((Date.parse(now()) - detected) / 60000)) : 0;
+    return {
+      id: `INC-${index + 1}`, incident_id: index + 1,
+      asset: row.asset_id, component: row.part,
+      title: `${title(row.fault)} on ${row.part}`, fault: row.fault,
+      priority: title(row.priority), priority_key: row.priority,
+      status: title(row.status), status_key: row.status,
+      first: row.detected_at, last: row.detections?.at(-1) || row.detected_at,
+      detections: row.detections?.length || 1, ageMin,
+      source: row.source, window: row.window, rms: row.rms ?? null, rpm: row.rpm ?? null,
+      signal: row.rms == null ? 'Process' : 'Elevated',
+      work_order: structuredClone(row.work_order || null), wo_id: row.work_order?.wo_id || null,
+      ai: row.work_order ? 'Ready' : 'L1', area: feed.cell.name, cell: feed.cell.name,
+    };
+  });
   if (!incidents.length) throw new Error('Demo fixtures unavailable');
   let count = 0;
   const history = [];

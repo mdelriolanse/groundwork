@@ -31,7 +31,7 @@ const feed = JSON.parse(fs.readFileSync('web/prototype/feed.json'));
 // Only healthy RPP1 tape is replayed; seeded faults are the complete catalog.
 feed.hops = feed.hops.filter(h => h.i <= 9);
 delete feed.flag;
-delete feed.manifest.flag_hop;
+if (feed.manifest) delete feed.manifest.flag_hop;
 const seeds = JSON.parse(fs.readFileSync('data/demo/seed-incidents.json'));
 function sanitize(value) {
   if (typeof value === 'string') return value.replace(/\/(?:home|media|tmp|Users)\/[^\s"<>]+/g, '[local artifact]').replace(/https?:\/\/(?:127\.0\.0\.1|localhost|10\.[\d.]+|100\.[\d.]+)(?::\d+)?[^\s]*/g, '[local service]');

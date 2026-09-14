@@ -864,7 +864,12 @@ function incidents() { return liveIncidents.map(mapLiveIncident); }
 function assetsMap() {
   const now = hop();
   const list = incidents();
-  const byAsset = Object.fromEntries(list.map((i) => [i.asset, i]));
+  const rank = { Critical: 0, High: 1, Medium: 2, Low: 3 };
+  const byAsset = {};
+  for (const incident of list) {
+    const current = byAsset[incident.asset];
+    if (!current || (rank[incident.priority] ?? 9) < (rank[current.priority] ?? 9)) byAsset[incident.asset] = incident;
+  }
   const out = {};
   for (const row of feed.fleet) {
     const hit = byAsset[row.asset_id];
@@ -1237,11 +1242,17 @@ function incidentDetailPage(route) {
   }
   const cmms = feed.cmms.filter(row => row.fault === item.fault);
   const workOrder = resolveWorkOrder(item);
-  const inc4Summary = item.id === "INC-4" ? {
-    happened: "Inner-race bearing fault detected on URjoint1.",
-    workOrder: "Replace the 6205-2RS bearing after technician approval.",
-    trust: "BPFI at 161.69 Hz matches the expected 162.19 Hz, with harmonics.",
-  } : null;
+  const vibration = item.rms != null;
+  const happened = `${esc(capitalize(humanModel(item.fault)))} on ${esc(item.component)}.`
+    + (item.source ? ` Source ${esc(item.source)}` : "")
+    + (item.window ? ` · window ${esc(item.window)}` : "")
+    + (vibration ? ` RMS ${esc(dash(item.rms))} g.` : " Process/electrical only — no vibration diagnosis.");
+  const trust = vibration
+    ? "Cited window and RMS come from the pre-populated fixture. No 12 kHz samples on this board. ISO 15 kW floor — context only."
+    : "This case is bound to process tags, not a vibration channel. No ISO zone or SKF page is claimed.";
+  const rmsValue = vibration ? item.rms : (item.asset === "RPP1" ? now.rpp1?.rms : null);
+  const rpmValue = item.rpm ?? (item.asset === "RPP1" ? now.rpp1?.rpm : null);
+  const bpfi = item.asset === "RPP1" ? now.rpp1?.bpfi : null;
   const issueHit = boardIssues().find((row) => row.asset_id === item.asset && row.part === item.component);
   const inspectionAsset = issueHit?.asset_id || board?.selection?.asset_id;
   const inspectionComponent = issueHit?.part || board?.work_order?.evidence?.part;
@@ -1272,20 +1283,20 @@ function incidentDetailPage(route) {
     <div class="detail-meta"><span class="badge ${statusClass(item.priority)}">${esc(item.priority)} priority</span><span class="badge ${item.status === "Acknowledged" ? "" : "info"}">${item.status === "Acknowledged" ? "Acknowledged" : esc(item.status)}</span><span>${icon("clock", "sm")}last ${esc(item.last)} · ${esc(item.detections)} detections</span><span>Signal: <strong class="${item.signal === "Elevated" ? "text-warning" : ""}">${esc(item.signal)}</strong></span><span>L1: <strong class="text-success">${esc(now.rpp1?.engine || "—")}</strong></span></div>
     <div style="height:10px"></div>
     <section class="question-grid${pendingIncidentReveal ? " is-revealed" : ""}" data-incident-overview tabindex="-1" aria-label="Incident overview">
-      <article class="question-card"><span class="question-number">01</span><h2>What happened?</h2><p>${inc4Summary ? inc4Summary.happened : `${esc(now.rpp1.engine)} on ${esc(now.rpp1.source)} window ${esc(now.rpp1.window)}. Fault ${esc(dash(now.rpp1.fault))}. BPFI ${now.rpp1.bpfi.detected ? `${now.rpp1.bpfi.hz} Hz` : "not detected"}.`}</p><div class="inline-citations">${citationButton("signal", "Signal", `${now.rpp1.file} · ${now.rpp1.window}`)}</div></article>
-      <article class="question-card action"><span class="question-number">02</span><h2>Work order</h2><p>${inc4Summary ? inc4Summary.workOrder : workOrder ? `<span class="mono">wo: ${esc(workOrder.wo_id || item.wo_id || "—")}</span> · ${esc(workOrder.action || "Review the cited evidence before approval.")}` : "No current work order is attached to this incident."}</p><div class="inline-citations">${cmms.map(row => citationButton("history", "CMMS", row.wo_id)).join("") || `<span class="section-note">No matching CMMS row</span>`}</div></article>
-      <article class="question-card trust"><span class="question-number">03</span><h2>Why trust it?</h2><p>${inc4Summary ? inc4Summary.trust : "L0 pointer + L1 scalars. No 12 kHz on the board. ISO 15 kW floor — context only."}</p><div class="inline-citations"><span class="badge ${now.rpp1.rms == null ? "warning" : "success"}">${now.rpp1.rms == null ? "RMS source-gap" : "RMS from window"}</span></div></article>
+      <article class="question-card"><span class="question-number">01</span><h2>What happened?</h2><p>${happened}</p><div class="inline-citations">${citationButton("signal", "Signal", `${item.source || "—"} · ${item.window || "process"}`, { source: item.source, window: item.window, incident: item.id })}</div></article>
+      <article class="question-card action"><span class="question-number">02</span><h2>Work order</h2><p>${workOrder ? `<span class="mono">wo: ${esc(workOrder.wo_id || item.wo_id || "—")}</span> · ${esc(workOrder.action || "Review the cited evidence before approval.")}` : "No current work order is attached to this incident."}</p><div class="inline-citations">${cmms.map(row => citationButton("history", "CMMS", row.wo_id)).join("") || `<span class="section-note">No matching CMMS row</span>`}</div></article>
+      <article class="question-card trust"><span class="question-number">03</span><h2>Why trust it?</h2><p>${trust}</p><div class="inline-citations"><span class="badge ${vibration ? "success" : "warning"}">${vibration ? "RMS from cited window" : "Process tags only"}</span></div></article>
     </section>
     ${twinPanel}
     <section class="detail-grid">
       <article class="panel"><div class="panel-header"><h2>L1 hops</h2><span class="badge info" style="margin-left:auto">${hopLabel()}</span></div><div class="panel-body"><div class="timeline">
         ${recentHopRows(6).map(row => `<div class="timeline-row"><span class="timeline-icon">${icon("check", "sm")}</span><div class="timeline-copy"><strong class="mono">${esc(row.rpp1.file || "—")}</strong><span>${esc(row.rpp1.source || "—")} · ${esc(row.rpp1.window || "—")} · RMS ${esc(dash(row.rpp1.rms))} g${row.rpp1.fault ? ` · ${esc(row.rpp1.fault)}` : ""}</span></div><time>${clock(row.ts)}</time></div>`).join("")}
       </div></div></article>
-      <article class="panel"><div class="panel-header"><h2>Condition</h2><button class="btn sm" data-evidence="signal">Open exact signal</button></div><div class="condition-numbers"><div class="condition-number"><span>RMS</span><strong class="num">${dash(now.rpp1.rms)}<small>g</small></strong></div><div class="condition-number"><span>Speed</span><strong class="num">${dash(now.rpp1.rpm)}<small>rpm</small></strong></div><div class="condition-number"><span>BPFI</span><strong class="num">${dash(now.rpp1.bpfi.hz)}<small>Hz</small></strong></div></div>${rmsChart(320, 80, "RPP1 RMS hops")}<div class="limit-note">${icon("alert", "sm")}ISO 20816 shown as context only; this 2 hp dataset asset is below the 15 kW applicability floor.</div></article>
+      <article class="panel"><div class="panel-header"><h2>Condition</h2><button class="btn sm" data-evidence="signal">Open exact signal</button></div><div class="condition-numbers"><div class="condition-number"><span>RMS</span><strong class="num">${dash(rmsValue)}<small>g</small></strong></div><div class="condition-number"><span>Speed</span><strong class="num">${dash(rpmValue)}<small>rpm</small></strong></div><div class="condition-number"><span>BPFI</span><strong class="num">${dash(bpfi?.hz)}<small>Hz</small></strong></div></div>${item.asset === "RPP1" ? rmsChart(320, 80, "RPP1 RMS hops") : ""}<div class="limit-note">${icon("alert", "sm")}${vibration ? "ISO 20816 shown as context only; this asset is below the 15 kW applicability floor." : "No vibration channel on this case — process tags only."}</div></article>
     </section>
     <section class="detail-grid">
       <article class="panel"><div class="panel-header"><h2>Current work order</h2>${workOrder ? `<div class="wo-l2-pair"><span class="badge">wo: ${esc(workOrder.wo_id || item.wo_id)}</span><button class="btn sm primary" data-action="open-l2-report">View L2 report</button></div>` : ""}</div><div class="work-order">${workOrder ? `<div class="work-order-callout">${icon("wrench")}<div><strong>${esc(workOrder.action || "Review required")}</strong><p>Draft · human approval required</p></div></div><dl class="key-grid"><dt>Priority</dt><dd>${esc(workOrder.priority || item.priority)}</dd><dt>Part</dt><dd class="mono">${esc((workOrder.parts || []).join(", ") || item.component)}</dd><dt>Evidence</dt><dd>${citationButton("signal", "Signal", item.window || "—")}</dd></dl>` : `<div class="work-order-callout">${icon("alert")}<div><strong>No current work order</strong><p>Review cited incident evidence before assigning maintenance.</p></div></div>`}</div></article>
-      <article class="panel"><div class="panel-header"><h2>Case activity</h2><span class="section-note" style="margin-left:auto">Live clock</span></div><div class="panel-body activity-list">${item.source ? `<div class="activity-item"><time>${clock(item.first || item.last)}</time><span class="event-mark"></span><div><strong>Opened</strong><p class="mono">${esc(item.source)}${item.window ? ` · ${esc(item.window)}` : ""}</p></div></div>` : ""}<div class="activity-item"><time>${clock(now.ts)}</time><span class="event-mark"></span><div><strong>${hopLabel()}</strong><p>RMS ${dash(now.rpp1?.rms)} g · ${esc(now.rpp1?.file || "—")}</p></div></div></div></article>
+      <article class="panel"><div class="panel-header"><h2>Case activity</h2><span class="section-note" style="margin-left:auto">Live clock</span></div><div class="panel-body activity-list">${item.source ? `<div class="activity-item"><time>${clock(item.first || item.last)}</time><span class="event-mark"></span><div><strong>Opened</strong><p class="mono">${esc(item.source)}${item.window ? ` · ${esc(item.window)}` : ""}</p></div></div>` : ""}<div class="activity-item"><time>${clock(now.ts)}</time><span class="event-mark"></span><div><strong>${hopLabel()}</strong><p>${vibration ? `Cited RMS ${dash(item.rms)} g` : `Replay hop RMS ${dash(now.rpp1?.rms)} g`} · ${esc(item.source || now.rpp1?.file || "—")}</p></div></div></div></article>
     </section>
   </div></main>`;
 }

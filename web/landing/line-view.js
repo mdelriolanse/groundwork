@@ -48,7 +48,7 @@ async function mount() {
   const camera = new THREE.OrthographicCamera(-10, 10, 10, -10, .1, 200);
   const offset = new THREE.Vector3(2, 15, 18);
   const target = center.clone();
-  let elapsed = 0, previous = 0, hops = null, board = null;
+  let elapsed = 0, previous = 0;
   function fit() {
     camera.zoom = 1;
     target.copy(center);
@@ -81,8 +81,8 @@ async function mount() {
       camera.updateProjectionMatrix(); camera.lookAt(target);
     }
     const recorded = tape.hops[motion.matches ? 9 : Math.floor(time / 1800) % Math.min(10, tape.hops.length)];
-    const current = lineStatus(hops, board, recorded, null);
-    current.flagged = seed.incidents.map(incident => incident.asset_id);
+    const current = lineStatus(null, null, recorded, null);
+    current.flagged = (seed.incidents || []).map(incident => incident.asset_id).filter(Boolean);
     const key = JSON.stringify(current);
     if (lastStatus !== key) {
       for (const { id, root } of stations) root.traverse(node => { if (node.isMesh) node.material = current.flagged.includes(id) ? red : current.running.includes(id) ? green : gray; });
