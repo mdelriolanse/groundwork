@@ -150,7 +150,7 @@ Deep links preserve selected site/area, filters, object, and utility-rail mode i
 
 #### Left navigation — 208 px, collapsible to 56 px
 
-- Product mark and site name.
+- Product mark and product name.
 - Incidents, Floor, Assets, Condition, Intelligence; icon plus text. Assets opens `#/assets` (the 24-card board), not an Asset 360.
 - Active route has both contrast and a left indicator.
 - Bottom: system state and settings/help, not destructive actions.

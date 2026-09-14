@@ -101,6 +101,19 @@ function restoreNavCollapsed() {
   } catch {}
 }
 
+function followNavMotion(shellEl) {
+  const tick = () => { positionFloorLive(); positionPartLive(); };
+  let frames = 0;
+  const follow = () => {
+    tick();
+    if (++frames < 18) requestAnimationFrame(follow);
+  };
+  requestAnimationFrame(follow);
+  shellEl.addEventListener("transitionend", event => {
+    if (event.propertyName === "grid-template-columns") tick();
+  }, { once: true });
+}
+
 function applyNavCollapsed() {
   const shellEl = app.querySelector(".app-shell");
   if (!shellEl) return;
@@ -998,8 +1011,12 @@ function tapeStamp() {
   return `<div class="refresh-line"><span class="live-dot"></span>Replay · ${hopLabel()} · ${clock(now.ts)} · ${esc(now.rpp1?.source || "—")}</div>`;
 }
 
+function scopeLabel(route) {
+  return route.params.get("scope") === "site" ? "Entire site" : "Cell";
+}
+
 function shell(main, route, rail) {
-  const scope = route.params.get("scope") === "site" ? "Entire site" : feed.cell.name;
+  const scope = scopeLabel(route);
   const open = incidents().length;
   const leftRail = isReportOpen(route);
   const rightRail = Boolean(rightRailMode(route));
@@ -1008,7 +1025,7 @@ function shell(main, route, rail) {
   return `
     <div class="app-shell${navCollapsed ? " is-nav-collapsed" : ""}">
       <nav class="left-nav" aria-label="Primary navigation">
-        <div class="brand"><a class="mark" href="#/incidents"><img src="/landing/groundwork-mark.svg" alt="Groundwork" width="28" height="28" onerror="this.onerror=null;this.src='groundwork-mark.svg'"></a><div class="brand-copy"><strong>Groundwork</strong><span>${esc(feed.cell.name)}</span></div><button class="nav-toggle" data-action="toggle-nav" data-focus-id="nav-toggle" type="button" aria-expanded="${navCollapsed ? "false" : "true"}" aria-label="${navCollapsed ? "Expand navigation" : "Collapse navigation"}">${icon("back", "sm")}</button></div>
+        <div class="brand"><a class="mark" href="#/incidents"><img src="/landing/groundwork-mark.svg" alt="Groundwork" width="28" height="28" onerror="this.onerror=null;this.src='groundwork-mark.svg'"></a><div class="brand-copy"><strong>Groundwork</strong></div><button class="nav-toggle" data-action="toggle-nav" data-focus-id="nav-toggle" type="button" aria-expanded="${navCollapsed ? "false" : "true"}" aria-label="${navCollapsed ? "Expand navigation" : "Collapse navigation"}">${icon("back", "sm")}</button></div>
         <div class="nav-section-label">Workspace</div>
         <div class="nav-list">
           ${navLink("incidents", "Incidents", "inbox", "/incidents", String(open))}
@@ -1023,7 +1040,7 @@ function shell(main, route, rail) {
         <header class="global-header">
           <div class="breadcrumb">${breadcrumb(route)}</div>
           <div class="header-spacer"></div>
-          <button class="header-scope" data-action="toggle-scope" type="button" aria-label="Change plant scope">${icon("pin", "sm")}<span>${esc(scope)}</span>${icon("chevron", "sm")}</button>
+          <button class="header-scope" data-action="toggle-scope" type="button" aria-label="Change plant scope" aria-pressed="${route.params.get("scope") === "site"}">${icon("pin", "sm")}<span>${esc(scope)}</span>${icon("chevron", "sm")}</button>
           <label class="header-search">${icon("search", "sm")}<span class="sr-only">Search incidents and assets</span><input data-global-search value="${esc(route.params.get("search") || "")}" placeholder="Search incidents or assets" autocomplete="off"></label>
           ${containmentBadge()}
         </header>
@@ -1189,7 +1206,7 @@ function inboxPage(route) {
       <td class="num">${esc(item.last)}</td><td class="num">${esc(item.age)}</td>
     </tr>`).join("")}</tbody></table>` : `<div class="empty-state">${icon("filter", "lg")}<div><h2>${list.length ? "No matching incidents" : "No open incident"}</h2><p>${list.length ? "Current filters exclude all active cases." : "No pre-populated incidents in this view."}</p>${list.length ? `<button class="btn" data-action="clear-filters">Clear filters</button>` : ""}</div></div>`;
   return `<main class="page"><div class="page-inner compact">
-    ${moduleHeader("Incidents", "Pre-populated incidents · browser-local replay · no new faults.", `${tapeStamp()}<button class="btn sm" data-action="toggle-scope">${icon("pin", "sm")} ${route.params.get("scope") === "site" ? "Entire site" : "Cell"}</button>`)}
+    ${moduleHeader("Incidents", "Pre-populated incidents · browser-local replay · no new faults.", `${tapeStamp()}<button class="btn sm" data-action="toggle-scope" type="button" aria-label="Change plant scope" aria-pressed="${route.params.get("scope") === "site"}">${icon("pin", "sm")} ${esc(scopeLabel(route))}</button>`)}
     <div class="tabs" role="tablist" aria-label="Incident registry view"><button class="tab active" role="tab" aria-selected="true">Active <span class="badge">${list.length}</span></button><button class="tab" role="tab" aria-selected="false" data-action="resolved-view">Resolved <span class="badge">0</span></button></div>
     <div style="height:12px"></div>
     <section class="metric-grid" aria-label="Incident metrics">
@@ -2034,10 +2051,8 @@ function onAppClick(event) {
     navCollapsed = !navCollapsed;
     persistNavCollapsed();
     applyNavCollapsed();
-    requestAnimationFrame(() => {
-      positionFloorLive();
-      positionPartLive();
-    });
+    const shellEl = app.querySelector(".app-shell");
+    if (shellEl) followNavMotion(shellEl);
     return;
   }
   if (action === "toggle-scope") updateRoute({ scope: getRoute().params.get("scope") === "site" ? null : "site" });
