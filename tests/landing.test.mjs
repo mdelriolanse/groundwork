@@ -41,12 +41,12 @@ test("landing has no top bar and every Demo Now opens the Board", () => {
   assert.match(html, /aria-label="Open the Board"/);
   assert.match(html, /src="\/landing\/demo-now.js"/);
   const demo = fs.readFileSync("web/landing/demo-now.js", "utf8");
-  assert.match(demo, /\/api\/demo\/seed/);
+  assert.doesNotMatch(demo, /\/api\//);
   assert.match(server, /pathname==="\/api\/demo\/seed"/);
   assert.match(server, /server\.listen\([\s\S]*startSeedReplay\(\)/);
   assert.match(server, /mockHop\(/);
   const proto = fs.readFileSync("web/prototype/app.js", "utf8");
-  assert.match(proto, /\/api\/demo\/seed/);
+  assert.doesNotMatch(proto, /\/api\//);
 });
 
 test("hero is type only and concepts are three mute isolated assets", () => {
