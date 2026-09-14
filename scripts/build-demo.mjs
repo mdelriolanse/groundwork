@@ -6,7 +6,7 @@ const out = 'dist';
 fs.rmSync(out, { recursive: true, force: true });
 fs.mkdirSync(out);
 const files = [
-  ...['index.html','styles.css','groundwork-mark.svg','orbit-view.js','orbit.mjs','line-view.js','line-state.mjs','demo-now.js'].map(f => `landing/${f}`),
+  ...['index.html','styles.css','groundwork-mark.svg','og.png','apple-touch-icon.png','orbit-view.js','orbit.mjs','line-view.js','line-state.mjs','demo-now.js'].map(f => `landing/${f}`),
   ...['index.html','styles.css','overrides.css','app.js','demo.mjs','groundwork-mark.svg'].map(f => `prototype/${f}`),
   ...['index.html','viewer.js','scene.json','asset-map.json'].map(f => `twin/${f}`),
 ];
@@ -46,6 +46,8 @@ function sanitize(value) {
 fs.writeFileSync(`${out}/prototype/feed.json`, JSON.stringify(sanitize(feed)));
 fs.writeFileSync(`${out}/prototype/incidents.json`, JSON.stringify(sanitize({ incidents: seeds.incidents })));
 copy('web/credits.html', `${out}/credits.html`);
+copy(`${out}/landing/og.png`, `${out}/og.png`);
+copy(`${out}/landing/apple-touch-icon.png`, `${out}/apple-touch-icon.png`);
 fs.writeFileSync(`${out}/404.html`, '<!doctype html><html lang="en"><title>Not found</title><h1>Not found</h1><a href="/">Return to Groundwork</a></html>');
 const hashes = new Set();
 for (const file of files.filter(f => f.endsWith('.html'))) {
