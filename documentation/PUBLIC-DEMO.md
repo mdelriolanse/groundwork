@@ -15,7 +15,7 @@ Snapshots are copies, so callers cannot mutate the internal incident catalog.
 Nine incidents come from `data/demo/seed-incidents.json`; no detection,
 injection API, shortcut, button, or new fault onset exists in the public UI.
 RPP1 replays healthy recorded windows; PP5 retains its seeded vibration fault.
-Technician acknowledgments stay in browser memory. Only rail widths persist.
+Technician acknowledgments stay in browser memory. Only rail widths and nav collapse persist.
 Assist answers exact suggested questions from selected asset/incident evidence;
 other input receives a demo-only response, rendered as escaped text.
 Containment explicitly lacks a published audit record; it does not execute
@@ -28,8 +28,10 @@ Run `npm run build`, `npm run test:demo`, and `npm run preview` (localhost:8678)
 absent on Rocketship. They are recorded failures, not skipped tests.
 
 The build allowlists assets into `dist` and produces Vercel Build Output API
-configuration in `.vercel/output`. No functions, application server, database,
-credentials, or runtime corpus are copied. All paths are same-origin.
+configuration in `.vercel/output`. `vercel.json` repeats the same CSP, framing,
+and nosniff headers so Git/`outputDirectory` deploys are not headerless.
+No functions, application server, database, credentials, or runtime corpus
+are copied. All paths are same-origin.
 Script hashes cover inline bootstrap scripts and import maps. The twin alone
 allows same-origin embedding; top-level pages forbid framing. Inline styles
 remain necessary for the current UI, including dynamic geometry positioning.

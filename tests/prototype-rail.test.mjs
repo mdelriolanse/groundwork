@@ -60,3 +60,14 @@ test("FRONTEND-SPEC records default rail widths as user-resizable, not URL state
   assert.match(spec, /user-resizable/i);
   assert.match(spec, /localStorage/);
 });
+
+test("left navigation collapses to an icon rail and persists locally", () => {
+  assert.match(prototype, /data-action="toggle-nav"/);
+  assert.match(prototype, /groundwork-nav-collapsed/);
+  assert.match(prototype, /function applyNavCollapsed\(/);
+  assert.match(prototype, /aria-expanded/);
+  assert.match(styles, /\.app-shell\.is-nav-collapsed/);
+  assert.match(styles, /\.nav-toggle/);
+  assert.match(spec, /collapsible to 56 px/);
+  assert.match(spec, /Collapse state lives in localStorage/);
+});

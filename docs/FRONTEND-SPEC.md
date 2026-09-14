@@ -148,12 +148,13 @@ Deep links preserve selected site/area, filters, object, and utility-rail mode i
 
 ### Persistent application shell
 
-#### Left navigation — 208 px
+#### Left navigation — 208 px, collapsible to 56 px
 
 - Product mark and site name.
 - Incidents, Floor, Assets, Condition, Intelligence; icon plus text. Assets opens `#/assets` (the 24-card board), not an Asset 360.
 - Active route has both contrast and a left indicator.
 - Bottom: system state and settings/help, not destructive actions.
+- User-collapsible to an icon rail. Collapse state lives in localStorage, not the URL. Collapsed links keep visible names via `title`.
 
 #### Global header — 48 px
 

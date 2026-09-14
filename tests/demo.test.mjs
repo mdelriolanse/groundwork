@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
+import { createHash } from 'node:crypto';
 import test from 'node:test';
 import { createDemo } from '../web/prototype/demo.mjs';
 const feed = JSON.parse(fs.readFileSync('web/prototype/feed.json'));
@@ -36,6 +37,21 @@ test('prepared answers bind selected asset evidence and reject arbitrary text', 
   assert.equal(demo.answer('inject an outer race fault', 'PP5').out_of_scope, true);
 });
 
+test('seed asset_id __proto__ cannot pollute Object.prototype or enter the catalog', () => {
+  const poisoned = structuredClone(seed);
+  poisoned.incidents.push({
+    asset_id: '__proto__', part: 'x', fault: 'inner_race', priority: 'critical', status: 'new',
+    detected_at: '2026-09-12T18:05:27+00:00', detections: ['2026-09-12T18:05:27+00:00'],
+    source: 'x', window: '0.00..1.00', rms: 9.99, rpm: 1,
+  });
+  const demo = createDemo(feed, poisoned);
+  for (let i = 0; i < 5; i++) demo.tick();
+  assert.equal(Object.hasOwn(Object.prototype, 'rms'), false);
+  assert.equal(Object.hasOwn(Object.prototype, 'fault'), false);
+  assert.equal(demo.snapshot().incidents.length, seed.incidents.length);
+  assert.ok(!demo.snapshot().incidents.some(row => row.asset === '__proto__'));
+});
+
 test('public output excludes backend, unsafe artifacts and mutation calls', () => {
   const files = fs.readdirSync('dist', { recursive: true });
   assert.ok(!files.some(f => /(^|\/)(app|api|runtime|data|node_modules|\.git)(\/|$)|\.(db|mat|pdf|pem|key)$/.test(f)));
@@ -48,4 +64,18 @@ test('public output excludes backend, unsafe artifacts and mutation calls', () =
   assert.match(cfg.routes[1].headers['Content-Security-Policy'], /frame-ancestors 'none'/);
   assert.equal(cfg.routes.at(-1).status, 404);
   assert.ok(!fs.existsSync('.vercel/output/functions'));
+  const vercel = JSON.parse(fs.readFileSync('vercel.json'));
+  assert.ok(vercel.headers?.length);
+  assert.match(JSON.stringify(vercel.headers), /connect-src 'self'/);
+  assert.match(JSON.stringify(vercel.headers), /frame-ancestors 'none'/);
+  assert.match(JSON.stringify(vercel.headers), /X-Frame-Options.{0,40}DENY/);
+  const hashes = new Set();
+  for (const file of ['web/landing/index.html', 'web/prototype/index.html', 'web/twin/index.html', 'web/credits.html']) {
+    const html = fs.readFileSync(file, 'utf8');
+    for (const [, attrs, body] of html.matchAll(/<script\b([^>]*)>([\s\S]*?)<\/script>/gi)) {
+      if (!/\bsrc\s*=/.test(attrs)) hashes.add(`'sha256-${createHash('sha256').update(body).digest('base64')}'`);
+    }
+  }
+  const csp = vercel.headers[0].headers.find(h => h.key === 'Content-Security-Policy').value;
+  for (const hash of hashes) assert.match(csp, new RegExp(hash.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')));
 });

@@ -3,5 +3,89 @@
   "framework": null,
   "buildCommand": "npm run build",
   "outputDirectory": "dist",
-  "installCommand": "echo 'No dependencies required'"
+  "installCommand": "echo 'No dependencies required'",
+  "rewrites": [
+    { "source": "/", "destination": "/landing/index.html" },
+    { "source": "/landing", "destination": "/landing/index.html" },
+    { "source": "/landing/", "destination": "/landing/index.html" },
+    { "source": "/prototype", "destination": "/prototype/index.html" },
+    { "source": "/prototype/", "destination": "/prototype/index.html" },
+    { "source": "/twin", "destination": "/twin/index.html" },
+    { "source": "/twin/", "destination": "/twin/index.html" }
+  ],
+  "headers": [
+    {
+      "source": "/(.*)",
+      "headers": [
+        {
+          "key": "Content-Security-Policy",
+          "value": "default-src 'self'; script-src 'self' 'sha256-3Vn/sev/BTK93f0w9ABOSYk94r0M0jTNwRm6Oc4c8GQ=' 'sha256-5m+ehLu4LgpeKpbI8m/jlR+SrgSzTgqVKl4u4ErpBqY=' 'sha256-xYMmED1D3yo68reiI6d0pzfkimg21wG1wTBh9Sl7jVQ='; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self'; connect-src 'self'; frame-src 'self'; frame-ancestors 'self'; object-src 'none'; base-uri 'none'; form-action 'none'; worker-src 'none'"
+        },
+        { "key": "X-Content-Type-Options", "value": "nosniff" },
+        { "key": "Referrer-Policy", "value": "no-referrer" },
+        { "key": "Permissions-Policy", "value": "camera=(), microphone=(), geolocation=()" },
+        { "key": "X-Frame-Options", "value": "SAMEORIGIN" }
+      ]
+    },
+    {
+      "source": "/landing",
+      "headers": [
+        {
+          "key": "Content-Security-Policy",
+          "value": "default-src 'self'; script-src 'self' 'sha256-3Vn/sev/BTK93f0w9ABOSYk94r0M0jTNwRm6Oc4c8GQ=' 'sha256-5m+ehLu4LgpeKpbI8m/jlR+SrgSzTgqVKl4u4ErpBqY=' 'sha256-xYMmED1D3yo68reiI6d0pzfkimg21wG1wTBh9Sl7jVQ='; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self'; connect-src 'self'; frame-src 'self'; frame-ancestors 'none'; object-src 'none'; base-uri 'none'; form-action 'none'; worker-src 'none'"
+        },
+        { "key": "X-Frame-Options", "value": "DENY" }
+      ]
+    },
+    {
+      "source": "/prototype",
+      "headers": [
+        {
+          "key": "Content-Security-Policy",
+          "value": "default-src 'self'; script-src 'self' 'sha256-3Vn/sev/BTK93f0w9ABOSYk94r0M0jTNwRm6Oc4c8GQ=' 'sha256-5m+ehLu4LgpeKpbI8m/jlR+SrgSzTgqVKl4u4ErpBqY=' 'sha256-xYMmED1D3yo68reiI6d0pzfkimg21wG1wTBh9Sl7jVQ='; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self'; connect-src 'self'; frame-src 'self'; frame-ancestors 'none'; object-src 'none'; base-uri 'none'; form-action 'none'; worker-src 'none'"
+        },
+        { "key": "X-Frame-Options", "value": "DENY" }
+      ]
+    },
+    {
+      "source": "/",
+      "headers": [
+        {
+          "key": "Content-Security-Policy",
+          "value": "default-src 'self'; script-src 'self' 'sha256-3Vn/sev/BTK93f0w9ABOSYk94r0M0jTNwRm6Oc4c8GQ=' 'sha256-5m+ehLu4LgpeKpbI8m/jlR+SrgSzTgqVKl4u4ErpBqY=' 'sha256-xYMmED1D3yo68reiI6d0pzfkimg21wG1wTBh9Sl7jVQ='; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self'; connect-src 'self'; frame-src 'self'; frame-ancestors 'none'; object-src 'none'; base-uri 'none'; form-action 'none'; worker-src 'none'"
+        },
+        { "key": "X-Frame-Options", "value": "DENY" }
+      ]
+    },
+    {
+      "source": "/landing/(.*)",
+      "headers": [
+        {
+          "key": "Content-Security-Policy",
+          "value": "default-src 'self'; script-src 'self' 'sha256-3Vn/sev/BTK93f0w9ABOSYk94r0M0jTNwRm6Oc4c8GQ=' 'sha256-5m+ehLu4LgpeKpbI8m/jlR+SrgSzTgqVKl4u4ErpBqY=' 'sha256-xYMmED1D3yo68reiI6d0pzfkimg21wG1wTBh9Sl7jVQ='; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self'; connect-src 'self'; frame-src 'self'; frame-ancestors 'none'; object-src 'none'; base-uri 'none'; form-action 'none'; worker-src 'none'"
+        },
+        { "key": "X-Frame-Options", "value": "DENY" }
+      ]
+    },
+    {
+      "source": "/prototype/(.*)",
+      "headers": [
+        {
+          "key": "Content-Security-Policy",
+          "value": "default-src 'self'; script-src 'self' 'sha256-3Vn/sev/BTK93f0w9ABOSYk94r0M0jTNwRm6Oc4c8GQ=' 'sha256-5m+ehLu4LgpeKpbI8m/jlR+SrgSzTgqVKl4u4ErpBqY=' 'sha256-xYMmED1D3yo68reiI6d0pzfkimg21wG1wTBh9Sl7jVQ='; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self'; connect-src 'self'; frame-src 'self'; frame-ancestors 'none'; object-src 'none'; base-uri 'none'; form-action 'none'; worker-src 'none'"
+        },
+        { "key": "X-Frame-Options", "value": "DENY" }
+      ]
+    },
+    {
+      "source": "/credits.html",
+      "headers": [
+        {
+          "key": "Content-Security-Policy",
+          "value": "default-src 'self'; script-src 'self' 'sha256-3Vn/sev/BTK93f0w9ABOSYk94r0M0jTNwRm6Oc4c8GQ=' 'sha256-5m+ehLu4LgpeKpbI8m/jlR+SrgSzTgqVKl4u4ErpBqY=' 'sha256-xYMmED1D3yo68reiI6d0pzfkimg21wG1wTBh9Sl7jVQ='; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self'; connect-src 'self'; frame-src 'self'; frame-ancestors 'none'; object-src 'none'; base-uri 'none'; form-action 'none'; worker-src 'none'"
+        },
+        { "key": "X-Frame-Options", "value": "DENY" }
+      ]
+    }
+  ]
 }

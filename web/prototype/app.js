@@ -29,8 +29,10 @@ let healthyLoop = true; // tape fallback loops hops 0–9 when hop-loop offline
 const RAIL_MIN = 280;
 const RAIL_MAX = 720;
 const RAIL_STORE = "groundwork-rail-widths";
+const NAV_STORE = "groundwork-nav-collapsed";
 let railWidths = { left: null, right: null };
 let railDrag = null;
+let navCollapsed = false;
 
 function snapshotDetails() {
   for (const el of app.querySelectorAll("details[data-open-key]")) {
@@ -84,6 +86,29 @@ function applyRailWidths() {
 
 function persistRailWidths() {
   try { localStorage.setItem(RAIL_STORE, JSON.stringify(railWidths)); } catch {}
+}
+
+function persistNavCollapsed() {
+  try { localStorage.setItem(NAV_STORE, navCollapsed ? "1" : "0"); } catch {}
+}
+
+function restoreNavCollapsed() {
+  try {
+    const saved = localStorage.getItem(NAV_STORE);
+    if (saved === "1") navCollapsed = true;
+    else if (saved === "0") navCollapsed = false;
+    else navCollapsed = matchMedia("(max-width: 720px)").matches;
+  } catch {}
+}
+
+function applyNavCollapsed() {
+  const shellEl = app.querySelector(".app-shell");
+  if (!shellEl) return;
+  shellEl.classList.toggle("is-nav-collapsed", navCollapsed);
+  const btn = shellEl.querySelector("[data-action='toggle-nav']");
+  if (!btn) return;
+  btn.setAttribute("aria-expanded", navCollapsed ? "false" : "true");
+  btn.setAttribute("aria-label", navCollapsed ? "Expand navigation" : "Collapse navigation");
 }
 
 function restoreRailWidths() {
@@ -274,7 +299,7 @@ function renderFloorLabels(route = getRoute()) {
     const critical = a.asset_id === "RPP1" && flag;
     const cls = ["floor-label", monitored ? "monitored" : "unmonitored", a.asset_id === selected ? "selected" : "", critical ? "critical" : "", a.asset_id === hovered ? "hover" : ""].filter(Boolean).join(" ");
     const state = critical ? "flag" : a.asset_id === "RPP1" ? "ok" : monitored ? "process" : "no sensor";
-    return `<button type="button" class="${cls}" data-open-asset="${a.asset_id}" data-floor-label="${a.asset_id}" style="${style(a)}" aria-label="Open ${a.asset_id} asset page, ${state}" aria-current="${a.asset_id === selected}">${critical ? `${icon("alert", "sm")}` : ""}<span class="mono">${a.asset_id}</span>${monitored || critical ? `<small>${state}</small>` : ""}</button>`;
+    return `<button type="button" class="${cls}" data-open-asset="${esc(a.asset_id)}" data-floor-label="${esc(a.asset_id)}" style="${style(a)}" aria-label="Open ${esc(a.asset_id)} asset page, ${state}" aria-current="${a.asset_id === selected}">${critical ? `${icon("alert", "sm")}` : ""}<span class="mono">${esc(a.asset_id)}</span>${monitored || critical ? `<small>${state}</small>` : ""}</button>`;
   }).join("");
 }
 
@@ -566,7 +591,7 @@ function dash(value) {
 function clock(ts) {
   if (!ts) return "—";
   const match = String(ts).match(/T(\d{2}:\d{2}:\d{2})/);
-  return match ? match[1] : ts;
+  return match ? match[1] : "—";
 }
 
 function hopIndex() {
@@ -649,7 +674,7 @@ function processTagEntries(slot) {
 function processTagDl(slot) {
   const entries = processTagEntries(slot);
   if (!entries.length) return `<p class="section-note">No process tags on this hop.</p>`;
-  const rows = entries.map(([k, v]) => `<dt>${esc(k)}</dt><dd>${dash(v)}</dd>`).join("");
+  const rows = entries.map(([k, v]) => `<dt>${esc(k)}</dt><dd>${esc(dash(v))}</dd>`).join("");
   return `<dl class="key-grid"><dt>Source</dt><dd class="mono">${esc(slot.source || "—")}</dd>${rows}</dl>`;
 }
 
@@ -957,7 +982,7 @@ function statusClass(value) {
 
 function navLink(module, label, iconName, path, count = "") {
   const active = activeModule(getRoute().path) === module;
-  return `<a class="nav-link ${active ? "active" : ""}" href="#${path}" ${active ? 'aria-current="page"' : ""}>${icon(iconName)}<span>${label}</span>${count ? `<span class="nav-count">${count}</span>` : ""}</a>`;
+  return `<a class="nav-link ${active ? "active" : ""}" href="#${path}" title="${esc(label)}" ${active ? 'aria-current="page"' : ""}>${icon(iconName)}<span>${label}</span>${count ? `<span class="nav-count">${count}</span>` : ""}</a>`;
 }
 
 function breadcrumb(route) {
@@ -981,9 +1006,9 @@ function shell(main, route, rail) {
   const bodyClass = ["workspace-body", (leftRail || rightRail) ? "has-rail" : "", leftRail ? "has-left-rail" : "", rightRail ? "has-right-rail" : ""].filter(Boolean).join(" ");
   const assistTrigger = rightRail ? "" : `<button class="rail-trigger" data-action="open-assist" data-focus-id="rail-trigger" type="button" aria-label="Open Maintenance Assist">${icon("spark", "sm")}<span>Maintenance Assist</span></button>`;
   return `
-    <div class="app-shell">
+    <div class="app-shell${navCollapsed ? " is-nav-collapsed" : ""}">
       <nav class="left-nav" aria-label="Primary navigation">
-        <div class="brand"><a class="mark" href="#/incidents"><img src="/landing/groundwork-mark.svg" alt="Groundwork" width="28" height="28" onerror="this.onerror=null;this.src='groundwork-mark.svg'"></a><div class="brand-copy"><strong>Groundwork</strong><span>${esc(feed.cell.name)}</span></div></div>
+        <div class="brand"><a class="mark" href="#/incidents"><img src="/landing/groundwork-mark.svg" alt="Groundwork" width="28" height="28" onerror="this.onerror=null;this.src='groundwork-mark.svg'"></a><div class="brand-copy"><strong>Groundwork</strong><span>${esc(feed.cell.name)}</span></div><button class="nav-toggle" data-action="toggle-nav" data-focus-id="nav-toggle" type="button" aria-expanded="${navCollapsed ? "false" : "true"}" aria-label="${navCollapsed ? "Expand navigation" : "Collapse navigation"}">${icon("back", "sm")}</button></div>
         <div class="nav-section-label">Workspace</div>
         <div class="nav-list">
           ${navLink("incidents", "Incidents", "inbox", "/incidents", String(open))}
@@ -1026,7 +1051,7 @@ function metricStat(label, value, note, tone = "", info = "") {
 }
 
 function filterOption(kind, value, label, count, checked, disabled = false) {
-  return `<label class="filter-option${checked ? " is-on" : ""}${disabled ? " is-locked" : ""}"><input type="checkbox" data-filter-kind="${kind}" data-focus-id="filter-${kind}-${value}" value="${value}" ${checked ? "checked" : ""}${disabled ? " disabled" : ""}><span class="filter-check" aria-hidden="true"></span><span class="filter-label">${esc(label)}</span><span class="count">${count}</span></label>`;
+  return `<label class="filter-option${checked ? " is-on" : ""}${disabled ? " is-locked" : ""}"><input type="checkbox" data-filter-kind="${esc(kind)}" data-focus-id="filter-${esc(kind)}-${esc(value)}" value="${esc(value)}" ${checked ? "checked" : ""}${disabled ? " disabled" : ""}><span class="filter-check" aria-hidden="true"></span><span class="filter-label">${esc(label)}</span><span class="count">${count}</span></label>`;
 }
 
 function setFiltersOpen(open, { restore = false } = {}) {
@@ -1156,12 +1181,12 @@ function inboxPage(route) {
   const aging = list.filter(item => item.ageMin >= 120).length;
   const clearVisible = metric !== "all" || priorities.size || statuses.size || ai.size || route.params.get("search");
   const table = rows.length ? `<table class="object-table"><thead><tr><th>Priority</th><th>Incident</th><th>Asset</th><th>Area / line</th><th>Case status</th><th>Last seen</th><th>Age</th></tr></thead><tbody>${rows.map(item => `
-    <tr class="${item.id === selected?.id ? "selected" : ""}" data-select-incident="${item.id}" tabindex="0" aria-selected="${item.id === selected?.id}">
-      <td><span class="status ${statusClass(item.priority)}">${item.priority}</span></td>
-      <td class="incident-cell"><span class="object-title">${esc(item.title)}</span><span class="object-id"><span class="mono">${item.id}</span> · ${esc(item.signal)} signal</span></td>
-      <td class="mono">${item.asset}</td><td>${esc(item.area)}<span class="object-id">${esc(item.line)}</span></td>
-      <td><span class="badge ${statusClass(item.status)}">${item.status}</span></td>
-      <td class="num">${item.last}</td><td class="num">${item.age}</td>
+    <tr class="${item.id === selected?.id ? "selected" : ""}" data-select-incident="${esc(item.id)}" tabindex="0" aria-selected="${item.id === selected?.id}">
+      <td><span class="status ${statusClass(item.priority)}">${esc(item.priority)}</span></td>
+      <td class="incident-cell"><span class="object-title">${esc(item.title)}</span><span class="object-id"><span class="mono">${esc(item.id)}</span> · ${esc(item.signal)} signal</span></td>
+      <td class="mono">${esc(item.asset)}</td><td>${esc(item.area)}<span class="object-id">${esc(item.line)}</span></td>
+      <td><span class="badge ${statusClass(item.status)}">${esc(item.status)}</span></td>
+      <td class="num">${esc(item.last)}</td><td class="num">${esc(item.age)}</td>
     </tr>`).join("")}</tbody></table>` : `<div class="empty-state">${icon("filter", "lg")}<div><h2>${list.length ? "No matching incidents" : "No open incident"}</h2><p>${list.length ? "Current filters exclude all active cases." : "No pre-populated incidents in this view."}</p>${list.length ? `<button class="btn" data-action="clear-filters">Clear filters</button>` : ""}</div></div>`;
   return `<main class="page"><div class="page-inner compact">
     ${moduleHeader("Incidents", "Pre-populated incidents · browser-local replay · no new faults.", `${tapeStamp()}<button class="btn sm" data-action="toggle-scope">${icon("pin", "sm")} ${route.params.get("scope") === "site" ? "Entire site" : "Cell"}</button>`)}
@@ -1226,8 +1251,8 @@ function incidentDetailPage(route) {
       </div>
     </section>`;
   return `<main class="page incident-detail-page"><div class="page-inner compact">
-    ${moduleHeader(`${item.id} · ${esc(item.title)}`, `${item.asset} / ${item.component} · ${esc(item.area)}`, `<button type="button" class="btn" data-action="open-asset" aria-label="Open ${esc(item.asset)} asset profile">${icon("asset", "sm")}Asset profile</button><button class="btn" data-action="view-floor">${icon("floor", "sm")}View on floor</button><button class="btn ${item.status === "Acknowledged" ? "" : "primary"}" data-action="acknowledge" data-focus-id="acknowledge" aria-pressed="${item.status === "Acknowledged"}">${icon("check", "sm")}${item.status === "Acknowledged" ? "Acknowledged" : "Acknowledge incident"}</button>`)}
-    <div class="detail-meta"><span class="badge ${statusClass(item.priority)}">${esc(item.priority)} priority</span><span class="badge ${item.status === "Acknowledged" ? "" : "info"}">${item.status === "Acknowledged" ? "Acknowledged" : item.status}</span><span>${icon("clock", "sm")}last ${item.last} · ${item.detections} detections</span><span>Signal: <strong class="${item.signal === "Elevated" ? "text-warning" : ""}">${item.signal}</strong></span><span>L1: <strong class="text-success">${esc(now.rpp1?.engine || "—")}</strong></span></div>
+    ${moduleHeader(`${esc(item.id)} · ${esc(item.title)}`, `${esc(item.asset)} / ${esc(item.component)} · ${esc(item.area)}`, `<button type="button" class="btn" data-action="open-asset" aria-label="Open ${esc(item.asset)} asset profile">${icon("asset", "sm")}Asset profile</button><button class="btn" data-action="view-floor">${icon("floor", "sm")}View on floor</button><button class="btn ${item.status === "Acknowledged" ? "" : "primary"}" data-action="acknowledge" data-focus-id="acknowledge" aria-pressed="${item.status === "Acknowledged"}">${icon("check", "sm")}${item.status === "Acknowledged" ? "Acknowledged" : "Acknowledge incident"}</button>`)}
+    <div class="detail-meta"><span class="badge ${statusClass(item.priority)}">${esc(item.priority)} priority</span><span class="badge ${item.status === "Acknowledged" ? "" : "info"}">${item.status === "Acknowledged" ? "Acknowledged" : esc(item.status)}</span><span>${icon("clock", "sm")}last ${esc(item.last)} · ${esc(item.detections)} detections</span><span>Signal: <strong class="${item.signal === "Elevated" ? "text-warning" : ""}">${esc(item.signal)}</strong></span><span>L1: <strong class="text-success">${esc(now.rpp1?.engine || "—")}</strong></span></div>
     <div style="height:10px"></div>
     <section class="question-grid${pendingIncidentReveal ? " is-revealed" : ""}" data-incident-overview tabindex="-1" aria-label="Incident overview">
       <article class="question-card"><span class="question-number">01</span><h2>What happened?</h2><p>${inc4Summary ? inc4Summary.happened : `${esc(now.rpp1.engine)} on ${esc(now.rpp1.source)} window ${esc(now.rpp1.window)}. Fault ${esc(dash(now.rpp1.fault))}. BPFI ${now.rpp1.bpfi.detected ? `${now.rpp1.bpfi.hz} Hz` : "not detected"}.`}</p><div class="inline-citations">${citationButton("signal", "Signal", `${now.rpp1.file} · ${now.rpp1.window}`)}</div></article>
@@ -1237,7 +1262,7 @@ function incidentDetailPage(route) {
     ${twinPanel}
     <section class="detail-grid">
       <article class="panel"><div class="panel-header"><h2>L1 hops</h2><span class="badge info" style="margin-left:auto">${hopLabel()}</span></div><div class="panel-body"><div class="timeline">
-        ${recentHopRows(6).map(row => `<div class="timeline-row"><span class="timeline-icon">${icon("check", "sm")}</span><div class="timeline-copy"><strong class="mono">${esc(row.rpp1.file || "—")}</strong><span>${esc(row.rpp1.source || "—")} · ${esc(row.rpp1.window || "—")} · RMS ${dash(row.rpp1.rms)} g${row.rpp1.fault ? ` · ${row.rpp1.fault}` : ""}</span></div><time>${clock(row.ts)}</time></div>`).join("")}
+        ${recentHopRows(6).map(row => `<div class="timeline-row"><span class="timeline-icon">${icon("check", "sm")}</span><div class="timeline-copy"><strong class="mono">${esc(row.rpp1.file || "—")}</strong><span>${esc(row.rpp1.source || "—")} · ${esc(row.rpp1.window || "—")} · RMS ${esc(dash(row.rpp1.rms))} g${row.rpp1.fault ? ` · ${esc(row.rpp1.fault)}` : ""}</span></div><time>${clock(row.ts)}</time></div>`).join("")}
       </div></div></article>
       <article class="panel"><div class="panel-header"><h2>Condition</h2><button class="btn sm" data-evidence="signal">Open exact signal</button></div><div class="condition-numbers"><div class="condition-number"><span>RMS</span><strong class="num">${dash(now.rpp1.rms)}<small>g</small></strong></div><div class="condition-number"><span>Speed</span><strong class="num">${dash(now.rpp1.rpm)}<small>rpm</small></strong></div><div class="condition-number"><span>BPFI</span><strong class="num">${dash(now.rpp1.bpfi.hz)}<small>Hz</small></strong></div></div>${rmsChart(320, 80, "RPP1 RMS hops")}<div class="limit-note">${icon("alert", "sm")}ISO 20816 shown as context only; this 2 hp dataset asset is below the 15 kW applicability floor.</div></article>
     </section>
@@ -1257,7 +1282,7 @@ function stationState(id) {
 
 function floorTree(route) {
   const selected = selectedAsset(route).id;
-  const row = id => { const s = stationState(id); return `<div class="tree-row indent-1 ${selected === id ? "selected" : ""}" data-select-asset="${id}" role="button" tabindex="0" aria-pressed="${selected === id}"><span class="mono">${id}</span><span class="tree-count ${s.cls}">${s.text}</span></div>`; };
+  const row = id => { const s = stationState(id); return `<div class="tree-row indent-1 ${selected === id ? "selected" : ""}" data-select-asset="${esc(id)}" role="button" tabindex="0" aria-pressed="${selected === id}"><span class="mono">${esc(id)}</span><span class="tree-count ${s.cls}">${s.text}</span></div>`; };
   if (!twinStations) {
     return `<div class="tree-row"><strong>${esc(feed.cell.name)}</strong><span class="tree-count">${incidents().length} incidents</span></div>${row("RPP1")}${row("T1")}<p class="tree-note">Loading line geometry…</p>`;
   }
@@ -1322,9 +1347,9 @@ function partPanel(asset) {
   const badge = `<span class="badge ${facts.tone === "critical" ? "critical" : facts.tone === "success" ? "success" : ""}">${esc(facts.state)}</span>`;
   let body = "";
   if (facts.bound && asset.id === "RPP1") {
-    body = `<dl class="key-grid"><dt>Source</dt><dd class="mono">${esc(facts.source)}</dd><dt>Window</dt><dd class="mono">${esc(facts.window)}</dd><dt>RMS</dt><dd>${dash(facts.rms)} g</dd><dt>Speed</dt><dd>${dash(facts.rpm)} rpm</dd><dt>BPFI</dt><dd>${dash(facts.bpfi)} Hz</dd><dt>bus_w</dt><dd>${dash(facts.bus_w)} W</dd><dt>joint1_a</dt><dd>${dash(facts.joint1_a)} A</dd>${facts.fault ? `<dt>Fault</dt><dd class="text-critical">${esc(facts.fault)}</dd>` : ""}</dl>${facts.incident ? `<div class="rail-actions"><button type="button" class="btn primary sm" data-open-incident="${facts.incident.id}">Open ${facts.incident.id} ${icon("arrow", "sm")}</button><button type="button" class="btn sm" data-evidence="signal">Open exact signal</button></div>` : `<div class="rail-actions"><button type="button" class="btn sm" data-evidence="signal">Open exact signal</button></div>`}`;
+    body = `<dl class="key-grid"><dt>Source</dt><dd class="mono">${esc(facts.source)}</dd><dt>Window</dt><dd class="mono">${esc(facts.window)}</dd><dt>RMS</dt><dd>${dash(facts.rms)} g</dd><dt>Speed</dt><dd>${dash(facts.rpm)} rpm</dd><dt>BPFI</dt><dd>${dash(facts.bpfi)} Hz</dd><dt>bus_w</dt><dd>${dash(facts.bus_w)} W</dd><dt>joint1_a</dt><dd>${dash(facts.joint1_a)} A</dd>${facts.fault ? `<dt>Fault</dt><dd class="text-critical">${esc(facts.fault)}</dd>` : ""}</dl>${facts.incident ? `<div class="rail-actions"><button type="button" class="btn primary sm" data-open-incident="${esc(facts.incident.id)}">Open ${esc(facts.incident.id)} ${icon("arrow", "sm")}</button><button type="button" class="btn sm" data-evidence="signal">Open exact signal</button></div>` : `<div class="rail-actions"><button type="button" class="btn sm" data-evidence="signal">Open exact signal</button></div>`}`;
   } else if (facts.bound && facts.incident) {
-    body = `<dl class="key-grid"><dt>Source</dt><dd class="mono">${esc(dash(facts.source))}</dd><dt>Window</dt><dd class="mono">${esc(dash(facts.window))}</dd><dt>RMS</dt><dd>${dash(facts.rms)} g</dd><dt>Speed</dt><dd>${dash(facts.rpm)} rpm</dd>${facts.fault ? `<dt>Fault</dt><dd class="text-critical">${esc(facts.fault)}</dd>` : ""}</dl><div class="rail-actions"><button type="button" class="btn primary sm" data-open-incident="${facts.incident.id}">Open ${facts.incident.id} ${icon("arrow", "sm")}</button><button type="button" class="btn sm" data-evidence="signal">Open exact signal</button></div>`;
+    body = `<dl class="key-grid"><dt>Source</dt><dd class="mono">${esc(dash(facts.source))}</dd><dt>Window</dt><dd class="mono">${esc(dash(facts.window))}</dd><dt>RMS</dt><dd>${dash(facts.rms)} g</dd><dt>Speed</dt><dd>${dash(facts.rpm)} rpm</dd>${facts.fault ? `<dt>Fault</dt><dd class="text-critical">${esc(facts.fault)}</dd>` : ""}</dl><div class="rail-actions"><button type="button" class="btn primary sm" data-open-incident="${esc(facts.incident.id)}">Open ${esc(facts.incident.id)} ${icon("arrow", "sm")}</button><button type="button" class="btn sm" data-evidence="signal">Open exact signal</button></div>`;
   } else if (facts.bound) {
     body = processTagDl(facts.slot || { source: facts.source });
   } else {
@@ -1418,13 +1443,13 @@ function assetPage(route) {
       ? `<dl class="key-grid"><dt>VLFT model</dt><dd class="mono">${esc(asset.model)}</dd><dt>Cell</dt><dd>${esc(cellName(asset.cell))}</dd><dt>Signal source</dt><dd class="mono">none</dd></dl><p class="section-note">Unmonitored station. Geometry only; never diagnosed.</p>`
       : `${processTagDl(slot)}<p class="section-note">Process / electrical tags only. Never diagnosed. Not a vibration channel.</p>`;
   return `<main class="page"><div class="page-inner compact">
-    ${moduleHeader(`${asset.id} · ${esc(asset.name)}`, `${esc(asset.location)} · ${esc(asset.component)} · ${esc(asset.source)}`, actions)}
+    ${moduleHeader(`${esc(asset.id)} · ${esc(asset.name)}`, `${esc(asset.location)} · ${esc(asset.component)} · ${esc(asset.source)}`, actions)}
     <div class="tabs" role="tablist">${assetTab("overview", "Overview")}${assetTab("maintenance", "Maintenance")}${assetTab("evidence", "Evidence")}${assetTab("activity", "Activity")}</div><div style="height:10px"></div>
     <div class="asset-layout ${renderOpen ? "has-render" : ""}">${renderOpen ? `<aside class="render-column">${renderPanel(route, asset)}</aside>` : ""}<div class="asset-main">
     <section class="asset-summary"><article class="panel asset-score"><div><div class="asset-score-ring" aria-label="${esc(asset.condition)}">${ring}</div><strong>${esc(asset.condition)}</strong><span>${ringNote}</span></div></article><article class="panel asset-facts"><div class="asset-fact"><span>Open incidents</span><strong class="${asset.incident ? "text-critical" : ""}">${asset.incident || "None"}</strong></div><div class="asset-fact"><span>${fact2[0]}</span><strong class="${unmon ? "mono" : "num"}">${fact2[1]}</strong></div><div class="asset-fact"><span>Last hop</span><strong>${clock(now.ts)}</strong></div><div class="asset-fact"><span>Source</span><strong class="mono">${esc(asset.source)}</strong></div></article></section>
     <section class="asset-columns">
       <div>
-        <article class="panel" style="margin-bottom:8px"><div class="panel-header"><h2>Condition</h2>${asset.incident ? `<button class="btn sm primary" data-open-incident="${asset.incident}" style="margin-left:auto">Open incident ${icon("arrow", "sm")}</button>` : ""}</div><div class="panel-body">${condition}</div></article>
+        <article class="panel" style="margin-bottom:8px"><div class="panel-header"><h2>Condition</h2>${asset.incident ? `<button class="btn sm primary" data-open-incident="${esc(asset.incident)}" style="margin-left:auto">Open incident ${icon("arrow", "sm")}</button>` : ""}</div><div class="panel-body">${condition}</div></article>
         <article class="panel" style="margin-bottom:8px"><div class="panel-header"><h2>Current work order</h2>${workOrder ? `<button class="btn sm primary" data-action="open-l2-report">View L2 report</button><span class="badge" style="margin-left:auto">${esc(workOrder.wo_id)}</span>` : ""}</div><div class="panel-body">${workOrder ? `<div class="work-order-callout">${icon("wrench")}<div><strong>${esc(workOrder.action || "Review required")}</strong><p>${esc(workOrder.priority || "Draft")} · human approval required</p></div></div><dl class="key-grid"><dt>Parts</dt><dd class="mono">${esc((workOrder.parts || []).join(", ") || "None specified")}</dd><dt>Incident</dt><dd class="mono">${esc(asset.incident || "—")}</dd></dl>` : `<p class="section-note">No open work order for this asset.</p>`}</div></article>
         <article class="panel"><div class="panel-header"><h2>Maintenance history</h2><span class="section-note" style="margin-left:auto">${isHero ? "Alias MTR-07" : "No CMMS rows"}</span></div>${history.length ? `<table class="simple-table"><thead><tr><th>Work order</th><th>Date</th><th>Fault</th><th>Action / part</th></tr></thead><tbody>${history.map(row => `<tr><td><button class="cite-button mono" data-evidence="history">${esc(row.wo_id)}</button></td><td>${esc(row.opened)}</td><td>${esc(row.fault)}</td><td>${esc(row.action)} · ${esc(row.parts)}</td></tr>`).join("")}</tbody></table>` : `<div class="panel-body"><p class="section-note">—</p></div>`}</article>
       </div>
@@ -1457,10 +1482,10 @@ function intelligencePage(route) {
     <section class="system-strip" aria-label="System health"><div class="system-cell"><span>Loop</span><strong><i class="live-dot"></i>${liveHops?.live ? "live" : "fallback"} · 1 Hz</strong></div><div class="system-cell"><span>L1</span><strong class="text-success">${icon("check", "sm")}${esc(now.rpp1?.engine || "—")}</strong></div><div class="system-cell"><span>Fleet</span><strong>${feed.fleet.length} monitored</strong></div><div class="system-cell"><span>Containment</span>${containmentCell()}</div></section>
     <section class="panel" style="margin-bottom:8px"><div class="panel-header"><h2>Current work orders</h2><span class="section-note" style="margin-left:auto">Open incident drafts</span></div>${currentWorkOrderTable()}</section>
     <section class="intel-layout">
-      <article class="panel"><div class="panel-header"><h2>Recent hops</h2><span class="section-note" style="margin-left:auto">${rows.length} shown${faulted ? ` · ${faulted} faulted` : ""}</span></div><div class="run-list">${rows.map(item => `<div class="run-row ${`HOP-${item.i}` === run ? "selected" : ""}" data-select-run="HOP-${item.i}" tabindex="0"><div class="run-main"><strong class="mono">HOP-${item.i}</strong><span>${clock(item.ts)} · ${esc(item.rpp1.file || "—")}</span><br><span>RMS ${dash(item.rpp1.rms)} g · ${item.rpp1.fault || "healthy"}</span></div><div class="run-side"><span class="status ${statusClass(item.rpp1.fault ? "critical" : "healthy")}">${item.rpp1.fault || "ok"}</span><time>${esc(item.rpp1.window || "—")}</time></div></div>`).join("")}</div></article>
+      <article class="panel"><div class="panel-header"><h2>Recent hops</h2><span class="section-note" style="margin-left:auto">${rows.length} shown${faulted ? ` · ${faulted} faulted` : ""}</span></div><div class="run-list">${rows.map(item => `<div class="run-row ${`HOP-${item.i}` === run ? "selected" : ""}" data-select-run="HOP-${item.i}" tabindex="0"><div class="run-main"><strong class="mono">HOP-${item.i}</strong><span>${clock(item.ts)} · ${esc(item.rpp1.file || "—")}</span><br><span>RMS ${esc(dash(item.rpp1.rms))} g · ${esc(item.rpp1.fault || "healthy")}</span></div><div class="run-side"><span class="status ${statusClass(item.rpp1.fault ? "critical" : "healthy")}">${esc(item.rpp1.fault || "ok")}</span><time>${esc(item.rpp1.window || "—")}</time></div></div>`).join("")}</div></article>
       <article class="panel"><div class="trace-header"><div class="trace-title"><h2>Current hop</h2><span class="badge ${now.rpp1?.fault ? "critical" : "success"}">${now.rpp1?.fault || "Healthy"}</span></div><div class="trace-meta"><span class="mono">${hopLabel()}</span><span>RPP1 / URjoint1</span><span>${clock(now.ts)}</span><span>${esc(now.rpp1?.engine || "—")}</span></div></div><div class="trace-stages">
         <details class="trace-stage" data-open-key="trace-l0" open><summary class="trace-summary"><span class="timeline-icon">${icon("check", "sm")}</span><span class="trace-stage-label">L0</span><strong>DAQ drop</strong><time>${clock(now.ts)}</time></summary><div class="trace-body"><dl><dt>Source</dt><dd class="mono">${esc(now.rpp1?.source || "—")}</dd><dt>Window</dt><dd class="mono">${esc(now.rpp1?.window || "—")}</dd><dt>fs</dt><dd class="num">${dash(now.rpp1?.fs_hz)} Hz</dd></dl><div class="inline-citations">${citationButton("signal", "Signal", now.rpp1?.window || "—")}</div></div></details>
-        <details class="trace-stage" data-open-key="trace-l1" open><summary class="trace-summary"><span class="timeline-icon">${icon("check", "sm")}</span><span class="trace-stage-label">L1</span><strong>Condition features</strong></summary><div class="trace-body"><dl><dt>RMS</dt><dd>${dash(now.rpp1?.rms)} g</dd><dt>BPFI</dt><dd>${now.rpp1?.bpfi?.detected ? `${now.rpp1.bpfi.hz} Hz` : "not detected"}</dd><dt>Fault</dt><dd>${dash(now.rpp1?.fault)}</dd><dt>bus_w</dt><dd>${dash(now.rpp1?.bus_w)} W</dd></dl></div></details>
+        <details class="trace-stage" data-open-key="trace-l1" open><summary class="trace-summary"><span class="timeline-icon">${icon("check", "sm")}</span><span class="trace-stage-label">L1</span><strong>Condition features</strong></summary><div class="trace-body"><dl><dt>RMS</dt><dd>${esc(dash(now.rpp1?.rms))} g</dd><dt>BPFI</dt><dd>${now.rpp1?.bpfi?.detected ? `${esc(now.rpp1.bpfi.hz)} Hz` : "not detected"}</dd><dt>Fault</dt><dd>${esc(dash(now.rpp1?.fault))}</dd><dt>bus_w</dt><dd>${esc(dash(now.rpp1?.bus_w))} W</dd></dl></div></details>
         <details class="trace-stage" data-open-key="trace-fleet" open><summary class="trace-summary"><span class="timeline-icon">${icon("check", "sm")}</span><span class="trace-stage-label">Fleet</span><strong>Assets and Condition</strong></summary><div class="trace-body"><p class="section-note">Pointer only — process tags and vibration diagnosis are their own pages, not this chip-strip.</p><div class="fleet-pointers"><a class="btn sm" href="#/assets">Open Assets · 24 process cards</a><a class="btn sm" href="#/condition">Open Condition · 6 motors</a></div></div></details>
       </div></article>
     </section>
@@ -1533,7 +1558,7 @@ function objectPreviewRail(route) {
       ${previewSection("What should I do", workOrder ? "Current work order" : "Next technician step", action, workOrder?.parts?.length ? `<p class="preview-parts"><span>Parts</span> ${esc(workOrder.parts.join(", "))}</p>` : "")}
       ${previewSection("Why trust it", workOrder ? "Evidence-backed draft" : "L1 evidence only", evidenceSummary, stages)}
       ${technical}`;
-    const actions = `<button class="btn primary" data-open-incident="${incident.id}">Open incident ${icon("arrow", "sm")}</button><div class="preview-actions-secondary"><button class="btn" data-action="view-floor">${icon("floor", "sm")}View on floor</button><button class="btn" data-action="open-assist">${icon("spark", "sm")}Ask Assist</button></div>`;
+    const actions = `<button class="btn primary" data-open-incident="${esc(incident.id)}">Open incident ${icon("arrow", "sm")}</button><div class="preview-actions-secondary"><button class="btn" data-action="view-floor">${icon("floor", "sm")}View on floor</button><button class="btn" data-action="open-assist">${icon("spark", "sm")}Ask Assist</button></div>`;
     return previewRail(`${incident.id} · Incident`, body, actions);
   }
 
@@ -1562,7 +1587,7 @@ function objectPreviewRail(route) {
     <section class="preview-section"><div class="rail-kicker">Current condition · ${esc(hopLabel())}</div><div class="preview-facts"><div class="preview-fact"><span>RMS</span><strong>${dash(now.rpp1?.rms)} g</strong></div><div class="preview-fact"><span>Speed</span><strong>${dash(now.rpp1?.rpm)} rpm</strong></div><div class="preview-fact"><span>BPFI</span><strong>${now.rpp1?.bpfi?.detected ? `${dash(now.rpp1.bpfi.hz)} Hz` : "Not detected"}</strong></div></div>${currentWindow ? `<div class="inline-citations">${citationButton("signal", "Open current signal", currentWindow, { source: currentSource, window: currentWindow })}</div>` : ""}</section>
     <details class="preview-details" data-open-key="preview-details"><summary>Source details</summary><dl class="key-grid"><dt>Source</dt><dd class="mono">${esc(currentSource)}</dd><dt>Window</dt><dd class="mono">${esc(currentWindow || "—")}</dd><dt>Active case</dt><dd>${esc(asset.incident || "None")}</dd></dl></details>`;
   const actions = asset.incident
-    ? `<button class="btn primary" data-open-incident="${asset.incident}">Open incident ${icon("arrow", "sm")}</button><div class="preview-actions-secondary"><button class="btn" data-action="open-asset">Open Asset 360</button><button class="btn" data-action="open-assist">${icon("spark", "sm")}Ask Assist</button></div>`
+    ? `<button class="btn primary" data-open-incident="${esc(asset.incident)}">Open incident ${icon("arrow", "sm")}</button><div class="preview-actions-secondary"><button class="btn" data-action="open-asset">Open Asset 360</button><button class="btn" data-action="open-assist">${icon("spark", "sm")}Ask Assist</button></div>`
     : `<button class="btn primary" data-action="open-asset">Open Asset 360</button><button class="btn" data-action="open-assist">${icon("spark", "sm")}Ask Maintenance Assist</button>`;
   return previewRail(`${asset.id} · Asset`, body, actions);
 }
@@ -1656,7 +1681,7 @@ function answerContent(question, asset) {
   }
   const slot = assetHop(asset.id);
   const entries = processTagEntries(slot);
-  const rows = entries.map(([k, v]) => `<dt>${esc(k)}</dt><dd>${dash(v)}</dd>`).join("");
+  const rows = entries.map(([k, v]) => `<dt>${esc(k)}</dt><dd>${esc(dash(v))}</dd>`).join("");
   return `<div class="assist-message user"><div class="sender">You</div><p>${esc(question)}</p></div><div class="assist-message"><div class="sender">Maintenance Assist · L1 process tags</div><p>No vibration channel on <span class="mono">${esc(asset.id)}</span>. Not diagnosed. No work order. Numbers are this hop's cited process / electrical tags.</p><dl class="key-grid"><dt>Part</dt><dd class="mono">${esc(slot?.part || asset.component)}</dd><dt>Source</dt><dd class="mono">${esc(slot?.source || asset.source)}</dd>${rows}</dl><div class="citation-list"><button class="citation-link" data-evidence="process">${icon("intel")}<span>${esc(slot?.source || asset.source)} · ${hopLabel()}</span>${icon("external", "sm")}</button></div></div>`;
 }
 
@@ -1914,6 +1939,7 @@ function render() {
   const rightRailBody = app.querySelector(".utility-rail:not([data-rail-side=left]) .rail-body");
   if (rightRailBody) rightRailBody.scrollTop = savedRightRailScroll;
   applyRailWidths();
+  applyNavCollapsed();
   syncFloor(route);
   syncPart(route);
   document.title = `${activeModule(route.path)[0].toUpperCase()}${activeModule(route.path).slice(1)} · Groundwork`;
@@ -2004,6 +2030,16 @@ function onAppClick(event) {
   if (target.dataset.suggestion) { startAssist(target.dataset.suggestion); return; }
   const action = target.dataset.action;
   if (!action) return;
+  if (action === "toggle-nav") {
+    navCollapsed = !navCollapsed;
+    persistNavCollapsed();
+    applyNavCollapsed();
+    requestAnimationFrame(() => {
+      positionFloorLive();
+      positionPartLive();
+    });
+    return;
+  }
   if (action === "toggle-scope") updateRoute({ scope: getRoute().params.get("scope") === "site" ? null : "site" });
   if (action === "toggle-context") {
     const now = performance.now();
@@ -2262,6 +2298,7 @@ async function boot() {
   prefetchTwinAssets("RPP1");
   loadStations();
   restoreRailWidths();
+  restoreNavCollapsed();
   if (!location.hash) location.replace("#/incidents");
   render();
   startReplay();

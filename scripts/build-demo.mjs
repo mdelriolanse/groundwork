@@ -34,9 +34,13 @@ delete feed.flag;
 delete feed.manifest.flag_hop;
 const seeds = JSON.parse(fs.readFileSync('data/demo/seed-incidents.json'));
 function sanitize(value) {
-  if (typeof value === 'string') return value.replace(/\/(?:home|media|tmp)\/[^\s"<>]+/g, '[local artifact]').replace(/https?:\/\/(?:127\.0\.0\.1|localhost|10\.[\d.]+|100\.[\d.]+)(?::\d+)?[^\s]*/g, '[local service]');
+  if (typeof value === 'string') return value.replace(/\/(?:home|media|tmp|Users)\/[^\s"<>]+/g, '[local artifact]').replace(/https?:\/\/(?:127\.0\.0\.1|localhost|10\.[\d.]+|100\.[\d.]+)(?::\d+)?[^\s]*/g, '[local service]');
   if (Array.isArray(value)) return value.map(sanitize);
-  if (value && typeof value === 'object') return Object.fromEntries(Object.entries(value).map(([k,v]) => [k,sanitize(v)]));
+  if (value && typeof value === 'object') {
+    return Object.fromEntries(Object.entries(value)
+      .filter(([k]) => k !== '__proto__' && k !== 'prototype' && k !== 'constructor')
+      .map(([k, v]) => [k, sanitize(v)]));
+  }
   return value;
 }
 fs.writeFileSync(`${out}/prototype/feed.json`, JSON.stringify(sanitize(feed)));

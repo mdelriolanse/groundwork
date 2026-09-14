@@ -3,7 +3,8 @@ export function createDemo(feed, seed, now = () => new Date().toISOString()) {
   const tape = feed.hops.filter(h => h.i <= 9);
   if (!tape.length || !Array.isArray(seed.incidents)) throw new Error('Demo fixtures unavailable');
   const title = value => value.replaceAll('_', ' ').replace(/^./, c => c.toUpperCase());
-  const incidents = seed.incidents.map((row, index) => ({
+  const assetId = value => typeof value === 'string' && /^[A-Za-z0-9-]{1,40}$/.test(value);
+  const incidents = seed.incidents.filter(row => assetId(row.asset_id)).map((row, index) => ({
     id: `INC-${index + 1}`, incident_id: index + 1,
     asset: row.asset_id, component: row.part,
     title: `${title(row.fault)} on ${row.part}`, fault: row.fault,
@@ -16,13 +17,14 @@ export function createDemo(feed, seed, now = () => new Date().toISOString()) {
     work_order: structuredClone(row.work_order || null), wo_id: row.work_order?.wo_id || null,
     ai: row.work_order ? 'Ready' : 'L1', area: feed.cell.name, cell: feed.cell.name,
   }));
+  if (!incidents.length) throw new Error('Demo fixtures unavailable');
   let count = 0;
   const history = [];
   function record() {
     const raw = structuredClone(tape[count % tape.length]);
     const latest = { ...raw, hop: count, ts: now(), seeded: true };
     for (const incident of incidents) {
-      if (incident.rms == null || !latest.assets?.[incident.asset]) continue;
+      if (incident.rms == null || !Object.hasOwn(latest.assets || {}, incident.asset)) continue;
       Object.assign(latest.assets[incident.asset], {
         rms: incident.rms, fault: incident.fault, source: incident.source,
         window: incident.window, rpm: incident.rpm,
