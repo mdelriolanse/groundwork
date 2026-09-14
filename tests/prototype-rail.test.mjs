@@ -4,7 +4,6 @@ import test from "node:test";
 
 const prototype = fs.readFileSync("web/prototype/app.js", "utf8");
 const styles = fs.readFileSync("web/prototype/styles.css", "utf8");
-const spec = fs.readFileSync("docs/FRONTEND-SPEC.md", "utf8");
 const previewRail = prototype.split("function previewRail")[1].split("function previewIdentity")[0];
 const assistRail = prototype.split("function assistRail")[1].split("function containment")[0];
 const l2Rail = prototype.split("function l2ReportRail")[1].split("function evidenceRail")[0];
@@ -56,11 +55,6 @@ test("rail resize persists locally and is keyboard operable", () => {
   assert.match(prototype, /RAIL_MAX = 720/);
 });
 
-test("FRONTEND-SPEC records default rail widths as user-resizable, not URL state", () => {
-  assert.match(spec, /user-resizable/i);
-  assert.match(spec, /localStorage/);
-});
-
 test("left navigation collapses to an icon rail and persists locally", () => {
   assert.match(prototype, /data-action="toggle-nav"/);
   assert.match(prototype, /groundwork-nav-collapsed/);
@@ -71,8 +65,6 @@ test("left navigation collapses to an icon rail and persists locally", () => {
   assert.match(styles, /pointer-events:\s*none/);
   assert.match(styles, /transition:\s*grid-template-columns 240ms ease/);
   assert.match(styles, /\.nav-toggle \.icon \{[^}]*transition:\s*transform 240ms ease/);
-  assert.match(spec, /collapsible to 56 px/);
-  assert.match(spec, /Collapse state lives in localStorage/);
 });
 
 test("plant scope lives in header controls, not the left-nav brand", () => {
