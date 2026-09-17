@@ -143,15 +143,16 @@ test("scroll diagnostic stays bound to the recorded RPP1 flag", () => {
 });
 
 
-test("hero names Groundwork and light field stays compositor-only", () => {
+test("hero names Groundwork and rises a gray-white bloom on the compositor", () => {
   assert.match(html, /class="hero-brand"[^>]*>[\s\S]*groundwork-mark\.svg[\s\S]*?Groundwork<\/p>/);
   assert.doesNotMatch(html, /brand-squares/);
   assert.match(css, /\.hero h1[\s\S]*max-width:\s*32ch/);
   assert.doesNotMatch(html, /hero-blocks|title-reveal|scroll-reveal/);
-  assert.doesNotMatch(css, /title-reveal|hero-blocks|--cover|--block-pulse/);
-  assert.match(css, /\.hero::before[\s\S]*will-change:\s*transform/);
-  const motion = css.match(/@keyframes light-drift[\s\S]+?(?=\.hero h1)/)[0];
-  assert.doesNotMatch(motion, /\b(?:rotate|scale)\s*\(/);
+  assert.doesNotMatch(css, /title-reveal|hero-blocks|--cover|--block-pulse|#004067|#F7F4EC/);
+  assert.match(css, /background-color:\s*#F7F8FA/);
+  assert.match(css, /@keyframes hero-rise[\s\S]*translate3d\(0,\s*26vh,\s*0\)/);
+  const rise = css.match(/@keyframes hero-rise[\s\S]+?(?=\.hero h1)/)[0];
+  assert.doesNotMatch(rise, /\b(?:rotate|scale|filter|background-position)\s*[:(]/);
   assert.match(html, /class="hero-more"[^>]*href="#content"/);
   assert.match(css, /html\s*\{\s*scroll-behavior:\s*smooth/);
 });

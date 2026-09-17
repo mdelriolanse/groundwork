@@ -63,46 +63,37 @@ img { display: block; }
   position: relative;
   isolation: isolate;
   overflow: hidden;
-  background: #f7f8fa;
+  background-color: #F7F8FA;
+  background-image: radial-gradient(circle at 50% 50%, rgba(0, 0, 0, 0) 58%, rgba(15, 23, 42, 0.06) 100%);
   border-bottom: 1px solid var(--border);
 }
 .hero::before, .hero::after {
   content: "";
   position: absolute;
-  inset: -40%;
   pointer-events: none;
   contain: paint;
-  backface-visibility: hidden;
-  transform: translateZ(0);
-  will-change: transform;
 }
 .hero::before {
+  inset: -32vh 0 0;
   z-index: -2;
-  background:
-    radial-gradient(ellipse 34% 42% at 28% 32%, #7b879d 0%, #aab6c8 38%, transparent 76%),
-    radial-gradient(ellipse 40% 36% at 76% 72%, #8d93a7 0%, #bcc1d0 38%, transparent 76%);
-  animation: light-sweep 1.4s cubic-bezier(.16, 1, .3, 1) both, light-drift 28s 1.4s linear infinite alternate;
+  background-image:
+    radial-gradient(110% 42vh at 50% 100%, #9AA0A8 0%, #6B717A 22%, #4B515A 44%, #8B929C 64%, #3A4048 76%, rgba(58, 64, 72, 0) 82%),
+    radial-gradient(46% 22vh at 50% 100%, rgba(148, 153, 160, 0.32) 0%, rgba(107, 113, 122, 0.12) 38%, rgba(107, 113, 122, 0) 70%),
+    radial-gradient(56% 28vh at 50% 100%, rgba(71, 76, 84, 0.14) 0%, rgba(71, 76, 84, 0) 76%);
+  backface-visibility: hidden;
+  transform: translate3d(0, 0, 0);
+  animation: hero-rise 1.15s cubic-bezier(.16, 1, .3, 1) both;
 }
 .hero::after {
+  inset: 0;
   z-index: -1;
-  background: radial-gradient(ellipse 40% 46% at 50% 48%, #ffffff 0%, #ffffffa6 35%, transparent 78%);
-  animation: light-settle 1.4s cubic-bezier(.16, 1, .3, 1) both, light-breathe 20s 1.4s ease-in-out infinite alternate;
+  background-image: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='120' height='120'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/></filter><rect width='100%' height='100%' filter='url(%23n)' opacity='0.14'/></svg>");
+  background-size: 120px 120px;
+  mix-blend-mode: overlay;
 }
-@keyframes light-sweep {
-  from { opacity: .35; transform: translate3d(18vw, 10vh, 0) scale(1.12); }
-  to { opacity: 1; transform: translate3d(-4vw, -2vh, 0) scale(1); }
-}
-@keyframes light-settle {
-  from { opacity: .15; transform: translate3d(-14vw, 8vh, 0) scale(1.18); }
-  to { opacity: .55; transform: translate3d(3vw, -2vh, 0) scale(1); }
-}
-@keyframes light-drift {
-  from { transform: translate3d(-4vw, -2vh, 0); }
-  to { transform: translate3d(4vw, 2vh, 0); }
-}
-@keyframes light-breathe {
-  from { opacity: .55; transform: translate3d(3vw, -2vh, 0); }
-  to { opacity: 1; transform: translate3d(-3vw, 2vh, 0); }
+@keyframes hero-rise {
+  from { transform: translate3d(0, 26vh, 0); }
+  to { transform: translate3d(0, 0, 0); }
 }
 .hero h1 {
   grid-row: 2;
@@ -219,7 +210,7 @@ h4 { margin: 0; font-size: 28px; font-weight: 500; line-height: 1.2; letter-spac
 
 @media (prefers-reduced-motion: reduce) {
   html { scroll-behavior: auto; }
-  .hero::before, .hero::after { animation: none; }
+  .hero::before { animation: none; }
 }
 
 .line-view { height: 360px; background: #e9edf1; }
@@ -267,8 +258,8 @@ h4 { margin: 0; font-size: 28px; font-weight: 500; line-height: 1.2; letter-spac
   bottom: 28px;
   z-index: 1;
   display: flex;
-  color: var(--primary);
-  opacity: .4;
+  color: #F7F8FA;
+  opacity: .55;
   transform: translate3d(-50%, 0, 0);
   animation: hero-more-nudge 1.8s ease-in-out infinite alternate;
 }
